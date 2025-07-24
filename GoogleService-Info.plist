@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CLIENT_ID</key>
+	<string>638734892919-92pci50csekhi0lfgc9rau1doe23gpeu.apps.googleusercontent.com</string>
+	<key>REVERSED_CLIENT_ID</key>
+	<string>com.googleusercontent.apps.638734892919-92pci50csekhi0lfgc9rau1doe23gpeu</string>
+	<key>ANDROID_CLIENT_ID</key>
+	<string>638734892919-5f4fvbs37urj9agd5p0753bndr115g5k.apps.googleusercontent.com</string>
+	<key>API_KEY</key>
+	<string>AIzaSyDVox77ZmFF6hiZ5TnRSUvzs3GvE_K8Nxg</string>
+	<key>GCM_SENDER_ID</key>
+	<string>638734892919</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.freemalaysiatoday.app.fmtnews.ios</string>
+	<key>PROJECT_ID</key>
+	<string>fmt-news-app</string>
+	<key>STORAGE_BUCKET</key>
+	<string>fmt-news-app.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:638734892919:ios:7ede27790d894f32</string>
+	<key>DATABASE_URL</key>
+	<string>https://fmt-news-app.firebaseio.com</string>
+	<key>ADMOB_APP_ID</key>
+	<string>ca-app-pub-1691191334203390~9795180220</string>
+</dict>
+</plist>

@@ -1,0 +1,42 @@
+{
+  "cli": {
+    "version": ">= 12.4.1",
+    "appVersionSource": "remote"
+  },
+  "build": {
+     "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "ios": {
+        "simulator": true
+      }
+    },
+    "preview": {
+      "distribution": "internal"
+    },
+    "production": {
+      "autoIncrement": true
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "appleId": "mohit@freemalaysiatoday.com",
+        "ascAppId": "1455486968",
+        "appleTeamId": "DQZPRD9JRS",
+        "ascApiKeyPath": "./AuthKey_55TN7ZF8CT.p8",
+        "ascApiKeyId": "55TN7ZF8CT"
+      }
+    },
+    "preview": {},
+    "development" : {
+      "ios": {
+        "appleId": "mohit@freemalaysiatoday.com",
+        "ascAppId": "1455486968",
+        "appleTeamId": "DQZPRD9JRS",
+        "ascApiKeyPath": "./AuthKey_55TN7ZF8CT.p8",
+        "ascApiKeyId": "55TN7ZF8CT"
+      }
+    }
+  }
+}

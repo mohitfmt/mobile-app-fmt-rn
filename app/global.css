@@ -1,0 +1,20 @@
+/**
+ * global.css
+ *
+ * This file configures Tailwind CSS in the project.
+ * It imports the base styles, component styles, and utility classes.
+ *
+ * Features:
+ * - `@tailwind base` - Includes Tailwind's base styles (e.g., resets and defaults).
+ * - `@tailwind components` - Enables custom component styles.
+ * - `@tailwind utilities` - Provides access to Tailwind's utility classes.
+ *
+ * This file should be imported at the root of the project to apply global styles.
+ *
+ * @author FMT Developers
+ */
+
+ @tailwind base;
+ @tailwind components;
+ @tailwind utilities;
+ 

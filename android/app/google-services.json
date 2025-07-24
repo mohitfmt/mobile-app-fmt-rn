@@ -1,0 +1,65 @@
+{
+  "project_info": {
+    "project_number": "638734892919",
+    "firebase_url": "https://fmt-news-app.firebaseio.com",
+    "project_id": "fmt-news-app",
+    "storage_bucket": "fmt-news-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638734892919:android:4e1ee29ad54d466a",
+        "android_client_info": {
+          "package_name": "com.freemalaysiatoday.app.fmtnews.android"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "638734892919-5f4fvbs37urj9agd5p0753bndr115g5k.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freemalaysiatoday.app.fmtnews.android",
+            "certificate_hash": "f64bf36beec3345074d4e689af52d45714258783"
+          }
+        },
+        {
+          "client_id": "638734892919-5ubnqt6uniduv3vor0sich6bttf5uepf.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.freemalaysiatoday.app.fmtnews.android",
+            "certificate_hash": "9c250f876034c3c1922392d8de22d8fa1b31e433"
+          }
+        },
+        {
+          "client_id": "638734892919-i7ds656kbg990hd92k5gm2k02gnebkcn.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBR6FA7Wfu1yhbEI3BmT7AhWHCmM0RBmt8"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "638734892919-i7ds656kbg990hd92k5gm2k02gnebkcn.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "638734892919-92pci50csekhi0lfgc9rau1doe23gpeu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.freemalaysiatoday.app.fmtnews.ios",
+                "app_store_id": "1455486968"
+              }
+            }
+          ]
+        }
+      },
+      "admob_app_id": "ca-app-pub-1691191334203390~5037677560"
+    }
+  ],
+  "configuration_version": "1"
+}
