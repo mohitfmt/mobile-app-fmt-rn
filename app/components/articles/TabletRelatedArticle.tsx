@@ -24,6 +24,7 @@ import {
   StyleSheet,
   Share,
   Animated,
+  Platform,
 } from "react-native";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
@@ -140,7 +141,8 @@ const TabletRelatedArticle = ({
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: 20,
-                fontFamily: "SF-Pro-Display-Bold",
+                fontFamily:
+                  Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
               },
             ]}
           >
@@ -156,7 +158,10 @@ const TabletRelatedArticle = ({
                 {
                   fontSize: 15,
                   color: "#6b6b6b",
-                  fontFamily: "SF-Pro-Display-Medium",
+                  fontFamily:
+                    Platform.OS === "android"
+                      ? undefined
+                      : "SF-Pro-Display-Medium",
                 },
               ]}
             >
@@ -226,7 +231,8 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#999",
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   timeAuthorWrapper: {
     flexDirection: "row",

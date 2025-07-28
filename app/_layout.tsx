@@ -20,8 +20,8 @@ globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import { useContext, useEffect, useState } from "react";
-import { Linking, Platform, PermissionsAndroid } from "react-native";
+import React, { useContext, useEffect, useState } from "react";
+import { Linking, Platform, PermissionsAndroid, Text } from "react-native";
 import messaging from "@react-native-firebase/messaging";
 import notifee, {
   AndroidImportance,
@@ -46,6 +46,15 @@ import ConnectionErrorNotification from "./NetworkBanner";
 import axios from "axios";
 import { router } from "expo-router";
 import { VisitedArticlesProvider } from "@/app/providers/VisitedArticleProvider";
+
+if (Platform.OS === "android") {
+  if (Text) {
+    (Text as any).defaultProps = (Text as any).defaultProps || {};
+    (Text as any).defaultProps.allowFontScaling = false;
+    (Text as any).defaultProps.includeFontPadding = false;
+    console.log("Android text defaults applied");
+  }
+}
 
 // Constants: Navigation timeout, notification channel ID, topic mappings for push notifications.
 const NAVIGATION_TIMEOUT = 2000;
@@ -347,9 +356,6 @@ const initializeNotifications = async () => {
 };
 
 export default function RootLayout() {
-  const { isOnline, setIsOnline } = useContext(ThemeContext);
-  const { refreshLandingPages } = useLandingData();
-
   const [loaded] = useFonts({
     "SF-Pro-Display-Bold": require("./assets/fonts/SF-Pro/SF-Pro-Display-Bold.otf"),
     "SF-Pro-Display-Black": require("./assets/fonts/SF-Pro/SF-Pro-Display-Black.otf"),
@@ -366,47 +372,34 @@ export default function RootLayout() {
     "SF-Pro-Text-Light": require("./assets/fonts/SF-Pro/SF-Pro-Text-Light.otf"),
   });
 
-  // Hide splash screen once fonts are loaded
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
     }
   }, [loaded]);
 
-  // Initialize analytics tracking and notification handling
   useEffect(() => {
-    const init = async () => {
-      // Initialize analytics
-      await analytics().logEvent("screen_view", {
-        screen_name: "Home",
-        screen_class: "HomeScreen",
-      });
+    if (loaded) {
+      const init = async () => {
+        try {
+          await analytics().logEvent("screen_view", {
+            screen_name: "Home",
+            screen_class: "HomeScreen",
+          });
+          await initializeNotifications();
+        } catch (error) {
+          console.error("Initialization error:", error);
+        }
+      };
+      init();
+    }
+  }, [loaded]);
 
-      // Initialize notifications
-      await initializeNotifications();
-    };
-
-    init();
-  }, []);
-
-  // Return null if fonts are not loaded yet
   if (!loaded) {
     return null;
   }
 
-  // Handle retry action for network reconnection
-  const handleTryAgain = async () => {
-    try {
-      await axios.head("https://www.google.com", { timeout: 3000 });
-      setIsOnline(true);
-      await refreshLandingPages();
-    } catch (err: unknown) {
-      setIsOnline(false);
-      const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      // console.log('RootLayout: Reconnection failed', errorMessage);
-    }
-  };
-
+  // Return providers in correct order
   return (
     <ThemeProvider>
       <GlobalSettingsProvider>
@@ -416,52 +409,7 @@ export default function RootLayout() {
               <DataProvider>
                 <LandingDataProvider>
                   <VisitedArticlesProvider>
-                    <Stack>
-                      <Stack.Screen
-                        name="index"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/bookmark/Bookmark"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/search/Search"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/articles/Article"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/articles/NetworkArticle"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/tags/Tags"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/categoryPage/CategoryPage"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/settings/Settings"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/videos/CategoryVideoPage"
-                        options={{ headerShown: false }}
-                      />
-                      <Stack.Screen
-                        name="components/mainCategory/SwipableArticle"
-                        options={{ headerShown: false }}
-                      />
-                    </Stack>
-                    <ConnectionErrorNotification
-                      onTryAgain={handleTryAgain}
-                      visible={!isOnline}
-                    />
+                    <AppNavigator />
                   </VisitedArticlesProvider>
                 </LandingDataProvider>
               </DataProvider>
@@ -470,5 +418,70 @@ export default function RootLayout() {
         </Provider>
       </GlobalSettingsProvider>
     </ThemeProvider>
+  );
+}
+
+function AppNavigator() {
+  const { isOnline, setIsOnline } = useContext(ThemeContext);
+  const { refreshLandingPages } = useLandingData();
+
+  const handleTryAgain = async () => {
+    try {
+      await axios.head("https://www.google.com", { timeout: 3000 });
+      setIsOnline(true);
+      await refreshLandingPages();
+    } catch (err: unknown) {
+      setIsOnline(false);
+      const errorMessage = err instanceof Error ? err.message : "Unknown error";
+      console.log("Reconnection failed", errorMessage);
+    }
+  };
+
+  return (
+    <>
+      <Stack>
+        <Stack.Screen name="index" options={{ headerShown: false }} />
+        <Stack.Screen
+          name="components/bookmark/Bookmark"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/search/Search"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/articles/Article"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/articles/NetworkArticle"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/tags/Tags"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/categoryPage/CategoryPage"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/settings/Settings"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/videos/CategoryVideoPage"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="components/mainCategory/SwipableArticle"
+          options={{ headerShown: false }}
+        />
+      </Stack>
+      <ConnectionErrorNotification
+        onTryAgain={handleTryAgain}
+        visible={!isOnline}
+      />
+    </>
   );
 }

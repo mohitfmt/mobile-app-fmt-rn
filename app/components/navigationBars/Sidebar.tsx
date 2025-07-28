@@ -337,7 +337,7 @@ const styles = StyleSheet.create({
   expandedCategoryHeader: {},
   categoryText: {
     textTransform: "uppercase",
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
     paddingVertical: 8,
   },
   selectedText: {
@@ -347,7 +347,7 @@ const styles = StyleSheet.create({
   subcategoryText: {
     color: "#333",
     textTransform: "uppercase",
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
     paddingVertical: 18,
   },
 });

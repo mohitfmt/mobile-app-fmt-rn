@@ -24,6 +24,7 @@ import {
   ScrollView,
   TouchableOpacity,
   TextStyle,
+  Platform,
 } from "react-native";
 import { Parser } from "htmlparser2";
 import { decode } from "html-entities";
@@ -353,6 +354,14 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
   };
 
   const renderTextContent = (node: ParsedNode): React.ReactNode => {
+    const androidTextProps = Platform.select({
+      android: {
+        allowFontScaling: false,
+        includeFontPadding: false,
+        textBreakStrategy: "simple",
+      },
+      ios: {},
+    });
     // Handle plain text
     if (node.type === "text") {
       let text = decode((node.data || "").replace(/,([^\s])/g, ", $1"));
@@ -365,6 +374,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
 
       return (
         <Text
+          {...androidTextProps}
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
@@ -399,7 +409,10 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
-            fontFamily: "SF-Pro-Display-MediumItalic",
+            fontFamily:
+              Platform.OS === "android"
+                ? undefined
+                : "SF-Pro-Display-MediumItalic",
             fontSize: 19,
           }}
         >
@@ -419,7 +432,10 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
-            fontFamily: "SF-Pro-Display-RegularItalic",
+            fontFamily:
+              Platform.OS === "android"
+                ? undefined
+                : "SF-Pro-Display-RegularItalic",
           }}
         >
           {node.children?.map((child, index) => (
@@ -438,7 +454,9 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
-            fontFamily: "SF-Pro-Display-Semibold",
+            fontFamily:
+              Platform.OS === "android" ? undefined : "SF-Pro-Display-Semibold",
+            fontWeight: "bold",
             fontSize: getArticleTextSize(19.0, ""),
             color: theme.textColor,
           }}
@@ -528,7 +546,11 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
         <Text
           style={{
             color: theme.textColor,
-            fontFamily: "SF-Pro-Display-RegularItalic",
+            fontFamily:
+              Platform.OS === "android"
+                ? undefined
+                : "SF-Pro-Display-RegularItalic",
+            fontStyle: "italic",
           }}
         >
           {decode(node.data || "")}
@@ -968,17 +990,33 @@ const styles = StyleSheet.create({
   caption1: {
     marginTop: 3,
     textAlign: "center",
-    fontFamily: "SF-Pro-Display-RegularItalic",
+    fontFamily: Platform.select({
+      ios: "SF-Pro-Display-RegularItalic",
+      android: undefined, // Use system font on Android
+    }),
   },
   paragraph: {
-    lineHeight: 24,
+    lineHeight: Platform.select({
+      ios: 24,
+      android: 28, // Increased line height for Android
+    }),
     marginVertical: 8,
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.select({
+      ios: "SF-Pro-Display-Regular",
+      android: undefined, // Use system font on Android
+    }),
+    fontWeight: Platform.OS === "android" ? "normal" : undefined,
     textAlign: "left",
-    width: "100%",
+    width: "95%",
+    alignSelf: "flex-start",
+    ...Platform.select({
+      android: {
+        includeFontPadding: false,
+        textAlignVertical: "center",
+      },
+    }),
     flexShrink: 1,
     flexWrap: "wrap",
-    alignSelf: "stretch",
     // Add these properties for One UI 6.0+ compatibility
     flexBasis: "auto",
     minWidth: 0,
@@ -986,10 +1024,21 @@ const styles = StyleSheet.create({
     includeFontPadding: false, // ← important for Android text clipping
   },
   italicText: {
-    fontFamily: "SF-Pro-Display-RegularItalic",
+    fontStyle: "italic",
+    fontFamily: Platform.select({
+      ios: "SF-Pro-Display-RegularItalic",
+      android: undefined,
+    }),
   },
   strongText: {
-    fontFamily: "SF-Pro-Display-Semibold",
+    fontWeight: Platform.select({
+      ios: "bold",
+      android: "bold", // Use numeric weight on Android
+    }),
+    fontFamily: Platform.select({
+      ios: "SF-Pro-Display-Bold",
+      android: undefined,
+    }),
     lineHeight: 24,
     flexShrink: 1,
     flexWrap: "wrap",
@@ -1024,7 +1073,8 @@ const styles = StyleSheet.create({
   bullet: {
     fontSize: 19,
     lineHeight: 24,
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
     width: 24,
     textAlign: "left",
   },
@@ -1036,7 +1086,10 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     flexShrink: 1,
     flexWrap: "wrap",
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.select({
+      ios: "SF-Pro-Display-Regular",
+      android: undefined,
+    }),
     width: "90%", // or flex: 1
   },
   blockquote: {
@@ -1049,7 +1102,10 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   embeddedTitle: {
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.select({
+      ios: "SF-Pro-Display-Regular",
+      android: undefined,
+    }),
     color: "#c62828",
     textDecorationLine: "underline",
     fontWeight: "bold",
@@ -1057,7 +1113,10 @@ const styles = StyleSheet.create({
   linkText: {
     textDecorationLine: "underline",
     color: "#ff0000",
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.select({
+      ios: "SF-Pro-Display-Regular",
+      android: undefined,
+    }),
   },
   textContainer: {
     width: "100%",

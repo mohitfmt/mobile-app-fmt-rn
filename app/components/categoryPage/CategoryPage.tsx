@@ -620,7 +620,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     textTransform: "uppercase",
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
   },
   emptyContainer: {
     flex: 1,

@@ -94,7 +94,8 @@ const styles = StyleSheet.create({
   },
   adText: {
     marginBottom: 5,
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   separator: {
     height: 10,

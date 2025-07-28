@@ -15,7 +15,7 @@
 // -----------------------------------------------------------------------------
 
 import React, { useEffect, useState, useCallback, useContext } from "react";
-import { View, Text, FlatList, TouchableOpacity } from "react-native";
+import { View, Text, FlatList, TouchableOpacity, Platform } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Bookmark, X } from "lucide-react-native";
@@ -173,7 +173,8 @@ export default function Bookmarks() {
         <Text
           className="text-center"
           style={{
-            fontFamily: "SF-Pro-Text-Bold",
+            fontFamily:
+              Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
             color: theme.textColor,
             fontSize: getArticleTextSize(28.0, textSize),
             marginBottom: 0,
@@ -193,7 +194,8 @@ export default function Bookmarks() {
           >
             <Text
               style={{
-                fontFamily: "SF-Pro-Text-Regular",
+                fontFamily:
+                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
                 fontSize: 16,
                 lineHeight: 22,
                 color: "#6c6c6c",
@@ -208,7 +210,8 @@ export default function Bookmarks() {
             />
             <Text
               style={{
-                fontFamily: "SF-Pro-Text-Regular",
+                fontFamily:
+                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
                 fontSize: 16,
                 lineHeight: 22,
                 color: "#6c6c6c",
@@ -218,7 +221,8 @@ export default function Bookmarks() {
             </Text>
             <Text
               style={{
-                fontFamily: "SF-Pro-Text-Regular",
+                fontFamily:
+                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
                 fontSize: 16,
                 lineHeight: 22,
                 color: "#6c6c6c",
@@ -289,7 +293,8 @@ export default function Bookmarks() {
         </TouchableOpacity>
         <Text
           style={{
-            fontFamily: "SF-Pro-Display-Black",
+            fontFamily:
+              Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
             color: theme.textColor,
             fontSize: getArticleTextSize(24, textSize),
           }}

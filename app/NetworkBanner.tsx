@@ -26,6 +26,7 @@ import {
   StyleSheet,
   Animated,
   TouchableWithoutFeedback,
+  Platform,
 } from "react-native";
 import { GlobalSettingsContext } from "./providers/GlobalSettingsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -189,14 +190,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "white",
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
   },
   button: {
     // No background needed as it's just text
   },
   buttonText: {
     color: "white",
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
   },
 });
 

@@ -13,6 +13,7 @@
  * @author FMT Developers
  */
 
+import { Platform } from "react-native";
 import { StyleSheet } from "react-native";
 
 const articleStyles = StyleSheet.create({
@@ -99,7 +100,7 @@ const articleStyles = StyleSheet.create({
     color: "white",
     alignSelf: "flex-start",
     fontWeight: "600",
-    fontFamily: "SF-Pro-Text-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
     paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: 2,
@@ -111,15 +112,16 @@ const articleStyles = StyleSheet.create({
     marginBottom: 12,
   },
   excerpt: {
-    fontFamily: "SF-Pro-Display-RegularItalic",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-RegularItalic",
   },
   author: {
     fontWeight: "bold",
-    fontFamily: "SF-Pro-Text-Bold",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
   },
   date: {
     paddingTop: 5,
-    fontFamily: "SF-Pro-Text-Light",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Light",
   },
   featuredImageContainer: {
     paddingTop: 18,
@@ -133,12 +135,12 @@ const articleStyles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     paddingHorizontal: 16,
-    fontFamily: "SF-Pro-Text-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
     fontStyle: "italic",
   },
   articleContent: {
     fontSize: 18,
-    fontFamily: "SF-Pro-Text-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
     lineHeight: 24, // Improves readability
   },
 
@@ -149,7 +151,7 @@ const articleStyles = StyleSheet.create({
   tagsSectionTitle: {
     color: "#808080",
     paddingTop: 10,
-    fontFamily: "SF-Pro-Text-Light",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Light",
   },
   tagsWrapper: {
     flexDirection: "row",
@@ -164,12 +166,12 @@ const articleStyles = StyleSheet.create({
     marginBottom: 5,
   },
   tagText: {
-    fontFamily: "SF-Pro-Text-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
   },
 
   // Related Articles Section
   relatedTitle: {
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
   },
   relatedArticleContainer: {
     marginVertical: 16,

@@ -15,6 +15,7 @@
 import React, { useContext, useEffect, useState } from "react";
 import {
   Dimensions,
+  Platform,
   Text,
   TouchableOpacity,
   useWindowDimensions,
@@ -159,7 +160,8 @@ const ArticleContent = React.memo(
               paddingBottom: 5,
               paddingTop: 5,
               fontSize: getArticleTextSize(30.0, textSize),
-              fontFamily: "SF-Pro-Display-Bold",
+              fontFamily:
+                Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
               paddingHorizontal: 18,
             }}
           >
@@ -282,7 +284,10 @@ const ArticleContent = React.memo(
                   <Text
                     className=" text-sm mb-2 text-left"
                     style={{
-                      fontFamily: "SF-Pro-Display-Light",
+                      fontFamily:
+                        Platform.OS === "android"
+                          ? undefined
+                          : "SF-Pro-Display-Light",
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
@@ -295,7 +300,10 @@ const ArticleContent = React.memo(
                       className="text-base"
                       style={{
                         color: theme.textColor,
-                        fontFamily: "SF-Pro-Display-Bold",
+                        fontFamily:
+                          Platform.OS === "android"
+                            ? undefined
+                            : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
                       }}
                       numberOfLines={4}
@@ -324,7 +332,10 @@ const ArticleContent = React.memo(
                   <Text
                     className="text-sm mb-2 text-right"
                     style={{
-                      fontFamily: "SF-Pro-Display-Light",
+                      fontFamily:
+                        Platform.OS === "android"
+                          ? undefined
+                          : "SF-Pro-Display-Light",
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
@@ -337,7 +348,10 @@ const ArticleContent = React.memo(
                       className="text-base text-right"
                       style={{
                         color: theme.textColor,
-                        fontFamily: "SF-Pro-Display-Bold",
+                        fontFamily:
+                          Platform.OS === "android"
+                            ? undefined
+                            : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
                       }}
                       numberOfLines={4}

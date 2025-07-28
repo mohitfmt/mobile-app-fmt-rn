@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   categoryTitle: {
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
     marginBottom: 12,
     marginTop: 12,
   },

@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   relatedTitle: {
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
     textAlign: "center",
     flex: 1,
   },
@@ -211,7 +211,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   refreshButton: {
     paddingVertical: 12,
@@ -222,7 +223,8 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "600",
     fontSize: 15,
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
 });
 

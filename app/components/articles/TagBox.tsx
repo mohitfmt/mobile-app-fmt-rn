@@ -13,7 +13,13 @@
 // -----------------------------------------------------------------------------
 
 import React, { useContext } from "react";
-import { Text, TouchableOpacity, View, StyleSheet } from "react-native";
+import {
+  Text,
+  TouchableOpacity,
+  View,
+  StyleSheet,
+  Platform,
+} from "react-native";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
@@ -75,7 +81,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   tagText: {
-    fontFamily: "SF-Pro-Text-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
   },
 });
 

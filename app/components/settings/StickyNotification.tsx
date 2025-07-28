@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     flex: 1,
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   closeButton: {
     marginLeft: 16,

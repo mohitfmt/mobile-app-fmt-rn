@@ -314,12 +314,12 @@ const styles = StyleSheet.create({
   },
   textContainer: {},
   title: {
-    fontFamily: "SF-Pro-Display-Bold",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
     paddingTop: 6,
   },
   excerpt: {
     lineHeight: 18,
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
     paddingTop: 10,
   },
   footer: {
@@ -330,7 +330,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   timeText: {
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
   },
   actionButtons: {
     flexDirection: "row",

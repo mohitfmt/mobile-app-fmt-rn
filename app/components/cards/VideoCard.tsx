@@ -26,6 +26,7 @@ import {
   useWindowDimensions,
   Linking,
   Image,
+  Platform,
 } from "react-native";
 import { Play } from "lucide-react-native";
 import { ShareIcon } from "@/app/assets/AllSVGs"; // Use ShareIcon instead of Share2
@@ -246,11 +247,11 @@ const styles = StyleSheet.create({
   },
   title: {
     fontWeight: "bold",
-    fontFamily: "SF-Pro-Text-Bold",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
   },
   excerpt: {
     lineHeight: 18,
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
     paddingTop: 10,
     color: "#9e9e9e",
   },

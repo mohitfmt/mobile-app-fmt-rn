@@ -528,7 +528,8 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: "800",
   },
   indicator: {
     position: "absolute",

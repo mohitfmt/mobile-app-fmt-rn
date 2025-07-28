@@ -23,6 +23,7 @@ import {
   StyleSheet,
   Easing,
   useWindowDimensions,
+  Platform,
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { getArticleTextSize } from "../functions/Functions";
@@ -470,7 +471,7 @@ const styles = StyleSheet.create({
   relatedTitle: {
     flex: 1,
     textAlign: "center",
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
     fontWeight: "bold",
     textTransform: "uppercase",
   },

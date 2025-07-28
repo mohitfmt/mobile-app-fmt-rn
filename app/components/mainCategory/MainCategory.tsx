@@ -410,47 +410,73 @@ const HomeLandingSection = ({
   const flashListRef = useRef<FlashList<ArticleType>>(null);
   const [expanded, setExpanded] = useState(false);
   const { setMainData } = useContext(DataContext);
-  const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(new Set());
+  const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
+    new Set()
+  );
   const [dataReady, setDataReady] = useState(false);
   const { markAsVisited } = useVisitedArticles();
   const { shouldUseTabletLayout } = useDeviceType();
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
-const [refreshing, setRefreshing] = useState(false);
-const lastAutoRefreshRef = useRef<number>(Date.now());
+  const [refreshing, setRefreshing] = useState(false);
+  const lastAutoRefreshRef = useRef<number>(Date.now());
 
   const categoryKey = useMemo(() => {
     switch (categoryName.toLowerCase()) {
-      case "home": return "home-landing";
-      case "videos": return "videos-landing";
-      case "berita": return "berita-landing";
-      case "opinion": return "opinion-landing";
-      case "business": return "business-landing";
-      case "world": return "world-landing";
-      case "sports": return "sports-landing";
-      case "news": return "news-landing";
-      case "property": return "property-landing";
-      case "lifestyle": return "lifestyle-landing";
-      case "nation": return "nation-landing";
-      case "ohsem": return "ohsem-landing";
-      default: return categoryName.toLowerCase();
+      case "home":
+        return "home-landing";
+      case "videos":
+        return "videos-landing";
+      case "berita":
+        return "berita-landing";
+      case "opinion":
+        return "opinion-landing";
+      case "business":
+        return "business-landing";
+      case "world":
+        return "world-landing";
+      case "sports":
+        return "sports-landing";
+      case "news":
+        return "news-landing";
+      case "property":
+        return "property-landing";
+      case "lifestyle":
+        return "lifestyle-landing";
+      case "nation":
+        return "nation-landing";
+      case "ohsem":
+        return "ohsem-landing";
+      default:
+        return categoryName.toLowerCase();
     }
   }, [categoryName]);
 
   const fullArticles = landingData[categoryKey] || [];
 
-  const validArticles = useMemo(() => fullArticles.filter((item: any) => {
-    const isMeta = ["AD_ITEM", "MORE_ITEM", "CARD_TITLE", "LOADING_ITEM"].includes(item.type);
-    const isVideo = item.type?.toLowerCase?.().includes("video");
-    const isYouTube = item.permalink?.includes?.("youtube.com");
-    return !isMeta && !isVideo && !isYouTube;
-  }), [fullArticles]);
+  const validArticles = useMemo(
+    () =>
+      fullArticles.filter((item: any) => {
+        const isMeta = [
+          "AD_ITEM",
+          "MORE_ITEM",
+          "CARD_TITLE",
+          "LOADING_ITEM",
+        ].includes(item.type);
+        const isVideo = item.type?.toLowerCase?.().includes("video");
+        const isYouTube = item.permalink?.includes?.("youtube.com");
+        return !isMeta && !isVideo && !isYouTube;
+      }),
+    [fullArticles]
+  );
 
   const visibleData = useMemo(() => {
     if (sectionVisible && !expanded) {
       setExpanded(true);
       return fullArticles;
     } else if (!expanded) {
-      const firstAdIndex = fullArticles.findIndex(item => item.type === "AD_ITEM");
+      const firstAdIndex = fullArticles.findIndex(
+        (item) => item.type === "AD_ITEM"
+      );
       const sliceIndex = firstAdIndex !== -1 ? firstAdIndex + 1 : 5;
       return fullArticles.slice(0, sliceIndex);
     }
@@ -498,10 +524,18 @@ const lastAutoRefreshRef = useRef<number>(Date.now());
         const isLastAttempt = attempt === maxRetries;
         const errorMsg = (err as AxiosError).message;
         if (isLastAttempt) {
-          console.warn(`Failed to fetch ${feed.key} after ${maxRetries + 1} attempts: ${errorMsg}`);
+          console.warn(
+            `Failed to fetch ${feed.key} after ${
+              maxRetries + 1
+            } attempts: ${errorMsg}`
+          );
         } else {
-          console.warn(`Attempt ${attempt + 1} failed for ${feed.key}, retrying...`);
-          await new Promise((resolve) => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+          console.warn(
+            `Attempt ${attempt + 1} failed for ${feed.key}, retrying...`
+          );
+          await new Promise((resolve) =>
+            setTimeout(resolve, Math.pow(2, attempt) * 1000)
+          );
         }
       }
     }
@@ -509,8 +543,8 @@ const lastAutoRefreshRef = useRef<number>(Date.now());
   };
 
   const fetchIfNeeded = async () => {
-      if (!sectionVisible || isCategoryLoading) return;
-      // Check cooldown
+    if (!sectionVisible || isCategoryLoading) return;
+    // Check cooldown
     const now = Date.now();
     const lastFetch = refreshCooldownMap[categoryKey] || 0;
     if (now - lastFetch < 10000) {
@@ -518,54 +552,57 @@ const lastAutoRefreshRef = useRef<number>(Date.now());
       return;
     }
 
-
-      // If offline, try to load cached data
-      if (!isOnline) {
-        const cachedData = await getCachedData(categoryKey);
-        if (cachedData && hasCachedData(cachedData)) {
-          setLandingData((prev) => ({ ...prev, [categoryKey]: cachedData }));
-          const filteredData = filterValidArticles(cachedData);
-          if (filteredData.length > 0) {
-            setFilteredLandingData((prev) => ({ ...prev, [categoryKey]: filteredData }));
-          }
-          setDataReady(true);
-          return;
+    // If offline, try to load cached data
+    if (!isOnline) {
+      const cachedData = await getCachedData(categoryKey);
+      if (cachedData && hasCachedData(cachedData)) {
+        setLandingData((prev) => ({ ...prev, [categoryKey]: cachedData }));
+        const filteredData = filterValidArticles(cachedData);
+        if (filteredData.length > 0) {
+          setFilteredLandingData((prev) => ({
+            ...prev,
+            [categoryKey]: filteredData,
+          }));
         }
-        console.warn(`Offline and no cached data for ${categoryKey}`);
-        setDataReady(true); // Allow rendering to show OfflineFallback
+        setDataReady(true);
+        return;
+      }
+      console.warn(`Offline and no cached data for ${categoryKey}`);
+      setDataReady(true); // Allow rendering to show OfflineFallback
+      return;
+    }
+
+    refreshCooldownMap[categoryKey] = now;
+    setIsCategoryLoading(true);
+
+    try {
+      const feed = [...landingFeeds, ...youtubeFeeds].find(
+        (item) => item.key === categoryKey
+      );
+      if (!feed) {
+        console.warn(`No matching feed found for category "${categoryKey}"`);
         return;
       }
 
-
-      refreshCooldownMap[categoryKey] = now;
-      setIsCategoryLoading(true);
-
-      try {
-        const feed = [...landingFeeds, ...youtubeFeeds].find(item => item.key === categoryKey);
-        if (!feed) {
-          console.warn(`No matching feed found for category "${categoryKey}"`);
-          return;
+      const result = await fetchCategoryWithRetry(feed);
+      if (result) {
+        const { key, data } = result;
+        const filteredData = filterValidArticles(data);
+        setLandingData((prev) => ({ ...prev, [key]: data }));
+        if (filteredData.length > 0) {
+          setFilteredLandingData((prev) => ({ ...prev, [key]: filteredData }));
         }
-
-        const result = await fetchCategoryWithRetry(feed);
-        if (result) {
-          const { key, data } = result;
-          const filteredData = filterValidArticles(data);
-          setLandingData((prev) => ({ ...prev, [key]: data }));
-          if (filteredData.length > 0) {
-            setFilteredLandingData((prev) => ({ ...prev, [key]: filteredData }));
-          }
-        }
-      } catch (err) {
-        console.error(`Failed to fetch data for ${categoryKey}:`, err);
-      } finally {
-        setIsCategoryLoading(false);
       }
-    };
+    } catch (err) {
+      console.error(`Failed to fetch data for ${categoryKey}:`, err);
+    } finally {
+      setIsCategoryLoading(false);
+    }
+  };
 
   useEffect(() => {
     fetchIfNeeded();
-  }, [sectionVisible, categoryKey, isOnline,dataReady]);
+  }, [sectionVisible, categoryKey, isOnline, dataReady]);
 
   useEffect(() => {
     if (!isLoading && (hasCachedData(visibleData) || !isOnline)) {
@@ -736,17 +773,15 @@ const lastAutoRefreshRef = useRef<number>(Date.now());
       }
       switch (item.type) {
         case "CARD_TITLE":
-          layout.size = 60;
+          layout.size = Platform.OS === "android" ? 70 : 60;
           break;
         case "MORE_ITEM":
-          layout.size = 50;
+          layout.size = Platform.OS === "android" ? 60 : 50;
           break;
         case "AD_ITEM":
           layout.size = 360;
           break;
         case "featured":
-          layout.size = shouldUseTabletLayout ? 450 : 400;
-          break;
         case "video-featured":
           layout.size = shouldUseTabletLayout ? 450 : 400;
           break;
@@ -758,10 +793,10 @@ const lastAutoRefreshRef = useRef<number>(Date.now());
   );
 
   const handleRefresh = async () => {
-  setRefreshing(true);
-  await fetchIfNeeded(); // you already defined this in your useEffect
-  setRefreshing(false);
-};
+    setRefreshing(true);
+    await fetchIfNeeded(); // you already defined this in your useEffect
+    setRefreshing(false);
+  };
 
   const hasScrolledTopOnceRef = useRef(false);
 
@@ -796,40 +831,39 @@ const lastAutoRefreshRef = useRef<number>(Date.now());
         },
       ]}
     >
-    <AnimatedFlashList
-  ref={flashListRef}
-  data={visibleData}
-  renderItem={renderItem}
-  keyExtractor={keyExtractor}
-  estimatedItemSize={shouldUseTabletLayout ? 180 : 140}
-  getItemType={getItemType}
-  overrideItemLayout={overrideItemLayout}
-  scrollEventThrottle={16}
-  drawDistance={500}
-  onEndReachedThreshold={0.5}
-  refreshControl={
-    <RefreshControl
-      refreshing={refreshing}
-      onRefresh={handleRefresh}
-      tintColor="#999"
-      colors={["#DC2626"]}
-    />
-  }
-  viewabilityConfig={{
-    itemVisiblePercentThreshold: 50,
-    waitForInteraction: false,
-  }}
-  onViewableItemsChanged={handleViewableItemsChanged}
-  onScroll={onScroll}
-  showsVerticalScrollIndicator={false}
-  numColumns={1}
-  contentContainerStyle={
-    shouldUseTabletLayout ? { paddingHorizontal: 0 } : undefined
-  }
-  disableAutoLayout={shouldUseTabletLayout}
-  ListFooterComponent={() => <View style={{ height: 150 }} />}
-/>
-
+      <AnimatedFlashList
+        ref={flashListRef}
+        data={visibleData}
+        renderItem={renderItem}
+        keyExtractor={keyExtractor}
+        estimatedItemSize={shouldUseTabletLayout ? 180 : 140}
+        getItemType={getItemType}
+        overrideItemLayout={overrideItemLayout}
+        scrollEventThrottle={16}
+        drawDistance={500}
+        onEndReachedThreshold={0.5}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor="#999"
+            colors={["#DC2626"]}
+          />
+        }
+        viewabilityConfig={{
+          itemVisiblePercentThreshold: 50,
+          waitForInteraction: false,
+        }}
+        onViewableItemsChanged={handleViewableItemsChanged}
+        onScroll={onScroll}
+        showsVerticalScrollIndicator={false}
+        numColumns={1}
+        contentContainerStyle={
+          shouldUseTabletLayout ? { paddingHorizontal: 0 } : undefined
+        }
+        disableAutoLayout={shouldUseTabletLayout}
+        ListFooterComponent={() => <View style={{ height: 150 }} />}
+      />
     </View>
   );
 };
@@ -837,7 +871,7 @@ const lastAutoRefreshRef = useRef<number>(Date.now());
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 108 },
   titleContainer: { paddingLeft: 18, paddingVertical: 8 },
-  categoryTitle: { fontFamily: "SF-Pro-Display-Black", fontSize: 22 },
+  categoryTitle: { fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black", fontSize: 22 },
   readMoreButton: {
     marginTop: 10,
     padding: 10,
@@ -850,7 +884,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
   },
-  readMoreText: { color: "#c62828", fontFamily: "SF-Pro-Display-Bold" },
+  readMoreText: { color: "#c62828", fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold" },
   playIcon: { paddingLeft: 4, justifyContent: "center" },
   listLoader: { position: "absolute", top: 10, right: 10, zIndex: 10 },
   loadingContainer: {

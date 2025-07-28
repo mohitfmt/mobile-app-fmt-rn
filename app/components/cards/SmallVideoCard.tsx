@@ -25,6 +25,7 @@ import {
   Alert,
   Image,
   Linking,
+  Platform,
 } from "react-native";
 import { Play } from "lucide-react-native";
 import { ShareIcon } from "@/app/assets/AllSVGs"; // Use ShareIcon instead of Share2
@@ -168,7 +169,8 @@ export default function SmallVideoCard({
               styles.title,
               {
                 color: theme.textColor,
-                fontFamily: "SF-Pro-Text-Bold",
+                fontFamily:
+                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -257,7 +259,7 @@ const styles = StyleSheet.create({
   description: {
     color: "#9e9e9e",
     lineHeight: 18,
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
   },
   footerRow: {
     flexDirection: "row",

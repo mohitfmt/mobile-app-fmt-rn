@@ -148,7 +148,9 @@ const RelatedArticle = ({
               styles.heading,
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
-                fontFamily: "SF-Pro-Text-Bold",
+                fontFamily:
+                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
+                fontWeight: "bold",
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -231,12 +233,12 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#9e9e9e",
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
   },
   info: {
     color: "#9e9e9e",
     lineHeight: 18,
-    fontFamily: "SF-Pro-Display-Medium",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
   },
   iconButton: {
     padding: 8,

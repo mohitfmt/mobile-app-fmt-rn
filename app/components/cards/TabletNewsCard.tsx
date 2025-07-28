@@ -14,9 +14,14 @@ import {
   StyleSheet,
   useWindowDimensions,
   Share,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { htmlToPlainText, stripHtml, formatTimeAgoMalaysia } from "@/app/lib/utils";
+import {
+  htmlToPlainText,
+  stripHtml,
+  formatTimeAgoMalaysia,
+} from "@/app/lib/utils";
 import { useBookmarks } from "@/app/providers/BookmarkContext";
 import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
@@ -197,7 +202,8 @@ const TabletNewsCard = ({
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: 20,
-                fontFamily: "SF-Pro-Display-Bold",
+                fontFamily:
+                  Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
               },
             ]}
           >
@@ -211,7 +217,10 @@ const TabletNewsCard = ({
               {
                 fontSize: 15,
                 color: "#6b6b6b",
-                fontFamily: "SF-Pro-Display-Medium",
+                fontFamily:
+                  Platform.OS === "android"
+                    ? undefined
+                    : "SF-Pro-Display-Medium",
               },
             ]}
           >
@@ -237,7 +246,8 @@ const TabletNewsCard = ({
           <Text
             style={{
               fontSize: getArticleTextSize(14, textSize),
-              fontFamily: "SF-Pro-Display-Bold",
+              fontFamily:
+                Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
               color: "#c62828",
             }}
           >
@@ -310,7 +320,8 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#999",
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   actions: {
     flexDirection: "row",

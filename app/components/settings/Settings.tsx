@@ -202,7 +202,7 @@ const SettingsPage: React.FC = () => {
 
   const [deviceInfo, setDeviceInfo] = useState({
     uuid: "Not available",
-    version: "v2.1.3",
+    version: "v2.1.4",
   });
 
   /**
@@ -398,7 +398,7 @@ const SettingsPage: React.FC = () => {
         uuidStr = uuid.v4().toString().replace(/-/g, "");
         await AsyncStorage.setItem(UUID_KEY, uuidStr);
       }
-      const version = `v${Application.nativeApplicationVersion || "2.1.3"}`;
+      const version = `v${Application.nativeApplicationVersion || "2.1.4"}`;
       setDeviceInfo({ uuid: uuidStr, version });
     };
 
@@ -908,11 +908,11 @@ const styles = StyleSheet.create({
   relatedTitle: {
     flex: 1,
     textAlign: "center",
-    fontFamily: "SF-Pro-Display-Black",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
   },
   section: {},
   sectionHeader: {
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
     paddingTop: 18,
     paddingBottom: 5,
   },
@@ -926,7 +926,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   settingValue: {
     color: "#888",
@@ -948,12 +948,12 @@ const styles = StyleSheet.create({
   },
   copyright: {
     textAlign: "center",
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   deviceId: {
     color: "#888",
     marginTop: 5,
-    fontFamily: "SF-Pro-Display-Regular",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
   },
   divider: {
     height: 0.2,
