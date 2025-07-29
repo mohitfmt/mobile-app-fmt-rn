@@ -871,7 +871,11 @@ const HomeLandingSection = ({
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 108 },
   titleContainer: { paddingLeft: 18, paddingVertical: 8 },
-  categoryTitle: { fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black", fontSize: 22 },
+  categoryTitle: {
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontSize: 22,
+  },
   readMoreButton: {
     marginTop: 10,
     padding: 10,
@@ -884,7 +888,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "flex-end",
   },
-  readMoreText: { color: "#c62828", fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold" },
+  readMoreText: {
+    color: "#c62828",
+    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
+  },
   playIcon: { paddingLeft: 4, justifyContent: "center" },
   listLoader: { position: "absolute", top: 10, right: 10, zIndex: 10 },
   loadingContainer: {

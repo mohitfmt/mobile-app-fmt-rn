@@ -128,7 +128,6 @@ const AdSlotBanner = React.memo(() => <BannerAD unit="ros" />);
 // ⚠️ This is NOT a hook. It's a plain JS object, safe to define outside.
 const categoryRefreshCooldownMap: Record<string, number> = {};
 
-
 const CategoryPosts = () => {
   const params = useLocalSearchParams();
   const [articles, setArticles] = useState<ArticleType[]>([]);
@@ -138,7 +137,11 @@ const CategoryPosts = () => {
   const { theme } = useContext(ThemeContext);
   const { textSize } = useContext(GlobalSettingsContext);
   const insets = useSafeAreaInsets();
-  const { filteredLandingData, isLoading: globalLoading, refreshCategoryData } = useLandingData();
+  const {
+    filteredLandingData,
+    isLoading: globalLoading,
+    refreshCategoryData,
+  } = useLandingData();
   const { setMainData } = useContext(DataContext);
   const { markAsVisited, isVisited } = useVisitedArticles();
   const flashListRef = useRef<FlashListType<ArticleType>>(null);
@@ -237,76 +240,76 @@ const CategoryPosts = () => {
     return categoryMap[displayName] || displayName.toLowerCase();
   }, []);
 
- const initializeCategoryPosts = useCallback(
-  async (isRefresh = false) => {
+  const initializeCategoryPosts = useCallback(
+    async (isRefresh = false) => {
+      if (!params.CategoryName) return;
+
+      const originalName = params.CategoryName as string;
+      const mappedKey = getCategoryKey(originalName);
+
+      let contextArticles = filteredLandingData[mappedKey] || [];
+
+      // ✅ If no context data, try loading from AsyncStorage
+      if (contextArticles.length === 0) {
+        const cachedData = await getCachedData(mappedKey);
+        if (cachedData && hasCachedData(cachedData)) {
+          // console.log(`📦 Loaded cached data for ${mappedKey}`);
+          contextArticles = cachedData;
+        }
+      }
+
+      // ✅ Process and display
+      const processed = processArticles(contextArticles, isRefresh);
+
+      if (contextArticles.length > 0) {
+        setArticles(contextArticles);
+        setProcessedData(processed);
+
+        const swipableArticles = processed.filter(
+          (item) => item.type !== "AD_ITEM"
+        );
+        setMainData(swipableArticles);
+
+        // ✅ Save to cache (non-blocking)
+        cacheData(mappedKey, contextArticles);
+
+        setLoading(false);
+      }
+
+      if (isRefresh && flashListRef.current) {
+        flashListRef.current.scrollToIndex({ index: 0, animated: true });
+      }
+    },
+    [
+      params.CategoryName,
+      filteredLandingData,
+      processArticles,
+      getCategoryKey,
+      setMainData,
+    ]
+  );
+
+  useEffect(() => {
+    initializeCategoryPosts();
+  }, [params.CategoryName, filteredLandingData, initializeCategoryPosts]);
+
+  useEffect(() => {
     if (!params.CategoryName) return;
 
     const originalName = params.CategoryName as string;
-    const mappedKey = getCategoryKey(originalName);
+    const normalizedKey = getCategoryKey(originalName);
+    const now = Date.now();
+    const lastRefresh = categoryRefreshCooldownMap[normalizedKey] || 0;
 
-    let contextArticles = filteredLandingData[mappedKey] || [];
-
-    // ✅ If no context data, try loading from AsyncStorage
-    if (contextArticles.length === 0) {
-      const cachedData = await getCachedData(mappedKey);
-      if (cachedData && hasCachedData(cachedData)) {
-        // console.log(`📦 Loaded cached data for ${mappedKey}`);
-        contextArticles = cachedData;
-      }
+    if (now - lastRefresh >= 30 * 1000) {
+      // console.log(`🔁 Refreshing category "${normalizedKey}"`);
+      refreshCategoryData(normalizedKey);
+      categoryRefreshCooldownMap[normalizedKey] = now;
+    } else {
+      const secondsLeft = Math.ceil((30 * 1000 - (now - lastRefresh)) / 1000);
+      // console.log(`⏳ Skipped refresh for "${normalizedKey}" - wait ${secondsLeft}s`);
     }
-
-    // ✅ Process and display
-    const processed = processArticles(contextArticles, isRefresh);
-
-    if (contextArticles.length > 0) {
-      setArticles(contextArticles);
-      setProcessedData(processed);
-
-      const swipableArticles = processed.filter(
-        (item) => item.type !== "AD_ITEM"
-      );
-      setMainData(swipableArticles);
-
-      // ✅ Save to cache (non-blocking)
-      cacheData(mappedKey, contextArticles);
-
-      setLoading(false);
-    }
-
-    if (isRefresh && flashListRef.current) {
-      flashListRef.current.scrollToIndex({ index: 0, animated: true });
-    }
-  },
-  [
-    params.CategoryName,
-    filteredLandingData,
-    processArticles,
-    getCategoryKey,
-    setMainData,
-  ]
-);
-
-  useEffect(() => {
-  initializeCategoryPosts();
-}, [params.CategoryName, filteredLandingData, initializeCategoryPosts]);
-
-useEffect(() => {
-  if (!params.CategoryName) return;
-
-  const originalName = params.CategoryName as string;
-  const normalizedKey = getCategoryKey(originalName);
-  const now = Date.now();
-  const lastRefresh = categoryRefreshCooldownMap[normalizedKey] || 0;
-
-  if (now - lastRefresh >= 30 * 1000) {
-    // console.log(`🔁 Refreshing category "${normalizedKey}"`);
-    refreshCategoryData(normalizedKey);
-    categoryRefreshCooldownMap[normalizedKey] = now;
-  } else {
-    const secondsLeft = Math.ceil((30 * 1000 - (now - lastRefresh)) / 1000);
-    // console.log(`⏳ Skipped refresh for "${normalizedKey}" - wait ${secondsLeft}s`);
-  }
-}, [params.CategoryName]);
+  }, [params.CategoryName]);
 
   const handlePress = useCallback(
     (item: any, index: number) => {
@@ -621,6 +624,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textTransform: "uppercase",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
   },
   emptyContainer: {
     flex: 1,

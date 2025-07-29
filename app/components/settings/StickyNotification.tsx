@@ -77,7 +77,7 @@ const StickyNotification: React.FC<StickyNotificationProps> = ({
           styles.notificationContainer,
           {
             opacity: fadeAnim,
-            marginBottom:insets.bottom+50,
+            marginBottom: insets.bottom + 50,
             transform: [
               {
                 translateY: fadeAnim.interpolate({
@@ -125,7 +125,9 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     flex: 1,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
   closeButton: {
     marginLeft: 16,

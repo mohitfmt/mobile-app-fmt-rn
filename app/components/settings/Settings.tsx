@@ -909,10 +909,13 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
   },
   section: {},
   sectionHeader: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
     paddingTop: 18,
     paddingBottom: 5,
   },
@@ -926,7 +929,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
   settingValue: {
     color: "#888",
@@ -948,12 +953,16 @@ const styles = StyleSheet.create({
   },
   copyright: {
     textAlign: "center",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
   deviceId: {
     color: "#888",
     marginTop: 5,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontFamily:
+      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
   divider: {
     height: 0.2,

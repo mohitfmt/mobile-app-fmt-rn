@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
   },
   tagText: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
 });
 

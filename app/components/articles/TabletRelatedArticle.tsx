@@ -143,6 +143,7 @@ const TabletRelatedArticle = ({
                 fontSize: 20,
                 fontFamily:
                   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+                fontWeight: Platform.OS === "android" ? "700" : undefined,
               },
             ]}
           >
@@ -162,6 +163,7 @@ const TabletRelatedArticle = ({
                     Platform.OS === "android"
                       ? undefined
                       : "SF-Pro-Display-Medium",
+                  fontWeight: Platform.OS === "android" ? "500" : undefined,
                 },
               ]}
             >
@@ -233,6 +235,7 @@ const styles = StyleSheet.create({
     color: "#999",
     fontFamily:
       Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
   timeAuthorWrapper: {
     flexDirection: "row",

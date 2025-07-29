@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-    fontWeight: "500",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
     letterSpacing: 1,
   },
 });

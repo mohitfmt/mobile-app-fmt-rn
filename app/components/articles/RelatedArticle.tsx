@@ -150,7 +150,7 @@ const RelatedArticle = ({
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontFamily:
                   Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-                fontWeight: "bold",
+                fontWeight: Platform.OS === "android" ? "900" : undefined,
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -234,11 +234,13 @@ const styles = StyleSheet.create({
   timeText: {
     color: "#9e9e9e",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
   },
   info: {
     color: "#9e9e9e",
     lineHeight: 18,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
   },
   iconButton: {
     padding: 8,

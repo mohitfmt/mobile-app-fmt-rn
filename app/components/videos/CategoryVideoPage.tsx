@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useContext, useCallback, useRef } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -20,7 +26,9 @@ import VideoCard from "../cards/VideoCard";
 import TabletVideoCard from "../cards/TabletVideoCard";
 import { getArticleTextSize } from "../functions/Functions";
 import BannerAD from "../ads/Banner";
-import ActivityIndicator, { LoadingIndicator } from "../functions/ActivityIndicator";
+import ActivityIndicator, {
+  LoadingIndicator,
+} from "../functions/ActivityIndicator";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { useLandingData } from "@/app/providers/LandingProvider";
 import { formatTimeAgo, formatTimeAgoMalaysia } from "@/app/lib/utils";
@@ -151,66 +159,64 @@ const CategoryVideos = () => {
     return processedData;
   }, []);
 
- const fetchVideos = async () => {
-  try {
-    setLoading(true);
+  const fetchVideos = async () => {
+    try {
+      setLoading(true);
 
-    const normalizedKey = getNormalizedCategoryKey(CategoryName.toString());
+      const normalizedKey = getNormalizedCategoryKey(CategoryName.toString());
 
-    let rawVideos = landingData[normalizedKey] || [];
+      let rawVideos = landingData[normalizedKey] || [];
 
-    // Try from cache if context is empty
-    if (!hasCachedData(rawVideos)) {
-      const cached = await getCachedData(normalizedKey);
-      if (hasCachedData(cached)) {
-        // console.log(`📦 Loaded cached data for ${normalizedKey}`);
-        rawVideos = cached!;
+      // Try from cache if context is empty
+      if (!hasCachedData(rawVideos)) {
+        const cached = await getCachedData(normalizedKey);
+        if (hasCachedData(cached)) {
+          // console.log(`📦 Loaded cached data for ${normalizedKey}`);
+          rawVideos = cached!;
+        }
       }
+
+      // Filter valid video entries
+      const valid = rawVideos.filter((item) => {
+        if (item.type === "AD_ITEM") return true;
+        return item?.type?.includes("video") && item?.title && item?.thumbnail;
+      });
+
+      // Save to cache if context had valid data
+      if (hasCachedData(valid)) {
+        cacheData(normalizedKey, valid);
+      }
+
+      const processedVideos = processVideos(valid);
+      setVideos(processedVideos);
+    } catch (error) {
+      Alert.alert("Error", "Failed to load videos.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    // Filter valid video entries
-    const valid = rawVideos.filter((item) => {
-      if (item.type === "AD_ITEM") return true;
-      return item?.type?.includes("video") && item?.title && item?.thumbnail;
-    });
-
-    // Save to cache if context had valid data
-    if (hasCachedData(valid)) {
-      cacheData(normalizedKey, valid);
-    }
-
-    const processedVideos = processVideos(valid);
-    setVideos(processedVideos);
-  } catch (error) {
-    Alert.alert("Error", "Failed to load videos.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-//  NEW: will re-run when landingData updates
-useEffect(() => {
-  fetchVideos();
-}, [CategoryName, landingData]);
-
+  //  NEW: will re-run when landingData updates
+  useEffect(() => {
+    fetchVideos();
+  }, [CategoryName, landingData]);
 
   useEffect(() => {
-  if (!params.CategoryName) return;
+    if (!params.CategoryName) return;
 
-  const key = getNormalizedCategoryKey(params.CategoryName.toString());
-  const now = Date.now();
-  const lastRefresh = categoryRefreshCooldownMap[key] || 0;
+    const key = getNormalizedCategoryKey(params.CategoryName.toString());
+    const now = Date.now();
+    const lastRefresh = categoryRefreshCooldownMap[key] || 0;
 
-  if (now - lastRefresh >= 10 * 1000) {
-    // console.log(`🔁 Refreshing "${key}"`);
-    refreshCategoryData(key);
-    categoryRefreshCooldownMap[key] = now;
-  } else {
-    const remaining = Math.ceil((10 * 1000 - (now - lastRefresh)) / 1000);
-    // console.log(`⏳ Skipped refresh for "${key}" (wait ${remaining}s)`);
-  }
-}, [CategoryName]);
-
+    if (now - lastRefresh >= 10 * 1000) {
+      // console.log(`🔁 Refreshing "${key}"`);
+      refreshCategoryData(key);
+      categoryRefreshCooldownMap[key] = now;
+    } else {
+      const remaining = Math.ceil((10 * 1000 - (now - lastRefresh)) / 1000);
+      // console.log(`⏳ Skipped refresh for "${key}" (wait ${remaining}s)`);
+    }
+  }, [CategoryName]);
 
   const startRotationSequence = () => {
     fetchVideos();
@@ -263,12 +269,12 @@ useEffect(() => {
     );
   };
 
-  if (loading || videos.length===0) {
+  if (loading || videos.length === 0) {
     return (
       <View
         style={[styles.container, { backgroundColor: theme.backgroundColor }]}
       >
-        <LoadingIndicator/>
+        <LoadingIndicator />
       </View>
     );
   }
@@ -352,6 +358,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     textTransform: "uppercase",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
   },
   loadingText: { marginTop: 8, fontSize: 14 },
   backButton: {

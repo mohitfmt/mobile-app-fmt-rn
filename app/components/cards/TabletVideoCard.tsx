@@ -177,6 +177,7 @@ function TabletVideoCard({
                 fontSize: 20,
                 fontFamily:
                   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+                fontWeight: Platform.OS === "android" ? "700" : undefined,
               },
             ]}
             numberOfLines={3}
@@ -196,6 +197,7 @@ function TabletVideoCard({
                     Platform.OS === "android"
                       ? undefined
                       : "SF-Pro-Display-Medium",
+                  fontWeight: Platform.OS === "android" ? "500" : undefined,
                 },
               ]}
             >
@@ -218,6 +220,7 @@ function TabletVideoCard({
                   Platform.OS === "android"
                     ? undefined
                     : "SF-Pro-Display-Regular",
+                fontWeight: Platform.OS === "android" ? "400" : undefined,
               },
             ]}
           >

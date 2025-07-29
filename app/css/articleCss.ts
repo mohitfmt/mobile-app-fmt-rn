@@ -99,7 +99,7 @@ const articleStyles = StyleSheet.create({
   categoryText: {
     color: "white",
     alignSelf: "flex-start",
-    fontWeight: "600",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
     paddingHorizontal: 9,
     paddingVertical: 6,
@@ -114,14 +114,17 @@ const articleStyles = StyleSheet.create({
   excerpt: {
     fontFamily:
       Platform.OS === "android" ? undefined : "SF-Pro-Display-RegularItalic",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontStyle: "italic",
   },
   author: {
-    fontWeight: "bold",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
   },
   date: {
     paddingTop: 5,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Light",
+    fontWeight: Platform.OS === "android" ? "300" : undefined,
   },
   featuredImageContainer: {
     paddingTop: 18,
@@ -136,11 +139,13 @@ const articleStyles = StyleSheet.create({
     marginTop: 8,
     paddingHorizontal: 16,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
     fontStyle: "italic",
   },
   articleContent: {
     fontSize: 18,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
     lineHeight: 24, // Improves readability
   },
 
@@ -152,6 +157,7 @@ const articleStyles = StyleSheet.create({
     color: "#808080",
     paddingTop: 10,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Light",
+    fontWeight: Platform.OS === "android" ? "300" : undefined,
   },
   tagsWrapper: {
     flexDirection: "row",
@@ -167,11 +173,13 @@ const articleStyles = StyleSheet.create({
   },
   tagText: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
 
   // Related Articles Section
   relatedTitle: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
   },
   relatedArticleContainer: {
     marginVertical: 16,

@@ -171,6 +171,7 @@ export default function SmallVideoCard({
                 color: theme.textColor,
                 fontFamily:
                   Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
+                fontWeight: Platform.OS === "android" ? "700" : undefined,
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -260,6 +261,7 @@ const styles = StyleSheet.create({
     color: "#9e9e9e",
     lineHeight: 18,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
   },
   footerRow: {
     flexDirection: "row",

@@ -246,12 +246,13 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   title: {
-    fontWeight: "bold",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
+    fontWeight: Platform.OS === "android" ? "700" : undefined,
   },
   excerpt: {
     lineHeight: 18,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
     paddingTop: 10,
     color: "#9e9e9e",
   },

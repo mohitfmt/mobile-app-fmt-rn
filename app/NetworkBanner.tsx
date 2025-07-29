@@ -191,6 +191,7 @@ const styles = StyleSheet.create({
   errorText: {
     color: "white",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
   },
   button: {
     // No background needed as it's just text
@@ -198,6 +199,7 @@ const styles = StyleSheet.create({
   buttonText: {
     color: "white",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
   },
 });
 

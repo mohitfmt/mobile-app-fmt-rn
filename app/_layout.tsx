@@ -48,12 +48,11 @@ import { router } from "expo-router";
 import { VisitedArticlesProvider } from "@/app/providers/VisitedArticleProvider";
 
 if (Platform.OS === "android") {
-  if (Text) {
-    (Text as any).defaultProps = (Text as any).defaultProps || {};
-    (Text as any).defaultProps.allowFontScaling = false;
-    (Text as any).defaultProps.includeFontPadding = false;
-    console.log("Android text defaults applied");
-  }
+  (Text as any).defaultProps = {
+    ...(Text as any).defaultProps,
+    allowFontScaling: false,
+    includeFontPadding: false,
+  };
 }
 
 // Constants: Navigation timeout, notification channel ID, topic mappings for push notifications.

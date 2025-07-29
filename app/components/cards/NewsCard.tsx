@@ -315,11 +315,13 @@ const styles = StyleSheet.create({
   textContainer: {},
   title: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+    fontWeight: Platform.OS === "android" ? "700" : undefined,
     paddingTop: 6,
   },
   excerpt: {
     lineHeight: 18,
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
     paddingTop: 10,
   },
   footer: {
@@ -331,6 +333,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
+    fontWeight: Platform.OS === "android" ? "500" : undefined,
   },
   actionButtons: {
     flexDirection: "row",

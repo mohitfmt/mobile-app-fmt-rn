@@ -199,6 +199,7 @@ const styles = StyleSheet.create({
   },
   categoryTitle: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
     marginBottom: 12,
     marginTop: 12,
   },

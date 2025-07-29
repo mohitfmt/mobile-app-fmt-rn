@@ -204,6 +204,7 @@ const TabletNewsCard = ({
                 fontSize: 20,
                 fontFamily:
                   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+                fontWeight: Platform.OS === "android" ? "700" : undefined,
               },
             ]}
           >
@@ -221,6 +222,7 @@ const TabletNewsCard = ({
                   Platform.OS === "android"
                     ? undefined
                     : "SF-Pro-Display-Medium",
+                fontWeight: Platform.OS === "android" ? "500" : undefined,
               },
             ]}
           >
@@ -248,6 +250,7 @@ const TabletNewsCard = ({
               fontSize: getArticleTextSize(14, textSize),
               fontFamily:
                 Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+              fontWeight: Platform.OS === "android" ? "700" : undefined,
               color: "#c62828",
             }}
           >
@@ -322,6 +325,7 @@ const styles = StyleSheet.create({
     color: "#999",
     fontFamily:
       Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
   actions: {
     flexDirection: "row",

@@ -96,6 +96,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
     fontFamily:
       Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : undefined,
   },
   separator: {
     height: 10,

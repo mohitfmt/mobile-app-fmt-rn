@@ -338,6 +338,7 @@ const styles = StyleSheet.create({
   categoryText: {
     textTransform: "uppercase",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
     paddingVertical: 8,
   },
   selectedText: {
@@ -348,6 +349,7 @@ const styles = StyleSheet.create({
     color: "#333",
     textTransform: "uppercase",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : undefined,
     paddingVertical: 18,
   },
 });

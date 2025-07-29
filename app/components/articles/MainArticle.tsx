@@ -162,6 +162,7 @@ const ArticleContent = React.memo(
               fontSize: getArticleTextSize(30.0, textSize),
               fontFamily:
                 Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+              fontWeight: Platform.OS === "android" ? "700" : undefined,
               paddingHorizontal: 18,
             }}
           >
@@ -227,6 +228,10 @@ const ArticleContent = React.memo(
               backgroundColor: theme.backgroundColor,
               flex: 1,
               paddingHorizontal: 18,
+              paddingRight: Platform.select({
+                ios: 18,
+                android: 20,
+              }),
             }}
           >
             <HTMLContentParser
@@ -288,6 +293,7 @@ const ArticleContent = React.memo(
                         Platform.OS === "android"
                           ? undefined
                           : "SF-Pro-Display-Light",
+                      fontWeight: Platform.OS === "android" ? "300" : undefined,
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
@@ -305,6 +311,8 @@ const ArticleContent = React.memo(
                             ? undefined
                             : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
+                        fontWeight:
+                          Platform.OS === "android" ? "700" : undefined,
                       }}
                       numberOfLines={4}
                     >
@@ -339,6 +347,7 @@ const ArticleContent = React.memo(
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
+                      fontWeight: Platform.OS === "android" ? "300" : undefined,
                     }}
                   >
                     Next article
@@ -353,6 +362,8 @@ const ArticleContent = React.memo(
                             ? undefined
                             : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
+                        fontWeight:
+                          Platform.OS === "android" ? "700" : undefined,
                       }}
                       numberOfLines={4}
                     >
