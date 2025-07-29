@@ -2,7 +2,7 @@
   "expo": {
     "name": "FMT News",
     "slug": "FMT-News-App",
-    "version": "2.1.4",
+    "version": "2.1.5",
     "icon": "./app/assets/images/ic_launcherA.png",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",

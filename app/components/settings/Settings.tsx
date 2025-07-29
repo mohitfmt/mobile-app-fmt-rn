@@ -202,7 +202,7 @@ const SettingsPage: React.FC = () => {
 
   const [deviceInfo, setDeviceInfo] = useState({
     uuid: "Not available",
-    version: "v2.1.4",
+    version: "v2.1.5",
   });
 
   /**
@@ -398,7 +398,7 @@ const SettingsPage: React.FC = () => {
         uuidStr = uuid.v4().toString().replace(/-/g, "");
         await AsyncStorage.setItem(UUID_KEY, uuidStr);
       }
-      const version = `v${Application.nativeApplicationVersion || "2.1.4"}`;
+      const version = `v${Application.nativeApplicationVersion || "2.1.5"}`;
       setDeviceInfo({ uuid: uuidStr, version });
     };
 

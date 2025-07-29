@@ -891,7 +891,7 @@ const styles = StyleSheet.create({
   readMoreText: {
     color: "#c62828",
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: Platform.OS === "android" ? "700" : undefined,
   },
   playIcon: { paddingLeft: 4, justifyContent: "center" },
   listLoader: { position: "absolute", top: 10, right: 10, zIndex: 10 },

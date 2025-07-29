@@ -13,23 +13,42 @@
 //
 // -----------------------------------------------------------------------------
 
-
+// app/lib/ImageComponent.tsx - Final optimized version without dependencies
 import React, { useEffect, useState, useRef, useContext } from "react";
-import { Image, Animated, StyleSheet, View } from "react-native";
+import {
+  Image,
+  Animated,
+  StyleSheet,
+  View,
+  ActivityIndicator,
+} from "react-native";
 import { downloadImage } from "@/app/components/functions/Functions";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 
-// CachedImageProps: Props for the cached image component (src, width, height).
 interface CachedImageProps {
   src: string;
   width: number;
   height: number;
 }
 
-// CachedImageComponent: Main component for loading and displaying cached images.
-// - Loads image from cache or remote
-// - Shows placeholder and fades in image
-// - Handles errors and fallbacks
+// Smart URL optimization
+const getOptimizedUrl = (url: string, width: number): string => {
+  if (!url || !url.startsWith("http")) return url;
+
+  // Skip if already has parameters
+  if (url.includes("?")) return url;
+
+  // Smart sizing - less aggressive to ensure images load
+  let targetWidth: number;
+  if (width <= 150) targetWidth = 300; // Small thumbnails
+  else if (width <= 300) targetWidth = 600; // Medium images
+  else if (width <= 600) targetWidth = 900; // Large images
+  else targetWidth = 1200; // XL images
+
+  // Add optimization parameters
+  return `${url}?w=${targetWidth}&q=85`;
+};
+
 const CachedImageComponent: React.FC<CachedImageProps> = ({
   src,
   width,
@@ -37,6 +56,9 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
 }) => {
   const { isOnline } = useContext(ThemeContext);
   const [imageUri, setImageUri] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const isMounted = useRef(true);
   const placeholderOpacity = useRef(new Animated.Value(1)).current;
   const imageOpacity = useRef(new Animated.Value(0)).current;
@@ -50,44 +72,82 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
   useEffect(() => {
     if (!src) return;
 
-    const resolveImageUri = async () => {
+    const loadImage = async () => {
       try {
-        if (isOnline) {
-          // Use live image directly
-          if (isMounted.current) setImageUri(src);
+        setIsLoading(true);
+        setHasError(false);
 
-          // Pre-cache for offline use silently
-          await downloadImage(src);
+        if (isOnline) {
+          // Online: Use optimized URL
+          const optimizedUrl = getOptimizedUrl(src, width);
+          if (isMounted.current) {
+            setImageUri(optimizedUrl);
+          }
+
+          // Try to cache in background (don't wait for it)
+          downloadImage(src).catch(() => {
+            // Ignore cache errors when online
+          });
         } else {
-          // ❄️ Use cached version if available
+          // Offline: Use cached version
           const cachedUri = await downloadImage(src);
           if (cachedUri && isMounted.current) {
             setImageUri(cachedUri);
           } else if (isMounted.current) {
-            // fallback to placeholder
-            setImageUri(null);
+            // No cache available
+            setHasError(true);
           }
         }
       } catch (error) {
-        console.error("Error resolving image:", error);
-        if (isMounted.current) setImageUri(null);
+        console.error("Error loading image:", error);
+        if (isMounted.current) {
+          setHasError(true);
+        }
       }
     };
 
-    resolveImageUri();
-  }, [src, isOnline]);
+    loadImage();
+  }, [src, width, isOnline, retryCount]);
 
   const handleImageLoad = () => {
-    Animated.timing(placeholderOpacity, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-    Animated.timing(imageOpacity, {
-      toValue: 1,
-      duration: 500,
-      useNativeDriver: true,
-    }).start();
+    if (!isMounted.current) return;
+
+    setIsLoading(false);
+    setHasError(false);
+
+    Animated.parallel([
+      Animated.timing(placeholderOpacity, {
+        toValue: 0,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(imageOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  };
+
+  const handleImageError = (error: any) => {
+    console.warn("Image failed to load:", src);
+    if (!isMounted.current) return;
+
+    setIsLoading(false);
+
+    // Retry logic with fallback to original URL
+    if (retryCount === 0 && imageUri?.includes("?")) {
+      // First retry: try original URL without parameters
+      setRetryCount(1);
+      setImageUri(src);
+    } else if (retryCount === 1 && !imageUri?.includes("?")) {
+      // Second retry: try with smaller size
+      setRetryCount(2);
+      setImageUri(getOptimizedUrl(src, Math.floor(width / 2)));
+    } else {
+      // Give up and show error
+      setHasError(true);
+    }
   };
 
   return (
@@ -107,8 +167,15 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
         />
       </Animated.View>
 
+      {/* Loading indicator */}
+      {isLoading && !hasError && (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="small" color="#999" />
+        </View>
+      )}
+
       {/* Actual image */}
-      {imageUri && (
+      {imageUri && !hasError && (
         <Animated.View
           style={[styles.imageContainer, { opacity: imageOpacity }]}
         >
@@ -118,25 +185,45 @@ const CachedImageComponent: React.FC<CachedImageProps> = ({
             resizeMode="cover"
             resizeMethod="resize"
             onLoad={handleImageLoad}
-            onError={() => {
-              console.warn("Image failed to load:", imageUri);
-              setImageUri(null);
-            }}
+            onError={handleImageError}
+            // Performance settings
+            fadeDuration={0}
+            progressiveRenderingEnabled={true}
           />
         </Animated.View>
+      )}
+
+      {/* Error state - show placeholder */}
+      {hasError && (
+        <View style={styles.imageContainer}>
+          <Image
+            source={require("../assets/images/placeholder.png")}
+            style={{ width, height }}
+            resizeMode="cover"
+          />
+        </View>
       )}
     </View>
   );
 };
 
-// styles: StyleSheet for image container and layout.
 const styles = StyleSheet.create({
   container: {
     overflow: "hidden",
+    backgroundColor: "#f5f5f5",
   },
   imageContainer: {
     width: "100%",
     height: "100%",
+  },
+  loadingContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });
 

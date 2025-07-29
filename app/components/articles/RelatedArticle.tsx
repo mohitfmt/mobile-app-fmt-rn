@@ -150,7 +150,7 @@ const RelatedArticle = ({
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontFamily:
                   Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-                fontWeight: Platform.OS === "android" ? "900" : undefined,
+                fontWeight: Platform.OS === "android" ? "700" : undefined,
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}

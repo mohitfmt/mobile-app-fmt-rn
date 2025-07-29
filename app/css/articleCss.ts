@@ -119,7 +119,7 @@ const articleStyles = StyleSheet.create({
   },
   author: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: Platform.OS === "android" ? "700" : undefined,
   },
   date: {
     paddingTop: 5,
