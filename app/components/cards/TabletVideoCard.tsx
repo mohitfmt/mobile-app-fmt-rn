@@ -30,11 +30,12 @@ import {
 } from "react-native";
 import { Play } from "lucide-react-native";
 import { ShareIcon } from "@/app/assets/AllSVGs";
-import { downloadImage, getArticleTextSize } from "../functions/Functions";
+import { getArticleTextSize } from "../functions/Functions";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { VideoCardProps } from "@/app/types/cards";
 import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 function TabletVideoCard({
   title,
@@ -45,59 +46,8 @@ function TabletVideoCard({
   type,
   onPress, // Add this prop to handle press from parent
 }: VideoCardProps & { onPress?: () => void }) {
-  const { width } = useWindowDimensions();
   const { theme, isOnline } = useContext(ThemeContext);
   const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext);
-  const [imageLoaded, setImageLoaded] = useState(false);
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [cachedImageUri, setCachedImageUri] = useState<{
-    [key: string]: string | null;
-  }>({});
-  const [imageError, setImageError] = useState(false);
-
-  // Cache Image for Each Video Separately by `title`
-  useEffect(() => {
-    let isMounted = true;
-
-    const cacheImage = async () => {
-      if (!thumbnail || !title) return;
-      try {
-        const localUri = await downloadImage(thumbnail);
-        if (isMounted) {
-          setCachedImageUri((prev) => ({
-            ...prev,
-            [title]: localUri || thumbnail,
-          }));
-        }
-      } catch (error) {
-        console.error("Image cache error:", error);
-        if (isMounted) setImageError(true);
-      }
-    };
-
-    cacheImage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [thumbnail, title]);
-
-  // Select Image Based on Connection
-  const selectedImageUri = isOnline
-    ? thumbnail
-    : cachedImageUri[title] ||
-      require("../../assets/images/placeholder-dark.png");
-
-  // Handle image load success
-  const handleImageLoad = () => {
-    setImageLoaded(true);
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  };
 
   // Handles Sharing the Video Link
   const handleShare = async () => {
@@ -139,26 +89,12 @@ function TabletVideoCard({
       <View style={styles.row}>
         {/* Left: Video Thumbnail with Play Button */}
         <View style={styles.imageContainer}>
-          {/* Always show placeholder first */}
-          <Image
-            source={require("../../assets/images/placeholder-dark.png")}
-            style={styles.image}
-            resizeMode="cover"
-            resizeMethod="resize"
+          <CloudflareImageComponent
+            src={thumbnail}
+            width={400}
+            height={250}
+            accessibilityLabel={title}
           />
-
-          {/* Show actual image on top when loaded */}
-          {!imageError && selectedImageUri && (
-            <Animated.Image
-              source={{ uri: selectedImageUri }}
-              style={[styles.image, styles.actualImage, { opacity: fadeAnim }]}
-              resizeMode="cover"
-              resizeMethod="resize"
-              onLoad={handleImageLoad}
-              onError={() => setImageError(true)}
-            />
-          )}
-
           {/* Play Button Overlay */}
           <View style={styles.playButtonContainer}>
             <View style={styles.circle}>

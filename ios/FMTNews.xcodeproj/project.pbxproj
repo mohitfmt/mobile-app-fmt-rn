@@ -51,7 +51,15 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		63759E722E0FB3AA006AA33E /* FMTNewsUITests */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); path = FMTNewsUITests; sourceTree = "<group>"; };
+		63759E722E0FB3AA006AA33E /* FMTNewsUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			explicitFileTypes = {
+			};
+			explicitFolders = (
+			);
+			path = FMTNewsUITests;
+			sourceTree = "<group>";
+		};
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -504,7 +512,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
 				PRODUCT_BUNDLE_IDENTIFIER = com.freemalaysiatoday.app.fmtnews.ios;
-				PRODUCT_NAME = FMTNews;
+				PRODUCT_NAME = "FMTNews";
 				SWIFT_OBJC_BRIDGING_HEADER = "FMTNews/FMTNews-Bridging-Header.h";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_VERSION = 5.0;
@@ -536,7 +544,7 @@
 				);
 				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
 				PRODUCT_BUNDLE_IDENTIFIER = com.freemalaysiatoday.app.fmtnews.ios;
-				PRODUCT_NAME = FMTNews;
+				PRODUCT_NAME = "FMTNews";
 				SWIFT_OBJC_BRIDGING_HEADER = "FMTNews/FMTNews-Bridging-Header.h";
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

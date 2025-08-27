@@ -5,31 +5,24 @@
  * It includes offline image caching, fade-in animations, and network connectivity detection.
  */
 
-import React, {
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React, { useContext, useState, useEffect } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   Share,
-  Animated,
   Platform,
   Alert,
 } from "react-native";
-import { downloadImage, getArticleTextSize } from "../functions/Functions";
+import { getArticleTextSize } from "../functions/Functions";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { RelatedArticleProps } from "@/app/types/article";
 import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { ShareIcon } from "../../assets/AllSVGs.js";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 const RelatedArticle = ({
   id,
@@ -40,11 +33,8 @@ const RelatedArticle = ({
   time,
   uri,
 }: RelatedArticleProps) => {
-  const { theme, isOnline } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [cachedImageUri, setCachedImageUri] = useState<string | null>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
   const { isVisited } = useVisitedArticles();
   const [visited, setVisited] = useState(false);
 
@@ -53,36 +43,6 @@ const RelatedArticle = ({
       setVisited(isVisited(id));
     }
   }, [id, isVisited]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchImage = async () => {
-      if (!image) return;
-
-      if (isOnline) {
-        setCachedImageUri(image);
-        const localUri = await downloadImage(image);
-        if (localUri && isMounted) setCachedImageUri(localUri);
-      } else {
-        const localUri = await downloadImage(image);
-        if (localUri && isMounted) setCachedImageUri(localUri);
-      }
-    };
-    fetchImage();
-    return () => {
-      isMounted = false;
-    };
-  }, [image, isOnline]);
-
-  useLayoutEffect(() => {
-    if (imageLoaded) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [imageLoaded]);
 
   const handleShare = async () => {
     try {
@@ -117,23 +77,12 @@ const RelatedArticle = ({
     >
       <View style={styles.row}>
         <View style={styles.imageContainer}>
-          {cachedImageUri ? (
-            <Animated.Image
-              source={{ uri: cachedImageUri }}
-              style={[styles.image, { opacity: fadeAnim }]}
-              resizeMode="cover"
-              resizeMethod="resize"
-              onLoad={() => setImageLoaded(true)}
-              onError={() => setImageLoaded(true)}
-            />
-          ) : (
-            <Image
-              source={require("../../assets/images/placeholder.png")}
-              style={styles.image}
-              resizeMode="cover"
-              resizeMethod="resize"
-            />
-          )}
+          <CloudflareImageComponent
+            src={image || ""}
+            width={100}
+            height={100}
+            accessibilityLabel={title}
+          />
         </View>
 
         <View

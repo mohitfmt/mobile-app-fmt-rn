@@ -31,16 +31,11 @@ import { decode } from "html-entities";
 import WebView from "react-native-webview";
 import { Linking } from "react-native";
 import { truncateHtml } from "./utils";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import CachedImageComponent from "./ImageComponent";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import {
-  downloadImage,
-  getArticleTextSize,
-} from "@/app/components/functions/Functions";
+import { getArticleTextSize } from "@/app/components/functions/Functions";
 import BannerAD from "@/app/components/ads/Banner";
-import { TouchableWithoutFeedback } from "react-native-gesture-handler";
+import CloudflareImageComponent from "./CloudflareImageComponent";
 
 // Type Definitions: AdUnitKey, ParsedNode, HTMLContentParserProps for type safety and clarity.
 type AdUnitKey = "home" | "article1" | "article2" | "article3" | "ros";
@@ -69,78 +64,9 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
   isNetwork,
 }) => {
   const [parsedContent, setParsedContent] = useState<ParsedNode[]>([]);
-  const [cachedImageUri, setCachedImageUri] = useState<{
-    [key: string]: string | null;
-  }>({});
-  const { isOnline, theme } = useContext(ThemeContext);
+  const { theme } = useContext(ThemeContext);
   const { textSize } = useContext(GlobalSettingsContext);
   const screenWidth = Dimensions.get("window").width;
-
-  // Image caching logic
-  // useEffect: Handles image caching, loading, and saving to AsyncStorage.
-  useEffect(() => {
-    const cacheImages = async () => {
-      if (!parsedContent.length || !isOnline) return;
-
-      const imageNodes = parsedContent
-        .flatMap((node) =>
-          node.name === "img" && node.attribs?.src ? [node] : []
-        )
-        .concat(
-          parsedContent
-            .filter((node) => node.name === "figure")
-            .flatMap(
-              (node) =>
-                node.children?.filter(
-                  (child) => child.name === "img" && child.attribs?.src
-                ) || []
-            )
-        );
-
-      const newCachedImages = { ...cachedImageUri };
-      for (const node of imageNodes) {
-        const src = node.attribs?.src;
-        if (src && !newCachedImages[src]) {
-          const localUri = await downloadImage(src);
-          newCachedImages[src] = localUri || src;
-        }
-      }
-      setCachedImageUri(newCachedImages);
-    };
-
-    cacheImages();
-  }, [parsedContent, isOnline]);
-
-  // Load cached images from AsyncStorage
-  // useEffect: Parses HTML content into a node tree for rendering.
-  useEffect(() => {
-    const loadCachedImages = async () => {
-      try {
-        const storedCache = await AsyncStorage.getItem("cachedImages");
-        if (storedCache) {
-          setCachedImageUri(JSON.parse(storedCache));
-        }
-      } catch (error) {
-        console.error("Error loading cached images:", error);
-      }
-    };
-    loadCachedImages();
-  }, []);
-
-  // Save cached images to AsyncStorage
-  useEffect(() => {
-    const saveCache = async () => {
-      try {
-        await AsyncStorage.setItem(
-          "cachedImages",
-          JSON.stringify(cachedImageUri)
-        );
-      } catch (error) {
-        console.error("Error saving cached images:", error);
-      }
-    };
-    saveCache();
-  }, [cachedImageUri]);
 
   // Parse HTML content
   // useEffect: Parses HTML content into a node tree for rendering.
@@ -657,7 +583,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
 
         const { src, srcset } = imgNode.attribs;
         const selectedSrc = getBestSrcFromSrcset(srcset, src);
-        const localUri = cachedImageUri[selectedSrc] || selectedSrc;
         const dimensions = getImageDimensions(imgNode.attribs);
 
         return (
@@ -667,10 +592,17 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           >
             <View style={[styles.figureContainer, { width: dimensions.width }]}>
               <View style={styles.imageWrapper}>
-                <CachedImageComponent
+                {/* <CloudflareImageComponent
                   src={localUri}
                   width={dimensions.width}
                   height={dimensions.height}
+                /> */}
+                <CloudflareImageComponent
+                  src={selectedSrc}
+                  width={dimensions.width}
+                  height={dimensions.height}
+                  priority={index === 0} // First image is priority
+                  accessibilityLabel={node.attribs?.alt}
                 />
               </View>
               {captionNode && (
@@ -705,16 +637,17 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
         if (imgNode?.attribs) {
           const { src, srcset } = imgNode.attribs;
           const selectedSrc = getBestSrcFromSrcset(srcset, src);
-          const localUri = cachedImageUri[selectedSrc] || selectedSrc;
           const dimensions = getImageDimensions(imgNode.attribs);
 
           return (
             <View key={index} style={styles.paragraphWithImage}>
               <View style={styles.imageWrapper}>
-                <CachedImageComponent
-                  src={localUri}
+                <CloudflareImageComponent
+                  src={selectedSrc}
                   width={dimensions.width}
                   height={dimensions.height}
+                  priority={index === 0} // First image is priority
+                  accessibilityLabel={node.attribs?.alt}
                 />
               </View>
               <View style={styles.textContainer}>

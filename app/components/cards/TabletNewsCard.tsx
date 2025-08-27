@@ -17,16 +17,13 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  htmlToPlainText,
-  stripHtml,
-  formatTimeAgoMalaysia,
-} from "@/app/lib/utils";
+import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { useBookmarks } from "@/app/providers/BookmarkContext";
 import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { downloadImage, getArticleTextSize } from "../functions/Functions";
+import { getArticleTextSize } from "../functions/Functions";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 const TabletNewsCard = ({
   id,
@@ -64,65 +61,6 @@ const TabletNewsCard = ({
   const { textSize } = useContext(GlobalSettingsContext);
   const router = useRouter();
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
-
-  const [cachedImageUri, setCachedImageUri] = useState<string | null>(null);
-  const [imageError, setImageError] = useState(false);
-  const [showActualImage, setShowActualImage] = useState(false);
-  const [currentImageUri, setCurrentImageUri] = useState(imageUri);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-
-  // Reset when imageUri changes
-  useLayoutEffect(() => {
-    if (showActualImage && cachedImageUri && !imageError) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [showActualImage, cachedImageUri, imageError]);
-
-  // Cache image
-  useEffect(() => {
-    const cacheImage = async () => {
-      if (!imageUri) return;
-
-      try {
-        const localUri = await downloadImage(imageUri);
-
-        if (localUri) {
-          setCachedImageUri(localUri);
-          setShowActualImage(true);
-        } else {
-          console.warn(
-            "Fallback to original URI or placeholder due to download failure."
-          );
-          setImageError(true);
-        }
-      } catch (err) {
-        console.error("Image cache error:", err);
-        setImageError(true);
-      }
-    };
-
-    cacheImage();
-  }, [imageUri]);
-
-  // Fade in
-  useLayoutEffect(() => {
-    if (!cachedImageUri || imageError) return;
-
-    const timer = setTimeout(() => {
-      setShowActualImage(true);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 500,
-        useNativeDriver: true,
-      }).start();
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [cachedImageUri, imageError]);
 
   const handlePress = () => {
     if (onPress) {
@@ -173,24 +111,13 @@ const TabletNewsCard = ({
       <View style={styles.row}>
         {/* Image with placeholder and fade-in */}
         <View style={styles.imageWrapper}>
-          {!showActualImage && (
-            <Image
-              source={require("../../assets/images/placeholder.png")}
-              style={styles.image}
-              resizeMode="cover"
-            />
-          )}
-          {showActualImage && cachedImageUri && (
-            <Animated.Image
-              source={{ uri: cachedImageUri }}
-              style={[
-                styles.image,
-                styles.animatedImage,
-                { opacity: fadeAnim },
-              ]}
-              resizeMode="cover"
-            />
-          )}
+          <CloudflareImageComponent
+            src={imageUri}
+            width={width}
+            height={width * 0.5625}
+            priority={index === 0} // First image is priority
+            accessibilityLabel={heading}
+          />
         </View>
 
         {/* Title and excerpt */}

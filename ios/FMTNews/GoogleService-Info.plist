@@ -36,21 +36,5 @@
 	<string>https://fmt-news-app.firebaseio.com</string>
 	<key>ADMOB_APP_ID</key>
 	<string>ca-app-pub-1691191334203390~9795180220</string>
-	<key>LSApplicationQueriesSchemes</key>
-<array>
-  <string>mailto</string>
-  <string>tel</string>
-  <string>whatsapp</string>
-  <string>fb</string>
-  <string>twitter</string>
-</array>
-
-<key>NSPhotoLibraryUsageDescription</key>
-<string>We need access to your photo library to share images.</string>
-<key>NSCameraUsageDescription</key>
-<string>We need access to your camera for sharing photos.</string>
-<key>NSMicrophoneUsageDescription</key>
-<string>We need access to your microphone for audio features.</string>
-
 </dict>
 </plist>

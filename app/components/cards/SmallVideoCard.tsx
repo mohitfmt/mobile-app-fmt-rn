@@ -7,33 +7,25 @@
  * @author FMT Developers
  */
 
-import React, {
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
-  Animated,
   TouchableOpacity,
-  useWindowDimensions,
   Share,
   StyleSheet,
   Alert,
-  Image,
   Linking,
   Platform,
 } from "react-native";
 import { Play } from "lucide-react-native";
 import { ShareIcon } from "@/app/assets/AllSVGs"; // Use ShareIcon instead of Share2
-import { downloadImage, getArticleTextSize } from "../functions/Functions";
+import { getArticleTextSize } from "../functions/Functions";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { SmallVideoCardProps } from "@/app/types/cards";
 import { stripHtml } from "@/app/lib/utils";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 export default function SmallVideoCard({
   thumbnail,
@@ -42,63 +34,8 @@ export default function SmallVideoCard({
   date,
   permalink,
 }: SmallVideoCardProps) {
-  const { theme, isOnline } = useContext(ThemeContext);
-  const { width } = useWindowDimensions();
+  const { theme } = useContext(ThemeContext);
   const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext); // Added standfirstEnabled
-  const [showActualImage, setShowActualImage] = useState(false);
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [cachedImageUri, setCachedImageUri] = useState<{
-    [key: string]: string | null;
-  }>({});
-  const [imageError, setImageError] = useState(false);
-
-  // Cache Image for Each Video Separately by `title`
-  useEffect(() => {
-    let isMounted = true;
-
-    const cacheImage = async () => {
-      if (!thumbnail || !title) return;
-      try {
-        const localUri = await downloadImage(thumbnail);
-        if (isMounted) {
-          setCachedImageUri((prev) => ({
-            ...prev,
-            [title]: localUri || thumbnail,
-          }));
-        }
-      } catch (error) {
-        console.error("Image cache error:", error);
-        if (isMounted) setImageError(true);
-      }
-    };
-
-    cacheImage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [thumbnail, title]);
-
-  // Fade-in Animation for Image
-  useLayoutEffect(() => {
-    const timer = setTimeout(() => {
-      setShowActualImage(true);
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }).start();
-    }, 500);
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Select Image Based on Connection - FIX: Access the specific cached URI for this video
-  const selectedImageUri = isOnline
-    ? thumbnail
-    : cachedImageUri[title] ||
-      require("../../assets/images/placeholder-dark.png");
 
   // Navigate to Video
   const navigateToVideo = () => {
@@ -136,23 +73,12 @@ export default function SmallVideoCard({
       <View style={styles.row}>
         {/* Video Thumbnail */}
         <View style={styles.imageContainer}>
-          {!showActualImage || imageError || !cachedImageUri[title] ? (
-            <Image
-              source={require("../../assets/images/placeholder-dark.png")}
-              style={[styles.image]}
-              resizeMode="cover"
-              resizeMethod="resize"
-            />
-          ) : (
-            <Animated.Image
-              source={{ uri: selectedImageUri }}
-              style={[styles.image, { opacity: fadeAnim }]}
-              resizeMode="cover"
-              resizeMethod="resize"
-              onError={() => setImageError(true)}
-            />
-          )}
-
+          <CloudflareImageComponent
+            src={thumbnail}
+            width={100}
+            height={100}
+            accessibilityLabel={title}
+          />
           {/* Play Button Overlay */}
           <View style={styles.playIconContainer}>
             <View style={styles.circle}>

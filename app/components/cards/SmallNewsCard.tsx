@@ -12,31 +12,18 @@
  * @author FMT Developers
  */
 
-import React, {
-  useContext,
-  useLayoutEffect,
-  useRef,
-  useState,
-  useEffect,
-} from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
-  useWindowDimensions,
   Share,
   StyleSheet,
   Alert,
-  Animated,
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import {
-  downloadImage,
-  getArticleTextSize,
-  isImageCompletelyDownloaded,
-} from "../functions/Functions";
+import { getArticleTextSize } from "../functions/Functions";
 import { useBookmarks } from "../../providers/BookmarkContext";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
@@ -44,6 +31,7 @@ import { SmallNewsCardProps } from "@/app/types/cards";
 import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 /**
  * SmallNewsCard component
@@ -57,7 +45,6 @@ export default function SmallNewsCard({
   info,
   time,
   category,
-  slug,
   posts,
   index,
   uri,
@@ -66,128 +53,11 @@ export default function SmallNewsCard({
   visited = false,
 }: SmallNewsCardProps) {
   const router = useRouter();
-  const { theme, isOnline } = useContext(ThemeContext);
-  const { width } = useWindowDimensions();
+  const { theme } = useContext(ThemeContext);
   const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext);
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
-  const [showActualImage, setShowActualImage] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [cachedImageUri, setCachedImageUri] = useState<string | null>(null);
-  const [imageError, setImageError] = useState(false);
-  const [currentImageUri, setCurrentImageUri] = useState<string | null>(null);
-  const [useLiveImage, setUseLiveImage] = useState(false);
   const { markAsVisited } = useVisitedArticles();
-
-  // Reset states when imageUri changes (prevents showing cached image from another post)
-  useEffect(() => {
-    if (currentImageUri !== imageUri) {
-      setShowActualImage(false);
-      setCachedImageUri(null);
-      setImageError(false);
-      setUseLiveImage(false);
-      fadeAnim.setValue(0);
-      setCurrentImageUri(imageUri);
-    }
-  }, [imageUri, currentImageUri, fadeAnim]);
-
-  // Fetch image online first and cache it
-  useEffect(() => {
-    let isMounted = true;
-
-    const cacheImage = async () => {
-      if (!imageUri || imageUri !== currentImageUri) return;
-
-      try {
-        if (isOnline) {
-          // Try to get cached image first
-          const cachedUri = await downloadImage(imageUri);
-
-          if (isMounted && cachedUri && imageUri === currentImageUri) {
-            // Check if cached image is completely downloaded
-            const isComplete = await isImageCompletelyDownloaded(
-              cachedUri,
-              imageUri
-            );
-
-            if (isComplete) {
-              // Use cached image if it's completely downloaded
-              setCachedImageUri(cachedUri);
-              setUseLiveImage(false);
-            } else {
-              // Use live image if cached is incomplete
-              setCachedImageUri(imageUri);
-              setUseLiveImage(true);
-            }
-          } else if (isMounted && imageUri === currentImageUri) {
-            // Fallback to live image if no cached version
-            setCachedImageUri(imageUri);
-            setUseLiveImage(true);
-          }
-        } else {
-          // Offline - try cached version only if it's complete
-          const cachedUri = await downloadImage(imageUri);
-
-          if (isMounted && cachedUri && imageUri === currentImageUri) {
-            const isComplete = await isImageCompletelyDownloaded(
-              cachedUri,
-              imageUri
-            );
-
-            if (isComplete) {
-              setCachedImageUri(cachedUri);
-              setUseLiveImage(false);
-            } else {
-              // Show placeholder if cached image is incomplete and offline
-              if (imageUri === currentImageUri) {
-                setImageError(true);
-              }
-            }
-          } else if (isMounted && imageUri === currentImageUri) {
-            setImageError(true);
-          }
-        }
-      } catch (error) {
-        console.error("Error caching image:", error);
-        if (isMounted && imageUri === currentImageUri) {
-          if (isOnline) {
-            // Try live image as fallback when online
-            setCachedImageUri(imageUri);
-            setUseLiveImage(true);
-          } else {
-            setImageError(true);
-          }
-        }
-      }
-    };
-
-    if (currentImageUri) {
-      cacheImage();
-    }
-
-    return () => {
-      isMounted = false;
-    };
-  }, [imageUri, isOnline, currentImageUri]);
-
-  // Apply fade-in animation for smoother UI
-  useLayoutEffect(() => {
-    if (!cachedImageUri || imageError) return;
-
-    const timer = setTimeout(() => {
-      // Only show image if this is still the current image
-      if (imageUri === currentImageUri) {
-        setShowActualImage(true);
-        Animated.timing(fadeAnim, {
-          toValue: 1,
-          duration: 1000,
-          useNativeDriver: true,
-        }).start();
-      }
-    }, 300); // Reduced delay for better UX
-
-    return () => clearTimeout(timer);
-  }, [cachedImageUri, imageError, imageUri, currentImageUri, fadeAnim]);
 
   // Navigate to full article and mark as visited
   const handlePress = () => {
@@ -246,12 +116,6 @@ export default function SmallNewsCard({
     }
   };
 
-  const shouldShowImage =
-    showActualImage &&
-    !imageError &&
-    cachedImageUri &&
-    imageUri === currentImageUri;
-
   const CardContent = (
     <View
       style={[
@@ -265,28 +129,13 @@ export default function SmallNewsCard({
     >
       <View style={styles.row}>
         <View style={styles.imageContainer}>
-          {!shouldShowImage ? (
-            <Image
-              source={require("../../assets/images/placeholder.png")}
-              style={styles.image}
-              resizeMode="cover"
-              resizeMethod="resize"
-            />
-          ) : (
-            <Animated.Image
-              source={{ uri: cachedImageUri }}
-              style={[styles.image, { opacity: fadeAnim }]}
-              resizeMode="cover"
-              resizeMethod="resize"
-              onError={() => {
-                // Only set error if this is still the current image
-                if (imageUri === currentImageUri) {
-                  setImageError(true);
-                  setShowActualImage(false);
-                }
-              }}
-            />
-          )}
+          <CloudflareImageComponent
+            src={imageUri}
+            width={100}
+            height={75}
+            priority={index < 3}
+            accessibilityLabel={heading}
+          />
         </View>
 
         <View style={[styles.contentContainer, { marginLeft: 10 }]}>

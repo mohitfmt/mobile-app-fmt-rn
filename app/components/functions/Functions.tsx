@@ -91,7 +91,6 @@ export const getPreferredCategory = (
   );
 };
 
-
 /**
  * Fetches and processes articles while handling errors.
  *
@@ -172,49 +171,6 @@ export const processPostCategory = (post: {
   };
 };
 
-import * as FileSystem from "expo-file-system";
-const CACHE_FOLDER = FileSystem.documentDirectory + "images/";
-
-/**
- * Downloads and caches an image locally.
- *
- * - Checks if the image exists in cache.
- * - If not, downloads and stores it in the cache folder.
- *
- * @param imageUrl - URL of the image.
- * @returns Local file URI if successful, otherwise null.
- */
-export async function downloadImage(imageUrl: string): Promise<string | null> {
-  try {
-    if (!imageUrl) return null;
-
-    const fileName = imageUrl.split("/").pop();
-    if (!fileName) return null;
-
-    const fileUri = `${CACHE_FOLDER}${fileName}`;
-    const fileInfo = await FileSystem.getInfoAsync(fileUri);
-
-    if (fileInfo.exists && fileInfo.size > 1024) {
-      return fileUri;
-    }
-
-    await FileSystem.makeDirectoryAsync(CACHE_FOLDER, { intermediates: true });
-
-    const downloadResult = await FileSystem.downloadAsync(imageUrl, fileUri);
-    if (downloadResult.status === 200) {
-      const downloadedInfo = await FileSystem.getInfoAsync(fileUri);
-      if (downloadedInfo.exists && downloadedInfo.size > 1024) {
-        return fileUri;
-      }
-    }
-
-    return null;
-  } catch (error) {
-    console.error("Error downloading image:", error);
-    return null;
-  }
-}
-
 /**
  * Fetches related posts for a given article.
  *
@@ -259,57 +215,6 @@ export const fetchRelatedPosts = async (
       }
     })
   );
-};
-
-/**
- * Checks if a cached image is completely downloaded by comparing file sizes
- * @param cachedUri - Local file URI of the cached image
- * @param originalUri - Original remote image URI
- * @returns Promise<boolean> - True if image is completely downloaded, false otherwise
- */
-export const isImageCompletelyDownloaded = async (
-  cachedUri: string,
-  originalUri: string
-): Promise<boolean> => {
-  try {
-    // Check if cached file exists
-    const fileInfo = await FileSystem.getInfoAsync(cachedUri);
-    
-    if (!fileInfo.exists) {
-      return false;
-    }
-
-    // Get the expected file size from the remote server
-    try {
-      const response = await fetch(originalUri, { method: 'HEAD' });
-      const expectedSize = response.headers.get('content-length');
-      
-      if (!expectedSize) {
-        // If we can't get the expected size, we'll assume the cached file is complete
-        // This is a fallback - you might want to implement additional checks
-        return fileInfo.size > 0;
-      }
-
-      const expectedSizeNumber = parseInt(expectedSize, 10);
-      const actualSize = fileInfo.size;
-
-      // Check if the actual size matches the expected size (within a small tolerance)
-      // We allow for a small difference to account for potential metadata differences
-      const tolerance = 1024; // 1KB tolerance
-      const isComplete = Math.abs(actualSize - expectedSizeNumber) <= tolerance;
-
-      // console.log(`Image size check: Expected: ${expectedSizeNumber}, Actual: ${actualSize}, Complete: ${isComplete}`);
-      
-      return isComplete;
-    } catch (networkError) {
-      // console.log('Network error checking image size, assuming cached file is complete:', networkError);
-      // If we can't check the remote size, assume the cached file is complete if it exists and has content
-      return fileInfo.size > 0;
-    }
-  } catch (error) {
-    console.error('Error checking image download status:', error);
-    return false;
-  }
 };
 
 const Func: React.FC = () => {

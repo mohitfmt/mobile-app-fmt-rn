@@ -15,34 +15,26 @@
  * @author FMT Developers
  */
 
-import React, {
-  useContext,
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-} from "react";
+import React, { useContext } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   useWindowDimensions,
   Share,
   Alert,
   StyleSheet,
-  Animated,
   Platform,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
 import { useBookmarks } from "../../providers/BookmarkContext";
-import { downloadImage, getArticleTextSize } from "../functions/Functions";
+import { getArticleTextSize } from "../functions/Functions";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { NewsCardProps } from "@/app/types/cards";
 import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 /**
  * NewsCard component
@@ -71,67 +63,6 @@ function NewsCard({
 
   const imageWidth = width * 0.9 + (Platform.OS === "ios" ? 6 : 0);
   const imageHeight = imageWidth * (10 / 16);
-
-  const fadeAnim = useRef(new Animated.Value(0)).current;
-  const [showActualImage, setShowActualImage] = useState(false);
-  const [cachedImageUri, setCachedImageUri] = useState<string | null>(null);
-  const [imageError, setImageError] = useState(false);
-
-  // Fetch online first and save image locally
-  useEffect(() => {
-    let isMounted = true;
-
-    const cacheImage = async () => {
-      if (!imageUri) return;
-
-      try {
-        if (isOnline) {
-          // Try to pre-cache, but don't display until verified
-          const localUri = await downloadImage(imageUri);
-
-          if (isMounted && localUri) {
-            setCachedImageUri(localUri);
-            setShowActualImage(true); // Now it's safe to show
-          } else if (isMounted) {
-            // Fallback to live image only if download failed
-            setCachedImageUri(imageUri);
-            setShowActualImage(true);
-          }
-        } else {
-          // Offline - try cached version
-          const localUri = await downloadImage(imageUri);
-          if (isMounted && localUri) {
-            setCachedImageUri(localUri);
-            setShowActualImage(true);
-          } else if (isMounted) {
-            setImageError(true);
-          }
-        }
-      } catch (error) {
-        console.error("Error caching image:", error);
-        if (isMounted) {
-          setImageError(true);
-        }
-      }
-    };
-
-    cacheImage();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [imageUri, isOnline]);
-
-  // Animation for Image Loading
-  useLayoutEffect(() => {
-    if (showActualImage) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1000,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [showActualImage]);
 
   // Handles adding/removing bookmarks
   const handleBookmarkPress = async () => {
@@ -179,21 +110,13 @@ function NewsCard({
   const CardContent = (
     <View style={styles.contentContainer}>
       <View style={styles.imageContainer}>
-        {!showActualImage || imageError ? (
-          <Image
-            source={require("../../assets/images/placeholder.png")}
-            style={styles.image}
-            resizeMode="cover"
-            resizeMethod="resize"
-          />
-        ) : (
-          <Animated.Image
-            source={{ uri: cachedImageUri || imageUri }}
-            style={[styles.image, { opacity: fadeAnim }]}
-            resizeMode="cover"
-            resizeMethod="resize"
-          />
-        )}
+        <CloudflareImageComponent
+          src={imageUri}
+          width={imageWidth}
+          height={imageHeight}
+          priority={index === 0 || main}
+          accessibilityLabel={heading}
+        />
       </View>
 
       <View style={styles.textContainer}>

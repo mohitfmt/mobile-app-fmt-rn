@@ -9,10 +9,7 @@
     "splash": {
       "image": "./app/assets/images/ic_launcherA.png",
       "resizeMode": "contain",
-      "backgroundColor": {
-        "light": "#ffffff",
-        "dark": "#000000"
-      }
+      "backgroundColor": "#ffffff"
     },
     "ios": {
       "icon": "./app/assets/images/fmtlogo.png",
@@ -20,7 +17,10 @@
       "bundleIdentifier": "com.freemalaysiatoday.app.fmtnews.ios",
       "googleServicesFile": "./GoogleService-Info.plist",
       "jsEngine": "hermes",
-      "name": "FMT News"
+      "name": "FMT News",
+      "splash": {
+        "backgroundColor": "#ffffff"
+      }
     },
     "android": {
       "icon": "./app/assets/images/ic_launcherA.png",
@@ -32,9 +32,7 @@
       },
       "package": "com.freemalaysiatoday.app.fmtnews.android",
       "label": "FMT News",
-      "permissions": [
-        "POST_NOTIFICATIONS"
-      ],
+      "permissions": ["POST_NOTIFICATIONS"],
       "jsEngine": "hermes"
     },
     "web": {
@@ -65,16 +63,10 @@
         }
       ]
     ],
-    "experiments": {
-      "typedRoutes": true
-    },
+    "experiments": { "typedRoutes": true },
     "extra": {
-      "eas": {
-        "projectId": "77fd98c7-01bb-4b3c-963e-4815cea0996c"
-      },
-      "router": {
-        "origin": false
-      }
+      "eas": { "projectId": "77fd98c7-01bb-4b3c-963e-4815cea0996c" },
+      "router": { "origin": false }
     },
     "owner": "mohiteas"
   }

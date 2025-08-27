@@ -15,24 +15,23 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { useContext, useEffect, useRef, useState } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   StyleSheet,
   Share,
-  Animated,
   Platform,
 } from "react-native";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import { downloadImage, getArticleTextSize } from "../functions/Functions";
+import { getArticleTextSize } from "../functions/Functions";
 import { ShareIcon } from "@/app/assets/AllSVGs";
 import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { RelatedArticleProps } from "@/app/types/article";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 // TabletRelatedArticle: Main component for displaying a related article card on tablets.
 // - Uses theme, global settings, and visited articles context
@@ -52,44 +51,12 @@ const TabletRelatedArticle = ({
   const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext);
   const { isVisited } = useVisitedArticles();
   const [visited, setVisited] = useState(false);
-  const [cachedImageUri, setCachedImageUri] = useState<string | null>(null);
-  const [imageLoaded, setImageLoaded] = useState(false);
-  const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     if (id) {
       setVisited(isVisited(id));
     }
   }, [id, isVisited]);
-
-  useEffect(() => {
-    let isMounted = true;
-    const fetchImage = async () => {
-      if (!image) return;
-      if (isOnline) {
-        setCachedImageUri(image);
-        const localUri = await downloadImage(image);
-        if (localUri && isMounted) setCachedImageUri(localUri);
-      } else {
-        const localUri = await downloadImage(image);
-        if (localUri && isMounted) setCachedImageUri(localUri);
-      }
-    };
-    fetchImage();
-    return () => {
-      isMounted = false;
-    };
-  }, [image, isOnline]);
-
-  useEffect(() => {
-    if (imageLoaded) {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 600,
-        useNativeDriver: true,
-      }).start();
-    }
-  }, [imageLoaded]);
 
   const handleShare = async () => {
     try {
@@ -122,16 +89,11 @@ const TabletRelatedArticle = ({
       ]}
     >
       <View style={styles.row}>
-        <Animated.Image
-          source={
-            cachedImageUri
-              ? { uri: cachedImageUri }
-              : require("../../assets/images/placeholder.png")
-          }
-          style={[styles.image, { opacity: fadeAnim }]}
-          resizeMode="cover"
-          onLoad={() => setImageLoaded(true)}
-          onError={() => setImageLoaded(true)}
+        <CloudflareImageComponent
+          src={image || ""}
+          width={400}
+          height={250}
+          accessibilityLabel={title}
         />
         <View style={styles.textWrapper}>
           <Text

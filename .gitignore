@@ -53,3 +53,5 @@ yarn-error.log
 
 expo-env.d.ts
 # @end expo-clifmt-news-app-firebase-adminsdk-*.json
+
+fmt-news-app-firebase*.json

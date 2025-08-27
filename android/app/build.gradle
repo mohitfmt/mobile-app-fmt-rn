@@ -93,7 +93,7 @@ android {
         applicationId 'com.freemalaysiatoday.app.fmtnews.android'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 55
+        versionCode 1
         versionName "2.1.5"
         
         // Ensure proper native library alignment for Android 15's 16 KB memory page sizes
