@@ -4,7 +4,7 @@
     "appVersionSource": "remote"
   },
   "build": {
-     "development": {
+    "development": {
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
@@ -15,7 +15,11 @@
       "distribution": "internal"
     },
     "production": {
-      "autoIncrement": true
+      "autoIncrement": true,
+      "node": "22.12.0",
+      "env": {
+        "NPM_CONFIG_LEGACY_PEER_DEPS": "true"
+      }
     }
   },
   "submit": {
@@ -29,7 +33,7 @@
       }
     },
     "preview": {},
-    "development" : {
+    "development": {
       "ios": {
         "appleId": "mohit@freemalaysiatoday.com",
         "ascAppId": "1455486968",

@@ -112,10 +112,14 @@ const articleStyles = StyleSheet.create({
     marginBottom: 12,
   },
   excerpt: {
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-RegularItalic",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
-    fontStyle: "italic",
+    ...(Platform.OS === "ios" && {
+      fontFamily: "SF-Pro-Display-RegularItalic",
+      fontStyle: "italic",
+    }),
+    ...(Platform.OS === "android" && {
+      fontStyle: "italic",
+      lineHeight: 28, // Explicit lineHeight for italic text
+    }),
   },
   author: {
     fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",

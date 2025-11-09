@@ -170,15 +170,22 @@ const ArticleContent = React.memo(
           </Text>
 
           {standfirstEnabled && item.excerpt && (
-            <View style={{ flex: 1, paddingHorizontal: 18, paddingRight: 4 }}>
+            <View
+              style={{
+                paddingHorizontal: 18,
+                paddingRight: Platform.OS === "android" ? 20 : 18, // ✅ More space on Android
+              }}
+            >
               <Text
                 style={[
                   articleStyles.excerpt,
                   {
                     color: theme.textColor,
                     paddingVertical: 10,
-                    // paddingLeft: 2,
                     fontSize: getArticleTextSize(19.0, textSize),
+                    ...(Platform.OS === "android" && {
+                      paddingRight: 2, // ✅ Small buffer for italic text
+                    }),
                   },
                 ]}
               >

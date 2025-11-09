@@ -25,11 +25,10 @@ import {
   TouchableOpacity,
   TextStyle,
   Platform,
+  Linking,
 } from "react-native";
 import { Parser } from "htmlparser2";
 import { decode } from "html-entities";
-import WebView from "react-native-webview";
-import { Linking } from "react-native";
 import { truncateHtml } from "./utils";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
@@ -237,45 +236,47 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     return shortUrlMatch ? shortUrlMatch[1] : null;
   };
 
+  // YouTubeEmbed Component - Opens videos externally
+  const YouTubeEmbed: React.FC<{
+    videoId: string;
+    width: number;
+    height: number;
+  }> = ({ videoId, width, height }) => {
+    const youtubeUrl = `https://www.youtube.com/watch?v=${videoId}`;
+
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          Linking.openURL(youtubeUrl).catch((err) =>
+            console.error("Error opening YouTube:", err)
+          );
+        }}
+        style={[styles.youtubeContainer, { width, height }]}
+      >
+        <CloudflareImageComponent
+          src={`https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`}
+          width={width}
+          height={height}
+          accessibilityLabel="YouTube video thumbnail"
+        />
+        <View style={styles.playButtonOverlay}>
+          <View style={styles.playButton}>
+            <Text style={styles.playIcon}>▶</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   const renderYoutubeEmbed = (src: string) => {
     const videoId = getYoutubeVideoId(src);
     if (!videoId) return null;
 
     const videoWidth = screenWidth - 36;
-    const videoHeight = Math.floor(videoWidth * (3 / 4));
+    const videoHeight = Math.floor(videoWidth * (9 / 16)); // ✅ FIXED: 16:9 aspect ratio
 
     return (
-      <View
-        style={[
-          styles.youtubeContainer,
-          { width: videoWidth, height: videoHeight },
-        ]}
-      >
-        <WebView
-          source={{
-            uri: `https://www.youtube.com/embed/${videoId}`,
-            headers: {
-              "Accept-Language": "ms-MY,ms;q=0.9,en-MY;q=0.8,en;q=0.7",
-              Origin: "https://www.youtube.com",
-              Referer: "https://www.youtube.com/",
-            },
-          }}
-          style={{
-            height: videoHeight,
-            width: videoWidth,
-            alignSelf: "center",
-          }}
-          javaScriptEnabled
-          domStorageEnabled
-          allowsInlineMediaPlayback
-          mediaPlaybackRequiresUserAction={false}
-          userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-          originWhitelist={["*"]}
-          onError={(syntheticEvent) => {
-            console.warn("WebView error:", syntheticEvent.nativeEvent);
-          }}
-        />
-      </View>
+      <YouTubeEmbed videoId={videoId} width={videoWidth} height={videoHeight} />
     );
   };
 
@@ -328,20 +329,21 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     const hasBoldParent =
       node.parent?.name === "strong" || node.parent?.name === "b";
 
-    // Handle bold+italic combination
     if ((isBold && hasItalicChild) || (isItalic && hasBoldParent)) {
       return (
         <Text
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
-            fontFamily:
-              Platform.OS === "android"
-                ? undefined
-                : "SF-Pro-Display-MediumItalic",
-            fontWeight: Platform.OS === "android" ? "500" : undefined,
             fontStyle: "italic",
             fontSize: 19,
+            ...(Platform.OS === "ios" && {
+              fontFamily: "SF-Pro-Display-MediumItalic",
+            }),
+            ...(Platform.OS === "android" && {
+              fontWeight: "bold", // Use "bold" keyword, not "500"
+              lineHeight: 28,
+            }),
           }}
         >
           {node.children?.map((child, index) => (
@@ -354,18 +356,20 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     }
 
     // Handle italic
+    // Handle italic
     if (isItalic) {
       return (
         <Text
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
-            fontFamily:
-              Platform.OS === "android"
-                ? undefined
-                : "SF-Pro-Display-RegularItalic",
-            fontWeight: Platform.OS === "android" ? "400" : undefined,
             fontStyle: "italic",
+            ...(Platform.OS === "ios" && {
+              fontFamily: "SF-Pro-Display-RegularItalic",
+            }),
+            ...(Platform.OS === "android" && {
+              lineHeight: 28, // Explicit for italic
+            }),
           }}
         >
           {node.children?.map((child, index) => (
@@ -928,12 +932,13 @@ const styles = StyleSheet.create({
   caption1: {
     marginTop: 3,
     textAlign: "center",
-    fontFamily: Platform.select({
-      ios: "SF-Pro-Display-RegularItalic",
-      android: undefined, // Use system font on Android
-    }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
     fontStyle: "italic",
+    ...(Platform.OS === "ios" && {
+      fontFamily: "SF-Pro-Display-RegularItalic",
+    }),
+    ...(Platform.OS === "android" && {
+      lineHeight: 22, // Explicit for captions
+    }),
   },
   paragraph: {
     lineHeight: Platform.select({
@@ -960,7 +965,7 @@ const styles = StyleSheet.create({
     // Add these properties for One UI 6.0+ compatibility
     flexBasis: "auto",
     minWidth: 0,
-    paddingRight: 4,
+    paddingRight: Platform.OS === "android" ? 12 : 4,
     includeFontPadding: false, // ← important for Android text clipping
   },
   italicText: {
@@ -969,7 +974,9 @@ const styles = StyleSheet.create({
       ios: "SF-Pro-Display-RegularItalic",
       android: undefined,
     }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    ...(Platform.OS === "android" && {
+      lineHeight: 28, // Explicit for italic
+    }),
   },
   strongText: {
     fontWeight: Platform.select({
@@ -988,11 +995,6 @@ const styles = StyleSheet.create({
     width: "100%",
     marginVertical: 10,
     alignItems: "center",
-  },
-  youtubeContainer: {
-    overflow: "hidden",
-    backgroundColor: "#000",
-    flex: 1,
   },
   unorderedList: {
     marginVertical: 8,
@@ -1017,7 +1019,7 @@ const styles = StyleSheet.create({
     fontFamily:
       Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
     fontWeight: Platform.OS === "android" ? "400" : undefined,
-    width: 24,
+    width: 32,
     textAlign: "left",
   },
   listItemContent: {
@@ -1066,6 +1068,46 @@ const styles = StyleSheet.create({
     width: "100%",
     flexShrink: 1,
     flexGrow: 1,
+  },
+  youtubeContainer: {
+    overflow: "hidden",
+    backgroundColor: "#000",
+    borderRadius: 8,
+    marginVertical: 10,
+  },
+  playButtonOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "rgba(0, 0, 0, 0.15)", // ✅ REDUCED: Was 0.4, now 0.25 (lighter)
+  },
+  playButton: {
+    width: 48, // ✅ SMALLER: Was 80, now 48
+    height: 48,
+    borderRadius: 32,
+    backgroundColor: "rgba(255, 0, 0, 0.7)", // Slightly more opaque red
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 32,
+  },
+  playIcon: {
+    color: "#fff",
+    fontSize: 32, // ✅ SMALLER: Was 40, now 32
+    marginLeft: 4,
+    marginBottom: 8,
+  },
+  watchOnYouTube: {
+    color: "#fff",
+    fontSize: 14, // ✅ SMALLER: Was 16, now 14
+    fontWeight: "600",
+    textAlign: "center",
+    textShadowColor: "rgba(0, 0, 0, 0.9)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 4,
   },
 });
 
