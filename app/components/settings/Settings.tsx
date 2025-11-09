@@ -32,6 +32,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { ChevronRight, X } from "lucide-react-native";
 import { router } from "expo-router";
+// @ts-ignore: missing declaration file for module '@/app/assets/AllSVGs'
 import { ChevronDown } from "@/app/assets/AllSVGs";
 import StickyNotification from "./StickyNotification";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
@@ -202,7 +203,7 @@ const SettingsPage: React.FC = () => {
 
   const [deviceInfo, setDeviceInfo] = useState({
     uuid: "Not available",
-    version: "v2.1.5",
+    version: "v2.2.0",
   });
 
   /**
@@ -398,7 +399,7 @@ const SettingsPage: React.FC = () => {
         uuidStr = uuid.v4().toString().replace(/-/g, "");
         await AsyncStorage.setItem(UUID_KEY, uuidStr);
       }
-      const version = `v${Application.nativeApplicationVersion || "2.1.5"}`;
+      const version = `v${Application.nativeApplicationVersion || "2.2.0"}`;
       setDeviceInfo({ uuid: uuidStr, version });
     };
 
