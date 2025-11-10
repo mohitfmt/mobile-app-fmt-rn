@@ -183,9 +183,6 @@ const ArticleContent = React.memo(
                     color: theme.textColor,
                     paddingVertical: 10,
                     fontSize: getArticleTextSize(19.0, textSize),
-                    ...(Platform.OS === "android" && {
-                      paddingRight: 2, // ✅ Small buffer for italic text
-                    }),
                   },
                 ]}
               >
