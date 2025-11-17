@@ -35,8 +35,7 @@ import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { getArticleTextSize } from "@/app/components/functions/Functions";
 import BannerAD from "@/app/components/ads/Banner";
 import CloudflareImageComponent from "./CloudflareImageComponent";
-import WebView from "react-native-webview";
-
+import YoutubePlayer from "react-native-youtube-iframe";
 // Type Definitions: AdUnitKey, ParsedNode, HTMLContentParserProps for type safety and clarity.
 type AdUnitKey = "home" | "article1" | "article2" | "article3" | "ros";
 
@@ -277,30 +276,10 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     const videoHeight = Math.floor(videoWidth * (9 / 16)); // ✅ FIXED: 16:9 aspect ratio
 
     return (
-      <WebView
-        source={{
-          uri: `https://www.youtube.com/embed/${videoId}`,
-          headers: {
-            "Accept-Language": "ms-MY,ms;q=0.9,en-MY;q=0.8,en;q=0.7",
-            Origin: "https://www.youtube.com",
-            Referer: `https://com.freemalaysiatoday.app.fmtnews.android`,
-          },
-        }}
-        cacheEnabled={false}
-        style={{
-          height: videoHeight,
-          width: videoWidth,
-          alignSelf: "center",
-        }}
-        javaScriptEnabled
-        scalesPageToFit={true}
-        allowsInlineMediaPlayback
-        mediaPlaybackRequiresUserAction={false}
-        userAgent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-        originWhitelist={["*"]}
-        onError={(syntheticEvent) => {
-          console.warn("WebView error:", syntheticEvent.nativeEvent);
-        }}
+      <YoutubePlayer
+        height={videoHeight}
+        videoId={videoId}
+        width={videoWidth}
       />
     );
   };

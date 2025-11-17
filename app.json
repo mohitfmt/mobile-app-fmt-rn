@@ -41,6 +41,7 @@
       "favicon": "./app/assets/images/ic_launcherA.png"
     },
     "plugins": [
+      "./plugins/withNotificationColorPlugin",
       "expo-router",
       "expo-font",
       "@react-native-firebase/app",
@@ -50,7 +51,8 @@
         {
           "androidAppId": "ca-app-pub-1691191334203390~5037677560",
           "android_app_id": "ca-app-pub-1691191334203390~5037677560",
-          "iosAppId": "ca-app-pub-1691191334203390~9795180220"
+          "iosAppId": "ca-app-pub-1691191334203390~9795180220",
+          "ios_app_id": "ca-app-pub-1691191334203390~9795180220"
         }
       ],
       [
@@ -61,6 +63,20 @@
           "androidMode": "default",
           "androidCollapsedTitle": "New messages"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "buildReactNativeFromSource": true
+          },
+          "android": {
+            "extraMavenRepos": [
+              "../../node_modules/@notifee/react-native/android/libs"
+              ]
+          }
+        }
       ]
     ],
     "experiments": { "typedRoutes": true },
@@ -69,5 +85,11 @@
       "router": { "origin": false }
     },
     "owner": "mohiteas"
+  },
+  "react-native-google-mobile-ads": {
+          "androidAppId": "ca-app-pub-1691191334203390~5037677560",
+          "android_app_id": "ca-app-pub-1691191334203390~5037677560",
+          "iosAppId": "ca-app-pub-1691191334203390~9795180220",
+          "ios_app_id": "ca-app-pub-1691191334203390~9795180220"
   }
 }

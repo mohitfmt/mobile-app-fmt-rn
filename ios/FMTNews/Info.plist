@@ -50,10 +50,6 @@
     <string>ca-app-pub-1691191334203390~9795180220</string>
     <key>GADDelayAppMeasurementInit</key>
     <false/>
-    <key>LSApplicationQueriesSchemes</key>
-    <array>
-      <string>itms-apps</string>
-    </array>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>
@@ -68,11 +64,6 @@
     <key>NSUserActivityTypes</key>
     <array>
       <string>$(PRODUCT_BUNDLE_IDENTIFIER).expo.index_route</string>
-    </array>
-    <key>UIBackgroundModes</key>
-    <array>
-      <string>remote-notification</string>
-      <string>fetch</string>
     </array>
     <key>UILaunchStoryboardName</key>
     <string>SplashScreen</string>
