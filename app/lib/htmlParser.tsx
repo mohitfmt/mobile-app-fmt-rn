@@ -277,6 +277,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
 
     return (
       <YoutubePlayer
+        key={videoId}
         height={videoHeight}
         videoId={videoId}
         width={videoWidth}

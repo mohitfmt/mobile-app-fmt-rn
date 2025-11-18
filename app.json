@@ -3,27 +3,17 @@
     "name": "FMT News",
     "slug": "FMT-News-App",
     "version": "2.2.0",
-    "icon": "./app/assets/images/ic_launcherA.png",
+    "icon": "./app/assets/images/iconFMT.jpg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./app/assets/images/ic_launcherA.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
-      "icon": "./app/assets/images/fmtlogo.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.freemalaysiatoday.app.fmtnews.ios",
       "googleServicesFile": "./GoogleService-Info.plist",
       "jsEngine": "hermes",
-      "name": "FMT News",
-      "splash": {
-        "backgroundColor": "#ffffff"
-      }
+      "name": "FMT News"
     },
     "android": {
-      "icon": "./app/assets/images/ic_launcherA.png",
       "enableDangerousExperimentalLeanBuilds": false,
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
@@ -47,6 +37,14 @@
       "expo-font",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./app/assets/images/ic_launcherA.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
       [
         "react-native-google-mobile-ads",
         {
