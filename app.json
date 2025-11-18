@@ -25,6 +25,7 @@
     "android": {
       "icon": "./app/assets/images/ic_launcherA.png",
       "enableDangerousExperimentalLeanBuilds": false,
+      "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./app/assets/images/ic_launcherA.png",
