@@ -1,4 +1,4 @@
-package com.freemalaysiatoday.app.fmtnews.android;
+package com.freemalaysiatoday.app.fmtnews.android
 import expo.modules.splashscreen.SplashScreenManager
 
 import android.os.Build

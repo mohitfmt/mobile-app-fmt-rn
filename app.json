@@ -3,28 +3,19 @@
     "name": "FMT News",
     "slug": "FMT-News-App",
     "version": "2.2.0",
-    "icon": "./app/assets/images/ic_launcherA.png",
+    "icon": "./app/assets/images/iconFMT.jpg",
     "scheme": "myapp",
     "userInterfaceStyle": "automatic",
-    "splash": {
-      "image": "./app/assets/images/ic_launcherA.png",
-      "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
-    },
     "ios": {
-      "icon": "./app/assets/images/fmtlogo.png",
       "supportsTablet": true,
       "bundleIdentifier": "com.freemalaysiatoday.app.fmtnews.ios",
       "googleServicesFile": "./GoogleService-Info.plist",
       "jsEngine": "hermes",
-      "name": "FMT News",
-      "splash": {
-        "backgroundColor": "#ffffff"
-      }
+      "name": "FMT News"
     },
     "android": {
-      "icon": "./app/assets/images/ic_launcherA.png",
       "enableDangerousExperimentalLeanBuilds": false,
+      "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./app/assets/images/ic_launcherA.png",
@@ -41,16 +32,26 @@
       "favicon": "./app/assets/images/ic_launcherA.png"
     },
     "plugins": [
+      "./plugins/withNotificationColorPlugin",
       "expo-router",
       "expo-font",
       "@react-native-firebase/app",
       "@react-native-firebase/messaging",
       [
+        "expo-splash-screen",
+        {
+          "image": "./app/assets/images/ic_launcherA.png",
+          "resizeMode": "contain",
+          "backgroundColor": "#ffffff"
+        }
+      ],
+      [
         "react-native-google-mobile-ads",
         {
           "androidAppId": "ca-app-pub-1691191334203390~5037677560",
           "android_app_id": "ca-app-pub-1691191334203390~5037677560",
-          "iosAppId": "ca-app-pub-1691191334203390~9795180220"
+          "iosAppId": "ca-app-pub-1691191334203390~9795180220",
+          "ios_app_id": "ca-app-pub-1691191334203390~9795180220"
         }
       ],
       [
@@ -61,6 +62,20 @@
           "androidMode": "default",
           "androidCollapsedTitle": "New messages"
         }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "useFrameworks": "static",
+            "buildReactNativeFromSource": true
+          },
+          "android": {
+            "extraMavenRepos": [
+              "../../node_modules/@notifee/react-native/android/libs"
+              ]
+          }
+        }
       ]
     ],
     "experiments": { "typedRoutes": true },
@@ -69,5 +84,11 @@
       "router": { "origin": false }
     },
     "owner": "mohiteas"
+  },
+  "react-native-google-mobile-ads": {
+          "androidAppId": "ca-app-pub-1691191334203390~5037677560",
+          "android_app_id": "ca-app-pub-1691191334203390~5037677560",
+          "iosAppId": "ca-app-pub-1691191334203390~9795180220",
+          "ios_app_id": "ca-app-pub-1691191334203390~9795180220"
   }
 }
