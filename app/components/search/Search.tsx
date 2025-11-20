@@ -30,7 +30,6 @@ import {
   Platform,
   InteractionManager,
   useWindowDimensions,
-  SafeAreaView,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useRouter } from "expo-router";
@@ -491,7 +490,7 @@ const ArticleSearch = () => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.container,
         { backgroundColor: theme.backgroundColor, paddingTop: insets.top },
@@ -614,7 +613,7 @@ const ArticleSearch = () => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -1,6 +1,5 @@
 # Node Modules
 node_modules/
-
 # Android Build Files
 android/app/build/
 android/build/
@@ -55,3 +54,5 @@ expo-env.d.ts
 # @end expo-clifmt-news-app-firebase-adminsdk-*.json
 
 fmt-news-app-firebase*.json
+
+.expo/

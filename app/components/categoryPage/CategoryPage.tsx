@@ -28,7 +28,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  SafeAreaView,
   Easing,
   Platform,
   InteractionManager,
@@ -450,7 +449,7 @@ const CategoryPosts = () => {
 
   if (processedData.length === 0 && !loading && !globalLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
+      <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
         <View
           style={[styles.header, { backgroundColor: theme.backgroundColor }]}
         >
@@ -498,7 +497,7 @@ const CategoryPosts = () => {
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 

@@ -11,7 +11,6 @@ import {
   FlatList,
   StyleSheet,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
   Easing,
   Platform,
@@ -281,7 +280,7 @@ const CategoryVideos = () => {
 
   return (
     <>
-      <SafeAreaView
+      <View
         style={{
           backgroundColor: theme.backgroundColor,
           paddingTop: insets.top,
@@ -339,7 +338,7 @@ const CategoryVideos = () => {
           }}
           ListFooterComponent={<View style={{ height: 10 }} />}
         />
-      </SafeAreaView>
+      </View>
     </>
   );
 };
