@@ -36,3 +36,13 @@ allprojects {
 
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
+
+
+allprojects {
+    configurations.all {
+        resolutionStrategy {
+            force 'androidx.media:media:1.7.0'
+        }
+    }
+}
+

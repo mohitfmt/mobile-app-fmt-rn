@@ -33,6 +33,7 @@
     },
     "plugins": [
       "./plugins/withNotificationColorPlugin",
+      "./plugins/withAndroidxMedia",
       "expo-router",
       "expo-font",
       "@react-native-firebase/app",
