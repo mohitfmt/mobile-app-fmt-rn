@@ -27,7 +27,7 @@
       <dict>
         <key>CFBundleURLSchemes</key>
         <array>
-          <string>myapp</string>
+          <string>fmtnews</string>
           <string>com.freemalaysiatoday.app.fmtnews.ios</string>
         </array>
       </dict>
@@ -50,6 +50,10 @@
     <string>ca-app-pub-1691191334203390~9795180220</string>
     <key>GADDelayAppMeasurementInit</key>
     <false/>
+    <key>LSApplicationQueriesSchemes</key>
+    <array>
+      <string>fmtnews</string>
+    </array>
     <key>LSMinimumSystemVersion</key>
     <string>12.0</string>
     <key>LSRequiresIPhoneOS</key>

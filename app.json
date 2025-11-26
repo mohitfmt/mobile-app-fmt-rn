@@ -4,13 +4,18 @@
     "slug": "FMT-News-App",
     "version": "2.2.0",
     "icon": "./app/assets/images/icon_FMT.png",
-    "scheme": "myapp",
+    "scheme": "fmtnews",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.freemalaysiatoday.app.fmtnews.ios",
       "googleServicesFile": "./GoogleService-Info.plist",
-      "jsEngine": "hermes"
+      "jsEngine": "hermes",
+      "infoPlist": {
+        "LSApplicationQueriesSchemes": [
+          "fmtnews"
+        ]
+      }
     },
     "android": {
       "edgeToEdgeEnabled": true,
