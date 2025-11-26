@@ -27,7 +27,7 @@ import React, {
   useRef,
 } from "react";
 import axios, { AxiosError } from "axios";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { ThemeContext } from "./ThemeProvider";
 
 // Type Definitions
@@ -90,7 +90,6 @@ const LandingDataContext = createContext<LandingContextType>({
   queueCacheUpdate: () => {},
   refreshLandingPages: async () => {},
   refreshCategoryData: async () => {},
-
 });
 
 // Constants
@@ -593,32 +592,31 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const lastLandingRefreshRef = useRef<number>(0); // ⬅️ Add near top
 
-const refreshLandingPages = useCallback(async () => {
-  if (!isOnline) return;
+  const refreshLandingPages = useCallback(async () => {
+    if (!isOnline) return;
 
-  const now = Date.now();
-  const elapsed = now - lastLandingRefreshRef.current;
+    const now = Date.now();
+    const elapsed = now - lastLandingRefreshRef.current;
 
-  // Only allow refresh if more than 1 minute has passed
-  if (elapsed < 10 * 1000) {
-    // console.log("⏱ Skipping landing refresh - called too soon");
-    return;
-  }
+    // Only allow refresh if more than 1 minute has passed
+    if (elapsed < 10 * 1000) {
+      // console.log("⏱ Skipping landing refresh - called too soon");
+      return;
+    }
 
-  // console.log("🔁 Refreshing landing pages");
-  lastLandingRefreshRef.current = now;
+    // console.log("🔁 Refreshing landing pages");
+    lastLandingRefreshRef.current = now;
 
-  const landingPages = landingFeeds.filter((feed) =>
-    feed.key.endsWith("-landing")
-  );
+    const landingPages = landingFeeds.filter((feed) =>
+      feed.key.endsWith("-landing")
+    );
 
-  // const results = await Promise.allSettled(
-  //   landingPages.map((feed) => fetchCategoryWithRetry(feed))
-  // );
+    // const results = await Promise.allSettled(
+    //   landingPages.map((feed) => fetchCategoryWithRetry(feed))
+    // );
 
-  // processResults(results);
-}, []);
-
+    // processResults(results);
+  }, []);
 
   // Batch cache update function - only runs once every 24 hours
   const batchUpdateCache = useCallback(async () => {
@@ -765,40 +763,40 @@ const refreshLandingPages = useCallback(async () => {
   };
 
   const refreshCategoryData = useCallback(
-  async (categoryKey: string): Promise<void> => {
-    if (!isOnline) return;
+    async (categoryKey: string): Promise<void> => {
+      if (!isOnline) return;
 
-    const normalizedKey = normalizeCategoryKey(categoryKey);
+      const normalizedKey = normalizeCategoryKey(categoryKey);
 
-    const category = [...landingFeeds, ...youtubeFeeds].find(
-      (item) => item.key === normalizedKey
-    );
+      const category = [...landingFeeds, ...youtubeFeeds].find(
+        (item) => item.key === normalizedKey
+      );
 
-    if (!category) {
-      // console.warn(`No matching feed found for category "${normalizedKey}"`);
-      return;
-    }
-
-    const result = await fetchCategoryWithRetry(category);
-    if (result) {
-      const { data } = result; // ⬅️ no longer using result.key
-      const filteredData = filterValidArticles(data);
-
-      // Always use normalizedKey to update landingData
-      setLandingData((prev) => ({ ...prev, [normalizedKey]: data }));
-
-      // Save filtered data under normalizedKey
-      if (filteredData.length > 0) {
-        setFilteredLandingData((prev) => {
-          const updated = { ...prev, [normalizedKey]: filteredData };
-          updateMainLandingData(updated);
-          return updated;
-        });
+      if (!category) {
+        // console.warn(`No matching feed found for category "${normalizedKey}"`);
+        return;
       }
-    }
-  },
-  []
-);
+
+      const result = await fetchCategoryWithRetry(category);
+      if (result) {
+        const { data } = result; // ⬅️ no longer using result.key
+        const filteredData = filterValidArticles(data);
+
+        // Always use normalizedKey to update landingData
+        setLandingData((prev) => ({ ...prev, [normalizedKey]: data }));
+
+        // Save filtered data under normalizedKey
+        if (filteredData.length > 0) {
+          setFilteredLandingData((prev) => {
+            const updated = { ...prev, [normalizedKey]: filteredData };
+            updateMainLandingData(updated);
+            return updated;
+          });
+        }
+      }
+    },
+    []
+  );
 
   const processResults = useCallback(
     (results: PromiseSettledResult<{ key: string; data: any[] } | null>[]) => {

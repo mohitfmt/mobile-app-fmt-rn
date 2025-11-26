@@ -180,7 +180,7 @@ const handleNotificationNavigation = async (data: {
   if (!data.slug || !data.date || routerCalled) return;
 
   routerCalled = true;
-  const url = `myapp://components/articles/NetworkArticle?slug=${data.slug}&date=${data.date}`;
+  const url = `fmtnews://components/articles/NetworkArticle?slug=${data.slug}&date=${data.date}`;
 
   try {
     if (await Linking.canOpenURL(url)) {

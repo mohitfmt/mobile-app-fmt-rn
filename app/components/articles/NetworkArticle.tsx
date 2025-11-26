@@ -17,7 +17,6 @@ import React, { useState, useEffect, useCallback, useContext } from "react";
 import {
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   Image,
   useWindowDimensions,
@@ -141,7 +140,7 @@ const NetworkArticle: React.FC = () => {
   // Show error message if article fails to load
   if (!article) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
+      <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
         {/* Error Body */}
         <View style={styles.emptyContainer}>
           <Text style={[styles.emptyText, { color: theme.textColor }]}>
@@ -154,7 +153,7 @@ const NetworkArticle: React.FC = () => {
             <Text style={styles.refreshButtonText}>Retry</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
