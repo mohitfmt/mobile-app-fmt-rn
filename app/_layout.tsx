@@ -21,7 +21,13 @@ import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import React, { useContext, useEffect, useState } from "react";
-import { Linking, Platform, PermissionsAndroid, Text } from "react-native";
+import {
+  Linking,
+  Platform,
+  PermissionsAndroid,
+  Text,
+  TextInput,
+} from "react-native";
 import messaging from "@react-native-firebase/messaging";
 import notifee, {
   AndroidImportance,
@@ -46,6 +52,7 @@ import ConnectionErrorNotification from "./NetworkBanner";
 import axios from "axios";
 import { router } from "expo-router";
 import { VisitedArticlesProvider } from "@/app/providers/VisitedArticleProvider";
+import { TextWithDefaultProps } from "./types/text";
 
 if (Platform.OS === "android") {
   (Text as any).defaultProps = {
@@ -370,6 +377,19 @@ export default function RootLayout() {
     "SF-Pro-Text-Regular": require("./assets/fonts/SF-Pro/SF-Pro-Text-Regular.otf"),
     "SF-Pro-Text-Light": require("./assets/fonts/SF-Pro/SF-Pro-Text-Light.otf"),
   });
+
+  useEffect(() => {
+    (Text as unknown as TextWithDefaultProps).defaultProps =
+      (Text as unknown as TextWithDefaultProps).defaultProps || {};
+    (Text as unknown as TextWithDefaultProps).defaultProps!.allowFontScaling =
+      false;
+
+    (TextInput as unknown as TextWithDefaultProps).defaultProps =
+      (TextInput as unknown as TextWithDefaultProps).defaultProps || {};
+    (
+      TextInput as unknown as TextWithDefaultProps
+    ).defaultProps!.allowFontScaling = false;
+  }, []);
 
   useEffect(() => {
     if (loaded) {

@@ -5,7 +5,7 @@
 //
 // Key responsibilities:
 // - Fetch and cache news articles, videos, and category data
-// - Support offline mode with AsyncStorage caching
+// - Support offline mode with MMKV caching
 // - Update data periodically and allow manual refresh
 // - Retrieve related posts for articles
 //

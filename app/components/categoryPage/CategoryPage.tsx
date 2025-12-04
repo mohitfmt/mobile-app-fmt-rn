@@ -248,7 +248,7 @@ const CategoryPosts = () => {
 
       let contextArticles = filteredLandingData[mappedKey] || [];
 
-      // ✅ If no context data, try loading from AsyncStorage
+      // ✅ If no context data, try loading from MMKV
       if (contextArticles.length === 0) {
         const cachedData = await getCachedData(mappedKey);
         if (cachedData && hasCachedData(cachedData)) {

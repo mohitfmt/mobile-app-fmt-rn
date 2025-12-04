@@ -1,11 +1,11 @@
 // VisitedArticleProvider.tsx
 //
 // This file provides a context for tracking which articles a user has visited/read.
-// It stores visited article IDs in AsyncStorage for persistence across sessions.
+// It stores visited article IDs in mmkv for persistence across sessions.
 //
 // Key responsibilities:
 // - Track visited articles by their IDs
-// - Persist visited articles in AsyncStorage
+// - Persist visited articles in mmkv
 // - Provide functions to mark articles as visited and check if visited
 //
 // Usage: Wrap your app (or a subtree) with <VisitedArticlesProvider> to provide visited-article context.
@@ -21,7 +21,7 @@ import React, {
   useCallback,
   ReactNode,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 
 // VisitedArticlesContextType: The shape of the context value provided to consumers.
 interface VisitedArticlesContextType {
@@ -35,7 +35,7 @@ const VisitedArticlesContext = createContext<
   VisitedArticlesContextType | undefined
 >(undefined);
 
-// VisitedArticlesProvider: Main provider component. Loads visited articles from AsyncStorage on mount.
+// VisitedArticlesProvider: Main provider component. Loads visited articles from MMKV on mount.
 // Provides markAsVisited and isVisited functions to children.
 export const VisitedArticlesProvider: React.FC<{ children: ReactNode }> = ({
   children,
@@ -46,9 +46,7 @@ export const VisitedArticlesProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const loadVisitedArticles = async () => {
       try {
-        const visitedArticlesStr = await AsyncStorage.getItem(
-          "visitedArticles"
-        );
+        const visitedArticlesStr = storage.getString("visitedArticles");
         if (visitedArticlesStr) {
           const visitedArray: string[] = JSON.parse(visitedArticlesStr);
           setVisitedArticles(visitedArray);
@@ -69,13 +67,8 @@ export const VisitedArticlesProvider: React.FC<{ children: ReactNode }> = ({
       if (!prevVisited.includes(articleId)) {
         const newVisited = [...prevVisited, articleId];
 
-        // Save to AsyncStorage asynchronously
-        AsyncStorage.setItem(
-          "visitedArticles",
-          JSON.stringify(newVisited)
-        ).catch((error) => {
-          console.error("Error saving visited article:", error);
-        });
+        // Save to MMKV asynchronously
+        storage.set("visitedArticles", JSON.stringify(newVisited));
 
         return newVisited;
       }

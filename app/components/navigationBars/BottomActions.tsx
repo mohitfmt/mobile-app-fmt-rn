@@ -30,7 +30,7 @@ import { useRouter } from "expo-router";
 import { ThemeContext } from "../../providers/ThemeProvider";
 import * as Device from "expo-device";
 import * as Application from "expo-application";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 import uuid from "react-native-uuid";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -49,7 +49,7 @@ const BottomActions: React.FC = () => {
   const sendFeedbackEmail = async () => {
     try {
       const UUID_KEY = "device_uuid";
-      let cleanUuid = await AsyncStorage.getItem(UUID_KEY);
+      let cleanUuid = storage.getString(UUID_KEY);
 
       if (!cleanUuid) {
         cleanUuid = uuid.v4().replace(/-/g, ""); // fallback if not yet set

@@ -1,12 +1,12 @@
 // ThemeProvider.tsx
 //
 // This file provides a global theme context for managing light, dark, and system themes.
-// It allows users to toggle between themes and persists their preferences using AsyncStorage.
+// It allows users to toggle between themes and persists their preferences using mmkv.
 // Network connectivity is checked manually using axios to ensure reliable online/offline detection.
 //
 // Key responsibilities:
 // - Support light, dark, and system-based themes
-// - Save user theme preferences in AsyncStorage
+// - Save user theme preferences in mmkv
 // - Detect system theme changes when set to "system"
 // - Provide online/offline status to the app
 //
@@ -22,7 +22,7 @@ import React, {
   ReactNode,
 } from "react";
 import { Appearance, AppState, AppStateStatus } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 import axios from "axios";
 
 // Define themes: These are the color palettes for light and dark modes.
@@ -60,7 +60,7 @@ type ThemeProviderProps = {
  * ThemeProvider component
  *
  * - Manages theme selection (light, dark, or system).
- * - Loads saved theme preferences from AsyncStorage.
+ * - Loads saved theme preferences from mmkv.
  * - Applies system theme changes dynamically if "system" mode is selected.
  * - Checks internet accessibility manually using axios.head.
  */
@@ -86,10 +86,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     }
   }, []);
 
-  // applyTheme: Loads the user's theme preference from AsyncStorage and applies it.
+  // applyTheme: Loads the user's theme preference from mmkv and applies it.
   const applyTheme = async () => {
     try {
-      const storedTheme = await AsyncStorage.getItem("appTheme");
+      const storedTheme = storage.getString("appTheme");
       setSelectedTheme(storedTheme || "system");
 
       if (storedTheme === "light") {
@@ -144,12 +144,12 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     applyTheme();
   }, []);
 
-  // toggleTheme: Changes the theme and saves the preference to AsyncStorage.
+  // toggleTheme: Changes the theme and saves the preference to mmkv.
   const toggleTheme = async (newTheme?: "light" | "dark" | "system") => {
     try {
       if (newTheme) {
         setSelectedTheme(newTheme);
-        await AsyncStorage.setItem("appTheme", newTheme);
+        storage.set("appTheme", newTheme);
 
         if (newTheme === "light") {
           setTheme(themes.light);
@@ -162,7 +162,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       } else {
         const toggledTheme = theme === themes.light ? "dark" : "light";
         setSelectedTheme(toggledTheme);
-        await AsyncStorage.setItem("appTheme", toggledTheme);
+        storage.set("appTheme", toggledTheme);
         setTheme(toggledTheme === "dark" ? themes.dark : themes.light);
       }
     } catch (err) {

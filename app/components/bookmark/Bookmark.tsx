@@ -1,7 +1,7 @@
 // Bookmark.tsx
 //
 // This file defines the Bookmarks screen/component, which displays and manages the user's bookmarked articles.
-// It loads bookmark data from AsyncStorage, shows a list of bookmarks, and allows navigation to articles.
+// It loads bookmark data from mmkv, shows a list of bookmarks, and allows navigation to articles.
 // The screen adapts to theme, text size, and device type (tablet/phone), and provides an empty state UI.
 //
 // Key responsibilities:
@@ -19,7 +19,7 @@ import { View, Text, FlatList, TouchableOpacity, Platform } from "react-native";
 import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Bookmark, X } from "lucide-react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 import { getArticleTextSize } from "../functions/Functions";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
@@ -58,7 +58,7 @@ export default function Bookmarks() {
       const bookmarkDetails = await Promise.all(
         bookmarkedArticles.map(async (id) => {
           try {
-            const articleData = await AsyncStorage.getItem(`article_${id}`);
+            const articleData = storage.getString(`article_${id}`);
             if (articleData) {
               const parsedData = JSON.parse(articleData);
               return {
@@ -105,7 +105,7 @@ export default function Bookmarks() {
     }, 100);
 
     return () => clearTimeout(timeoutId);
-  }, [loadBookmarkData]);
+  }, []);
 
   const handleBackPress = useCallback(() => {
     router.back();
