@@ -417,7 +417,7 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
         <View style={[styles.placeholderContainer, StyleSheet.absoluteFill]}>
           {lqipDataUri ? (
             <Image
-              source={{ uri: lqipDataUri }}
+              source={{ uri: lqipDataUri, cache: "force-cache" }}
               style={{ width, height }}
               blurRadius={1}
               resizeMode={resizeMode}

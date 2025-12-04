@@ -1,6 +1,6 @@
 // cacheUtils.ts
 //
-// This file provides utility functions for caching and retrieving data using AsyncStorage.
+// This file provides utility functions for caching and retrieving data using MMKV storage.
 // It is used throughout the app to persist data locally for offline access and performance.
 //
 // Key responsibilities:
@@ -12,7 +12,7 @@
 //
 // -----------------------------------------------------------------------------
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "./storage";
 
 export const hasCachedData = (data: any[] | undefined): boolean => {
   // hasCachedData: Checks if the provided data array is non-empty and valid.
@@ -20,24 +20,25 @@ export const hasCachedData = (data: any[] | undefined): boolean => {
 };
 
 export const cacheData = async (key: string, data: any[]) => {
-  // cacheData: Stores the data array in AsyncStorage under a cache key.
+  // cacheData: Stores the data array in MMKV storage under a cache key.
+  // MMKV is synchronous, so no async/await needed.
   try {
-    await AsyncStorage.setItem(`cache_${key}`, JSON.stringify(data));
+    await storage.set(`cache_${key}`, JSON.stringify(data));
   } catch (error) {
     console.error(`Failed to cache data for ${key}:`, error);
   }
 };
 
-export const getCachedData = async (
-  key: string
-): Promise<any[] | undefined> => {
-  // getCachedData: Retrieves and parses the cached data array from AsyncStorage.
+export const getCachedData = async (key: string): any[] | undefined => {
+  // getCachedData: Retrieves and parses the cached data array from MMKV storage.
+  // MMKV is synchronous, so no async/await needed.
   try {
-    const cached = await AsyncStorage.getItem(`cache_${key}`);
-    return cached ? JSON.parse(cached) : undefined; // ⬅️ changed from null to undefined
+    const cached = await storage.getString(`cache_${key}`);
+    console.log(cached, "cached");
+    return cached ? JSON.parse(cached) : undefined;
   } catch (error) {
     console.error(`Failed to retrieve cached data for ${key}:`, error);
-    return undefined; // ⬅️ changed from null to undefined
+    return undefined;
   }
 };
 

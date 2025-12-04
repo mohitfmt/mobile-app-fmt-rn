@@ -31,7 +31,7 @@ import {
   Platform,
   useWindowDimensions,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage"; // Added for caching
+import { storage } from "@/app/lib/storage";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
@@ -55,6 +55,7 @@ import TabletVideoCard from "../cards/TabletVideoCard";
 import axios, { AxiosError } from "axios";
 import { landingFeeds, youtubeFeeds } from "@/app/providers/LandingProvider";
 import { RefreshControl } from "react-native";
+import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
 
 // Type Definitions (from LandingDataProvider)
 interface Feed {
@@ -138,25 +139,6 @@ const processYouTubeData = (items: any[]): any[] => {
 // Utility function to check if cached data exists
 const hasCachedData = (data: any[] | undefined): boolean => {
   return Array.isArray(data) && data.length > 0;
-};
-
-// AsyncStorage caching functions
-const cacheData = async (key: string, data: any[]) => {
-  try {
-    await AsyncStorage.setItem(`cache_${key}`, JSON.stringify(data));
-  } catch (error) {
-    console.error(`Failed to cache data for ${key}:`, error);
-  }
-};
-
-const getCachedData = async (key: string): Promise<any[] | null> => {
-  try {
-    const cached = await AsyncStorage.getItem(`cache_${key}`);
-    return cached ? JSON.parse(cached) : null;
-  } catch (error) {
-    console.error(`Failed to retrieve cached data for ${key}:`, error);
-    return null;
-  }
 };
 
 // Loading Component
@@ -419,7 +401,6 @@ const HomeLandingSection = ({
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const lastAutoRefreshRef = useRef<number>(Date.now());
-
   const categoryKey = useMemo(() => {
     switch (categoryName.toLowerCase()) {
       case "home":
@@ -452,7 +433,6 @@ const HomeLandingSection = ({
   }, [categoryName]);
 
   const fullArticles = landingData[categoryKey] || [];
-
   const validArticles = useMemo(
     () =>
       fullArticles.filter((item: any) => {
@@ -470,6 +450,7 @@ const HomeLandingSection = ({
   );
 
   const visibleData = useMemo(() => {
+    console.log(sectionVisible, expanded, fullArticles, "fullArticles");
     if (sectionVisible && !expanded) {
       setExpanded(true);
       return fullArticles;
@@ -512,7 +493,8 @@ const HomeLandingSection = ({
           const processedData = isYoutube
             ? processYouTubeData(response.data)
             : response.data;
-          // Cache the data in AsyncStorage
+          console.log(processedData, "processedData");
+          // Cache the data in mmkv
           await cacheData(feed.key, processedData);
           // Also update the existing cache mechanism
           queueCacheUpdate(feed.key, processedData);
@@ -571,7 +553,6 @@ const HomeLandingSection = ({
       setDataReady(true); // Allow rendering to show OfflineFallback
       return;
     }
-
     refreshCooldownMap[categoryKey] = now;
     setIsCategoryLoading(true);
 
@@ -585,6 +566,7 @@ const HomeLandingSection = ({
       }
 
       const result = await fetchCategoryWithRetry(feed);
+      console.log(result, "resultsss3");
       if (result) {
         const { key, data } = result;
         const filteredData = filterValidArticles(data);
