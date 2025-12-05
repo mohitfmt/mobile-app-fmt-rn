@@ -99,7 +99,6 @@ const ConnectionErrorNotification: React.FC<
 
   // Handle tapping anywhere on the notification (matching onTap from Flushbar)
   const handleTap = () => {
-    // console.log('Notification tapped');
     onTryAgain();
   };
 
@@ -139,7 +138,6 @@ const ConnectionErrorNotification: React.FC<
           </Text>
           <TouchableOpacity
             onPress={() => {
-              // console.log('CheckOnPressed 11'); // Matching the Flutter log
               onTryAgain();
             }}
             style={styles.button}

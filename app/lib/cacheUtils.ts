@@ -34,7 +34,6 @@ export const getCachedData = async (key: string): any[] | undefined => {
   // MMKV is synchronous, so no async/await needed.
   try {
     const cached = await storage.getString(`cache_${key}`);
-    console.log(cached, "cached");
     return cached ? JSON.parse(cached) : undefined;
   } catch (error) {
     console.error(`Failed to retrieve cached data for ${key}:`, error);

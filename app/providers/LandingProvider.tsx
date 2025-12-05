@@ -29,6 +29,7 @@ import React, {
 import axios, { AxiosError } from "axios";
 import * as FileSystem from "expo-file-system/legacy";
 import { ThemeContext } from "./ThemeProvider";
+import { cacheData, getCachedData } from "../lib/cacheUtils";
 
 // Type Definitions
 // Feed: Represents a single feed source (S3 JSON endpoint) with a priority.
@@ -548,6 +549,34 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
       // Set the last cache update time
       lastCacheUpdateRef.current = lastCacheUpdate;
 
+      // Overlay with MMKV cache (per-key latest data overrides file cache)
+      try {
+        const allKeys = Array.from(
+          new Set([
+            ...landingFeeds.map((f) => f.key),
+            ...youtubeFeeds.map((f) => f.key),
+          ])
+        );
+        const overlayResults = await Promise.all(
+          allKeys.map(async (key) => {
+            try {
+              const data = await getCachedData(key);
+              return { key, data };
+            } catch {
+              return { key, data: undefined as any[] | undefined };
+            }
+          })
+        );
+        for (const { key, data } of overlayResults) {
+          if (Array.isArray(data) && data.length > 0) {
+            parsed[key] = data;
+            hasValidCache = true;
+          }
+        }
+      } catch (overlayErr) {
+        // Non-fatal: if MMKV overlay fails we still proceed with file cache
+      }
+      console.log(parsed, "parsed");
       // Apply cached data
       if (hasValidCache && Object.keys(parsed).length > 0) {
         setLandingData(parsed);
@@ -733,6 +762,9 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
           const processedData = isYoutube
             ? processYouTubeData(response.data)
             : response.data;
+
+          // Cache the data in mmkv
+          await cacheData(feed.key, processedData);
 
           // Queue for potential cache update (only writes once per 24 hours)
           queueCacheUpdate(feed.key, processedData);

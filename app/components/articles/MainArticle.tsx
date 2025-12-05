@@ -75,7 +75,6 @@ const ArticleContent = React.memo(
     const insets = useSafeAreaInsets();
 
     // Fetch related posts not available in article data
-    // console.log(item);
     useEffect(() => {
       const fetchAndSetRelatedPosts = async () => {
         try {

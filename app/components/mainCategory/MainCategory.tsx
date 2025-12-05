@@ -450,7 +450,6 @@ const HomeLandingSection = ({
   );
 
   const visibleData = useMemo(() => {
-    console.log(sectionVisible, expanded, fullArticles, "fullArticles");
     if (sectionVisible && !expanded) {
       setExpanded(true);
       return fullArticles;
@@ -493,7 +492,6 @@ const HomeLandingSection = ({
           const processedData = isYoutube
             ? processYouTubeData(response.data)
             : response.data;
-          console.log(processedData, "processedData");
           // Cache the data in mmkv
           await cacheData(feed.key, processedData);
           // Also update the existing cache mechanism
@@ -525,38 +523,38 @@ const HomeLandingSection = ({
   };
 
   const fetchIfNeeded = async () => {
-    if (!sectionVisible || isCategoryLoading) return;
-    // Check cooldown
-    const now = Date.now();
-    const lastFetch = refreshCooldownMap[categoryKey] || 0;
-    if (now - lastFetch < 10000) {
-      // console.log(`⏳ Skipping fetch for "${categoryKey}" (cooldown active - ${Math.ceil((10000 - (now - lastFetch)) / 1000)}s remaining)`);
-      return;
-    }
-
-    // If offline, try to load cached data
-    if (!isOnline) {
-      const cachedData = await getCachedData(categoryKey);
-      if (cachedData && hasCachedData(cachedData)) {
-        setLandingData((prev) => ({ ...prev, [categoryKey]: cachedData }));
-        const filteredData = filterValidArticles(cachedData);
-        if (filteredData.length > 0) {
-          setFilteredLandingData((prev) => ({
-            ...prev,
-            [categoryKey]: filteredData,
-          }));
-        }
-        setDataReady(true);
+    try {
+      if (!sectionVisible || isCategoryLoading) return;
+      // Check cooldown
+      const now = Date.now();
+      const lastFetch = refreshCooldownMap[categoryKey] || 0;
+      if (now - lastFetch < 60000) {
+        //skip fetch for at least 1 minute on tab change to avoid too many api calls
+        // (`⏳ Skipping fetch for "${categoryKey}" (cooldown active - ${Math.ceil((10000 - (now - lastFetch)) / 1000)}s remaining)`);
         return;
       }
-      console.warn(`Offline and no cached data for ${categoryKey}`);
-      setDataReady(true); // Allow rendering to show OfflineFallback
-      return;
-    }
-    refreshCooldownMap[categoryKey] = now;
-    setIsCategoryLoading(true);
 
-    try {
+      // If offline, try to load cached data
+      if (!isOnline) {
+        const cachedData = await getCachedData(categoryKey);
+        if (cachedData && hasCachedData(cachedData)) {
+          setLandingData((prev) => ({ ...prev, [categoryKey]: cachedData }));
+          const filteredData = filterValidArticles(cachedData);
+          if (filteredData.length > 0) {
+            setFilteredLandingData((prev) => ({
+              ...prev,
+              [categoryKey]: filteredData,
+            }));
+          }
+          setDataReady(true);
+          return;
+        }
+        console.warn(`Offline and no cached data for ${categoryKey}`);
+        setDataReady(true); // Allow rendering to show OfflineFallback
+        return;
+      }
+      refreshCooldownMap[categoryKey] = now;
+      setIsCategoryLoading(true);
       const feed = [...landingFeeds, ...youtubeFeeds].find(
         (item) => item.key === categoryKey
       );
