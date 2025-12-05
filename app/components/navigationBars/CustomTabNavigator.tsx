@@ -467,6 +467,15 @@ const CustomTabNavigator = forwardRef(
             horizontal
             pagingEnabled
             keyExtractor={(item) => item.key}
+            initialNumToRender={1}
+            maxToRenderPerBatch={1}
+            windowSize={3}
+            updateCellsBatchingPeriod={50}
+            getItemLayout={(_, index) => ({
+              length: SCREEN_WIDTH,
+              offset: SCREEN_WIDTH * index,
+              index,
+            })}
             renderItem={({ item, index }) => {
               const isVisible =
                 index === activeIndex ||
