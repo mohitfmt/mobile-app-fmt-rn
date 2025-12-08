@@ -8,5 +8,8 @@ module.exports = defineConfig([
   reactCompiler.configs.recommended,
   {
     ignores: ["dist/*"],
+    rules: {
+      "react/display-name": "off",
+    },
   },
 ]);
