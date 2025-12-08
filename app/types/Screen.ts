@@ -1,5 +1,3 @@
-import { ImageSourcePropType } from "react-native";
-
 export interface NewsCardProps {
   imageUri: string;
   heading: string;

@@ -22,11 +22,11 @@ import {
   useWindowDimensions,
   Platform,
   StyleSheet,
+  Share,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Bookmark, ChevronLeft, Share2 } from "lucide-react-native";
 import { useBookmarks } from "../../providers/BookmarkContext";
-import { Share } from "react-native";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { LoadingIndicator } from "../functions/ActivityIndicator";
 import { formatTimeAgo } from "@/app/lib/utils";

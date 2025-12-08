@@ -7,7 +7,7 @@ export interface CategoryAnimations {
 export interface SidebarProps {
   isVisible: boolean;
   toggleSidebar: () => void;
-  categories: Array<{ id: number; title: string; subcategories?: string[] }>;
+  categories: { id: number; title: string; subcategories?: string[] }[];
   handleTabPress: (index: number, key: string) => void;
 }
 
@@ -15,4 +15,3 @@ export interface SidebarProps {
 export default function Sidebar() {
   return null;
 }
-

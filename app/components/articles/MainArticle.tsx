@@ -14,14 +14,13 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import {
-  Dimensions,
   Platform,
   Text,
   TouchableOpacity,
   useWindowDimensions,
+  View,
+  ScrollView,
 } from "react-native";
-import { View } from "react-native";
-import { ScrollView } from "react-native";
 import {
   getArticleTextSize,
   getPreferredCategory,
@@ -478,5 +477,7 @@ const ArticleContent = React.memo(
     );
   }
 );
+
+ArticleContent.displayName = "ArticleContent";
 
 export default ArticleContent;

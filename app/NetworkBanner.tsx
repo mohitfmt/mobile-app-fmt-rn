@@ -55,6 +55,21 @@ const ConnectionErrorNotification: React.FC<
   const { textSize } = useContext(GlobalSettingsContext);
   const insets = useSafeAreaInsets();
 
+  const dismiss = () => {
+    Animated.timing(animatedValue, {
+      toValue: 0,
+      duration: 500,
+      useNativeDriver: true,
+    }).start(() => {
+      setIsVisible(false);
+    });
+
+    if (timer.current) {
+      clearTimeout(timer.current);
+      timer.current = null;
+    }
+  };
+
   useEffect(() => {
     if (visible) {
       setIsVisible(true);
@@ -81,21 +96,6 @@ const ConnectionErrorNotification: React.FC<
       }
     };
   }, [visible]);
-
-  const dismiss = () => {
-    Animated.timing(animatedValue, {
-      toValue: 0,
-      duration: 500,
-      useNativeDriver: true,
-    }).start(() => {
-      setIsVisible(false);
-    });
-
-    if (timer.current) {
-      clearTimeout(timer.current);
-      timer.current = null;
-    }
-  };
 
   // Handle tapping anywhere on the notification (matching onTap from Flushbar)
   const handleTap = () => {

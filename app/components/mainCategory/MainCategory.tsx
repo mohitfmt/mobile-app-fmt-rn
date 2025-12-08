@@ -30,12 +30,17 @@ import {
   StyleSheet,
   Platform,
   useWindowDimensions,
+  RefreshControl,
 } from "react-native";
 import { storage } from "@/app/lib/storage";
 import { useRouter } from "expo-router";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { useLandingData } from "@/app/providers/LandingProvider";
+import {
+  useLandingData,
+  landingFeeds,
+  youtubeFeeds,
+} from "@/app/providers/LandingProvider";
 import { formatTimeAgoMalaysia } from "@/app/lib/utils";
 import { getArticleTextSize } from "../functions/Functions";
 import NewsCard from "../cards/NewsCard";
@@ -53,8 +58,6 @@ import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import TabletNewsCard from "../cards/TabletNewsCard";
 import TabletVideoCard from "../cards/TabletVideoCard";
 import axios, { AxiosError } from "axios";
-import { landingFeeds, youtubeFeeds } from "@/app/providers/LandingProvider";
-import { RefreshControl } from "react-native";
 import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
 
 // Type Definitions (from LandingDataProvider)
@@ -663,7 +666,7 @@ const HomeLandingSection = ({
     ({
       viewableItems,
     }: {
-      viewableItems: Array<{ index: number | null; item: ArticleType }>;
+      viewableItems: { index: number | null; item: ArticleType }[];
     }) => {
       const newVisibleIndices = new Set<number>();
       viewableItems.forEach(({ index }) => {
