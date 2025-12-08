@@ -1,11 +1,11 @@
 // BookmarkContext.tsx
 //
 // This file provides a context for managing bookmarked articles in the app.
-// It allows users to add, remove, and check bookmarks, and persists bookmarks in AsyncStorage.
+// It allows users to add, remove, and check bookmarks, and persists bookmarks in mmkv.
 //
 // Key responsibilities:
 // - Store and manage a list of bookmarked article IDs
-// - Persist bookmarks and article data in AsyncStorage
+// - Persist bookmarks and article data in mmkv
 // - Provide functions to add, remove, and check bookmarks
 //
 // Usage: Wrap your app (or a subtree) with <BookmarkProvider> to provide bookmark context.
@@ -14,7 +14,7 @@
 // -----------------------------------------------------------------------------
 
 import React, { createContext, useContext, useState, useEffect } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 import { BookmarkContextType } from "@/app/types/bookmark";
 
 export const BookmarkContext = createContext<BookmarkContextType | undefined>(
@@ -30,11 +30,11 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   /**
-   * Loads bookmark IDs from AsyncStorage
+   * Loads bookmark IDs from mmkv
    */
   const loadBookmarks = async () => {
     try {
-      const stored = await AsyncStorage.getItem("bookmarkedIds");
+      const stored = storage.getString("bookmarkedIds");
       if (stored) {
         setBookmarkedArticles(JSON.parse(stored));
       }
@@ -54,9 +54,9 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
       if (!bookmarkedArticles.includes(safeId)) {
         const updated = [...bookmarkedArticles, safeId];
         setBookmarkedArticles(updated);
-        await AsyncStorage.setItem("bookmarkedIds", JSON.stringify(updated));
+        storage.set("bookmarkedIds", JSON.stringify(updated));
 
-        await AsyncStorage.setItem(
+        storage.set(
           `article_${safeId}`,
           JSON.stringify({
             ...articleData,
@@ -79,8 +79,8 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
         (bookmarkId) => bookmarkId !== id
       );
       setBookmarkedArticles(updated);
-      await AsyncStorage.setItem("bookmarkedIds", JSON.stringify(updated));
-      await AsyncStorage.removeItem(`article_${id}`);
+      storage.set("bookmarkedIds", JSON.stringify(updated));
+      storage.remove(`article_${id}`);
     } catch (error) {
       console.error(" Error removing bookmark:", error);
     }

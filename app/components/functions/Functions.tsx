@@ -106,9 +106,9 @@ export const fetchAndProcessPosts = async (edges: any) => {
       edges.map(async (edge: any) => {
         const slug = edge?.node?.slug;
         const date = edge?.node?.dateGmt;
-        // console.log(edges);
+        // (edges);
         if (!slug) {
-          // console.warn("Invalid edge structure, missing slug:", edge);
+          // ("Invalid edge structure, missing slug:", edge);
           return null;
         }
 
@@ -116,7 +116,7 @@ export const fetchAndProcessPosts = async (edges: any) => {
         const postData = await getPostWithSlugAndDate(slug, date);
 
         if (!postData?.post) {
-          // console.warn(`Post with slug "${slug}" could not be fetched or is invalid:`, postData);
+          // (`Post with slug "${slug}" could not be fetched or is invalid:`, postData);
           return null;
         }
 

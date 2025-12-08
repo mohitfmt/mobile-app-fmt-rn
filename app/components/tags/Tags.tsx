@@ -27,7 +27,6 @@ import {
 } from "react-native";
 import { router, useLocalSearchParams } from "expo-router";
 import { getArticleTextSize } from "../functions/Functions";
-import { SafeAreaView } from "react-native";
 import { Animated } from "react-native";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import SmallNewsCard from "../cards/SmallNewsCard";
@@ -394,7 +393,7 @@ const TagPosts = () => {
   // Show no results if not loading and no processed data
   if (!loading && processedData.length === 0) {
     return (
-      <SafeAreaView style={{ backgroundColor: theme.backgroundColor, flex: 1 }}>
+      <View style={{ backgroundColor: theme.backgroundColor, flex: 1 }}>
         <TagHeader
           tagName={currentTag}
           onRefresh={startRotationSequence}
@@ -418,7 +417,7 @@ const TagPosts = () => {
             for "{currentTag}"
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 

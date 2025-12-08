@@ -30,9 +30,8 @@ import {
   Platform,
   InteractionManager,
   useWindowDimensions,
-  SafeAreaView,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 import { useRouter } from "expo-router";
 import { ArrowLeft, X, History, ChevronLeft } from "lucide-react-native";
 import {
@@ -447,25 +446,22 @@ const ArticleSearch = () => {
   const { textSize } = useContext(GlobalSettingsContext);
   const insets = useSafeAreaInsets();
   /**
-   * Loads **search history** from AsyncStorage on mount.
+   * Loads **search history** from mmkv on mount.
    */
   useEffect(() => {
     const loadHistory = async () => {
-      const history = await AsyncStorage.getItem("searchHistory");
+      const history = storage.getString("searchHistory");
       setSearchHistory(history ? JSON.parse(history) : []);
     };
     loadHistory();
   }, []);
 
-  // Save a new search term to AsyncStorage
-  const saveSearchQuery = async () => {
+  // Save a new search term to mmkv
+  const saveSearchQuery = () => {
     if (query.trim() && !searchHistory.includes(query.trim())) {
       const updatedHistory = [query.trim(), ...searchHistory];
       setSearchHistory(updatedHistory);
-      await AsyncStorage.setItem(
-        "searchHistory",
-        JSON.stringify(updatedHistory)
-      );
+      storage.set("searchHistory", JSON.stringify(updatedHistory));
     }
   };
 
@@ -491,7 +487,7 @@ const ArticleSearch = () => {
   };
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.container,
         { backgroundColor: theme.backgroundColor, paddingTop: insets.top },
@@ -614,7 +610,7 @@ const ArticleSearch = () => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

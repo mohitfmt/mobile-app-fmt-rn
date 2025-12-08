@@ -4,7 +4,6 @@ import {
   Text,
   ActivityIndicator,
   StyleSheet,
-  SafeAreaView,
   ScrollView,
   Platform,
   TouchableOpacity,
@@ -167,7 +166,7 @@ const VideoPage = () => {
   }
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.container,
         {
@@ -184,7 +183,7 @@ const VideoPage = () => {
       >
         {renderItems()}
       </ScrollView>
-    </SafeAreaView>
+    </View>
   );
 };
 

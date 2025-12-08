@@ -28,7 +28,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   Animated,
-  SafeAreaView,
   Easing,
   Platform,
   InteractionManager,
@@ -249,11 +248,11 @@ const CategoryPosts = () => {
 
       let contextArticles = filteredLandingData[mappedKey] || [];
 
-      // ✅ If no context data, try loading from AsyncStorage
+      // ✅ If no context data, try loading from MMKV
       if (contextArticles.length === 0) {
         const cachedData = await getCachedData(mappedKey);
         if (cachedData && hasCachedData(cachedData)) {
-          // console.log(`📦 Loaded cached data for ${mappedKey}`);
+          // (`📦 Loaded cached data for ${mappedKey}`);
           contextArticles = cachedData;
         }
       }
@@ -302,19 +301,19 @@ const CategoryPosts = () => {
     const lastRefresh = categoryRefreshCooldownMap[normalizedKey] || 0;
 
     if (now - lastRefresh >= 30 * 1000) {
-      // console.log(`🔁 Refreshing category "${normalizedKey}"`);
+      // (`🔁 Refreshing category "${normalizedKey}"`);
       refreshCategoryData(normalizedKey);
       categoryRefreshCooldownMap[normalizedKey] = now;
     } else {
       const secondsLeft = Math.ceil((30 * 1000 - (now - lastRefresh)) / 1000);
-      // console.log(`⏳ Skipped refresh for "${normalizedKey}" - wait ${secondsLeft}s`);
+      //(`⏳ Skipped refresh for "${normalizedKey}" - wait ${secondsLeft}s`);
     }
   }, [params.CategoryName]);
 
   const handlePress = useCallback(
     (item: any, index: number) => {
       if (item.id) {
-        // console.log('Calling markAsVisited for article ID:', item.id);
+        // ('Calling markAsVisited for article ID:', item.id);
         markAsVisited(item.id);
       } else {
         console.warn(`No ID found for article: ${item.title}`);
@@ -450,7 +449,7 @@ const CategoryPosts = () => {
 
   if (processedData.length === 0 && !loading && !globalLoading) {
     return (
-      <SafeAreaView style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
+      <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
         <View
           style={[styles.header, { backgroundColor: theme.backgroundColor }]}
         >
@@ -498,7 +497,7 @@ const CategoryPosts = () => {
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 

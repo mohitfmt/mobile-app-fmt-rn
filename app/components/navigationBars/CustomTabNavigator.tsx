@@ -45,7 +45,8 @@ import Animated, {
   withDecay,
 } from "react-native-reanimated";
 import {
-  PanGestureHandler,
+  Gesture,
+  GestureDetector,
   PanGestureHandlerGestureEvent,
 } from "react-native-gesture-handler";
 import { ScrollView } from "react-native-gesture-handler";
@@ -333,36 +334,40 @@ const CustomTabNavigator = forwardRef(
       },
       [routes.length, scrollToTab, onTabPress]
     );
+    const context = useSharedValue({ startX: 0 });
 
     // Shared value and gesture handler for tab bar panning (horizontal drag)
     const tabsTranslateX = useSharedValue(0);
-    const panGestureHandler = useAnimatedGestureHandler<
-      PanGestureHandlerGestureEvent,
-      GestureContext
-    >({
-      onStart: (_, ctx) => {
-        ctx.startX = tabsTranslateX.value;
-      },
-      onActive: (event, ctx) => {
+    const panGesture = Gesture.Pan()
+      .onStart(() => {
+        context.value = {
+          startX: tabsTranslateX.value,
+        };
+      })
+      .onUpdate((event) => {
         const totalWidth =
           tabLayouts[tabLayouts.length - 1]?.x +
           tabLayouts[tabLayouts.length - 1]?.width;
+
         const maxTranslate = Math.max(totalWidth - SCREEN_WIDTH, 0);
-        let newVal = ctx.startX + event.translationX;
+
+        let newVal = context.value.startX + event.translationX;
         newVal = Math.max(Math.min(newVal, 0), -maxTranslate);
+
         tabsTranslateX.value = newVal;
-      },
-      onEnd: (event) => {
+      })
+      .onEnd((event) => {
         const totalWidth =
           tabLayouts[tabLayouts.length - 1]?.x +
           tabLayouts[tabLayouts.length - 1]?.width;
+
         const maxTranslate = Math.max(totalWidth - SCREEN_WIDTH, 0);
+
         tabsTranslateX.value = withDecay({
           velocity: event.velocityX,
           clamp: [-maxTranslate, 0],
         });
-      },
-    });
+      });
 
     // Animated style for tab bar translation during gesture
     const gestureTranslateStyle = useAnimatedStyle(() => ({
@@ -405,7 +410,7 @@ const CustomTabNavigator = forwardRef(
               tabBarShadowStyle,
             ]}
           >
-            <PanGestureHandler onGestureEvent={panGestureHandler}>
+            <GestureDetector gesture={panGesture}>
               <Animated.View
                 key={layoutKey}
                 style={[
@@ -451,7 +456,7 @@ const CustomTabNavigator = forwardRef(
                   ]}
                 />
               </Animated.View>
-            </PanGestureHandler>
+            </GestureDetector>
           </Animated.View>
 
           {/* FlatList for tab content, horizontally swipeable */}
@@ -462,6 +467,15 @@ const CustomTabNavigator = forwardRef(
             horizontal
             pagingEnabled
             keyExtractor={(item) => item.key}
+            initialNumToRender={1}
+            maxToRenderPerBatch={1}
+            windowSize={3}
+            updateCellsBatchingPeriod={50}
+            getItemLayout={(_, index) => ({
+              length: SCREEN_WIDTH,
+              offset: SCREEN_WIDTH * index,
+              index,
+            })}
             renderItem={({ item, index }) => {
               const isVisible =
                 index === activeIndex ||

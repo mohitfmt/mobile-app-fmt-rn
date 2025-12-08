@@ -1,11 +1,11 @@
 // GlobalSettingsProvider.tsx
 //
 // This file provides a context for managing global user settings (like text size and standfirst display).
-// It persists user preferences in AsyncStorage and exposes them to the app via React Context.
+// It persists user preferences in mmkv and exposes them to the app via React Context.
 //
 // Key responsibilities:
 // - Store and manage user settings (text size, standfirst enabled)
-// - Persist settings in AsyncStorage
+// - Persist settings in mmkv
 // - Provide functions to update and retrieve settings
 //
 // Usage: Wrap your app (or a subtree) with <GlobalSettingsProvider> to provide global settings context.
@@ -14,7 +14,7 @@
 // -----------------------------------------------------------------------------
 
 import React, { createContext, useState, useEffect, ReactNode } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 
 interface GlobalSettingsContextType {
   textSize: string;
@@ -37,12 +37,12 @@ export const GlobalSettingsProvider: React.FC<{ children: ReactNode }> = ({
   const [standfirstEnabled, setStandfirstEnabledState] =
     useState<boolean>(true);
 
-  // Load saved settings from AsyncStorage on app start
+  // Load saved settings from mmkv on app start
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const savedSize = await AsyncStorage.getItem("textSize");
-        const savedStandfirst = await AsyncStorage.getItem("standfirstEnabled");
+        const savedSize = storage.getString("textSize");
+        const savedStandfirst = storage.getString("standfirstEnabled");
         if (savedSize) {
           setTextSizeState(savedSize);
         }
@@ -57,20 +57,20 @@ export const GlobalSettingsProvider: React.FC<{ children: ReactNode }> = ({
     loadSettings();
   }, []);
 
-  // Updates the text size preference and saves it to AsyncStorage
+  // Updates the text size preference and saves it to mmkv
   const setTextSize = async (size: string) => {
     try {
-      await AsyncStorage.setItem("textSize", size);
+      storage.set("textSize", size);
       setTextSizeState(size);
     } catch (error) {
       console.error("Failed to save text size to storage:", error);
     }
   };
 
-  // Updates the standfirst preference and saves it to AsyncStorage
+  // Updates the standfirst preference and saves it to mmkv
   const setStandfirstEnabled = async (enabled: boolean) => {
     try {
-      await AsyncStorage.setItem("standfirstEnabled", enabled.toString());
+      storage.set("standfirstEnabled", enabled.toString());
       setStandfirstEnabledState(enabled);
     } catch (error) {
       console.error("Failed to save standfirst setting to storage:", error);

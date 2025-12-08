@@ -9,13 +9,13 @@
 // - Retrieve and store the FCM token
 // - Subscribe to the "breakingNews" topic by default
 // - Disable other topics by default
-// - Store notification settings in AsyncStorage
+// - Store notification settings in MMKV
 //
 // Usage: Call initializeFirstTimeNotifications() on app start to set up notification topics.
 //
 // -----------------------------------------------------------------------------
 
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 import messaging from "@react-native-firebase/messaging";
 import { Alert, Linking, Platform } from "react-native";
 
@@ -85,7 +85,7 @@ export const initializeFirstTimeNotifications = async (
   maxRetries = 3,
   retryDelayMs = 2000
 ) => {
-  const isFirstTime = await AsyncStorage.getItem("notificationsInitialized");
+  const isFirstTime = storage.getString("notificationsInitialized");
   if (isFirstTime !== null) {
     return;
   }
@@ -126,17 +126,17 @@ export const initializeFirstTimeNotifications = async (
       );
       if (headlineSetting) {
         await messaging().subscribeToTopic(headlineSetting.topic);
-        await AsyncStorage.setItem(headlineSetting.key, "true");
+        storage.set(headlineSetting.key, "true");
       }
 
       // ❌ Disable all others by default
       for (const setting of DEFAULT_NOTIFICATION_SETTINGS) {
         if (setting.topic !== "breakingNews") {
-          await AsyncStorage.setItem(setting.key, "false");
+          storage.set(setting.key, "false");
         }
       }
 
-      await AsyncStorage.setItem("notificationsInitialized", "true");
+      storage.set("notificationsInitialized", "true");
     } catch (error: any) {
       console.error(
         `Error in initializeFirstTimeNotifications (attempt ${retries + 1}):`,

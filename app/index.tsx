@@ -23,7 +23,6 @@ import React, {
   useState,
 } from "react";
 import {
-  SafeAreaView,
   StyleSheet,
   TouchableOpacity,
   Animated,
@@ -107,7 +106,7 @@ const Home = () => {
 
   if (isLoading) {
     return (
-      <SafeAreaView
+      <View
         style={[styles.container, { backgroundColor: theme.backgroundColor }]}
       >
         <StatusBar
@@ -125,12 +124,12 @@ const Home = () => {
             resizeMethod="resize"
           />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView
+    <View
       style={[
         styles.container,
         {
@@ -195,7 +194,7 @@ const Home = () => {
           visible={true}
         />
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

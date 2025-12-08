@@ -6,7 +6,7 @@
  * - **Manages general settings** (Theme, Text Size, Cache, Search History, Standfirst).
  * - **Handles push notifications** via Firebase Cloud Messaging (FCM).
  * - **Provides an About section** with app version & external links.
- * - **Uses AsyncStorage for persistent storage** of user preferences.
+ * - **Uses mmkv for persistent storage** of user preferences.
  *
  * Features:
  * - **Theme & Text Size customization** using ThemeContext & GlobalSettingsContext.
@@ -29,7 +29,7 @@ import {
   Linking,
   Share,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { storage } from "@/app/lib/storage";
 import { ChevronRight, X } from "lucide-react-native";
 import { router } from "expo-router";
 // @ts-ignore: missing declaration file for module '@/app/assets/AllSVGs'
@@ -207,12 +207,12 @@ const SettingsPage: React.FC = () => {
   });
 
   /**
-   * Handles Theme Change & Updates AsyncStorage
+   * Handles Theme Change & Updates mmkv
    */
   const handleThemeChange = async (newThemeLabel: string) => {
     const themeValue = themeStorageMap.get(newThemeLabel) || "system";
     try {
-      await AsyncStorage.setItem("apptheme", themeValue);
+      storage.set("apptheme", themeValue);
       setGeneralSettings((prev) => ({ ...prev, appTheme: newThemeLabel }));
       toggleTheme(themeValue);
       setShowThemeModal(false);
@@ -226,7 +226,7 @@ const SettingsPage: React.FC = () => {
    */
   const handleTextSizeChange = async (newSize: string) => {
     try {
-      await AsyncStorage.setItem("textsize", newSize);
+      storage.set("textsize", newSize);
       setTextSize(newSize);
       setShowTextSizeModal(false);
     } catch (error) {
@@ -273,13 +273,11 @@ const SettingsPage: React.FC = () => {
     >
   ) => {
     try {
-      const isFirstTime = await AsyncStorage.getItem(
-        "notificationsInitialized"
-      );
+      const isFirstTime = storage.getString("notificationsInitialized");
       if (isFirstTime !== null) return;
 
       // Mark as initialized early to avoid race conditions
-      await AsyncStorage.setItem("notificationsInitialized", "true");
+      storage.set("notificationsInitialized", "true");
 
       // Only enable Headlines notification (id: '1'), keep others disabled
       const defaultSettings = notificationSettings.map((setting) => ({
@@ -304,10 +302,10 @@ const SettingsPage: React.FC = () => {
         console.error("Error subscribing to topics in background:", error);
       });
 
-      // Save all settings to AsyncStorage (Headlines: true, others: false)
+      // Save all settings to mmkv (Headlines: true, others: false)
       Promise.all(
         defaultSettings.map((setting) =>
-          AsyncStorage.setItem(setting.key, setting.enabled.toString())
+          storage.set(setting.key, setting.enabled.toString())
         )
       ).catch((error) => {
         console.error(
@@ -328,10 +326,10 @@ const SettingsPage: React.FC = () => {
   useEffect(() => {
     const initializeSettings = async () => {
       try {
-        // Load existing notification settings from AsyncStorage first
+        // Load existing notification settings from mmkv first
         const updatedSettings = await Promise.all(
           notificationSettings.map(async (setting) => {
-            const storedValue = await AsyncStorage.getItem(setting.key);
+            const storedValue = storage.getString(setting.key);
             return { ...setting, enabled: storedValue === "true" };
           })
         );
@@ -351,7 +349,7 @@ const SettingsPage: React.FC = () => {
             );
             await Promise.all(
               enabledSettings.map((setting) =>
-                AsyncStorage.setItem(setting.key, "false")
+                storage.set(setting.key, "false")
               )
             );
             setNotificationSettings((prev) =>
@@ -364,15 +362,13 @@ const SettingsPage: React.FC = () => {
         await initializeFirstTimeNotifications(setNotificationSettings);
 
         // Load standfirst setting
-        const standfirstSetting = await AsyncStorage.getItem(
-          "standfirstenabled"
-        );
+        const standfirstSetting = storage.getString("standfirstenabled");
         if (standfirstSetting !== null) {
           setStandfirstEnabled(standfirstSetting === "true");
         }
 
         // Load theme setting
-        const storedTheme = (await AsyncStorage.getItem("apptheme")) as
+        const storedTheme = storage.getString("apptheme") as
           | "system"
           | "light"
           | "dark"
@@ -383,7 +379,7 @@ const SettingsPage: React.FC = () => {
         toggleTheme(themeKey);
 
         // Load text size setting
-        const storedTextSize = await AsyncStorage.getItem("textsize");
+        const storedTextSize = storage.getString("textsize");
         if (storedTextSize) {
           setTextSize(storedTextSize);
         }
@@ -394,10 +390,10 @@ const SettingsPage: React.FC = () => {
 
     const fetchDeviceInfo = async () => {
       const UUID_KEY = "deviceuuid";
-      let uuidStr = await AsyncStorage.getItem(UUID_KEY);
+      let uuidStr = storage.getString(UUID_KEY);
       if (!uuidStr) {
         uuidStr = uuid.v4().toString().replace(/-/g, "");
-        await AsyncStorage.setItem(UUID_KEY, uuidStr);
+        storage.set(UUID_KEY, uuidStr);
       }
       const version = `v${Application.nativeApplicationVersion || "2.2.0"}`;
       setDeviceInfo({ uuid: uuidStr, version });
@@ -441,8 +437,8 @@ const SettingsPage: React.FC = () => {
           await notificationSubscription(setting.topic, false);
         }
 
-        // Save setting to AsyncStorage
-        await AsyncStorage.setItem(setting.key, newEnabled.toString());
+        // Save setting to mmkv
+        storage.set(setting.key, newEnabled.toString());
       } catch (error) {
         console.error("Error toggling notification:", error);
         // Roll back UI on error
@@ -466,7 +462,7 @@ const SettingsPage: React.FC = () => {
    */
   const saveStandfirstSetting = async (value: boolean) => {
     try {
-      await AsyncStorage.setItem("standfirstenabled", value.toString());
+      storage.set("standfirstenabled", value.toString());
       setStandfirstEnabled(value);
     } catch (error) {
       console.error("Error saving standfirst setting:", error);
@@ -478,7 +474,7 @@ const SettingsPage: React.FC = () => {
 
   const clearSearchHistory = async () => {
     try {
-      await AsyncStorage.setItem("searchHistory", JSON.stringify([]));
+      storage.set("searchHistory", JSON.stringify([]));
       setNotificationMessage("Search history cleared");
     } catch (error) {
       setNotificationMessage("Failed to clear search history");
@@ -487,8 +483,8 @@ const SettingsPage: React.FC = () => {
 
   const clearCacheData = async () => {
     try {
-      await AsyncStorage.setItem("cachedImages", JSON.stringify([]));
-      await AsyncStorage.setItem("visitedArticles", JSON.stringify([]));
+      storage.set("cachedImages", JSON.stringify([]));
+      storage.set("visitedArticles", JSON.stringify([]));
 
       setNotificationMessage("Cache data cleared");
     } catch (error) {

@@ -27,8 +27,9 @@ import React, {
   useRef,
 } from "react";
 import axios, { AxiosError } from "axios";
-import * as FileSystem from "expo-file-system";
+import * as FileSystem from "expo-file-system/legacy";
 import { ThemeContext } from "./ThemeProvider";
+import { cacheData, getCachedData } from "../lib/cacheUtils";
 
 // Type Definitions
 // Feed: Represents a single feed source (S3 JSON endpoint) with a priority.
@@ -90,7 +91,6 @@ const LandingDataContext = createContext<LandingContextType>({
   queueCacheUpdate: () => {},
   refreshLandingPages: async () => {},
   refreshCategoryData: async () => {},
-
 });
 
 // Constants
@@ -549,6 +549,34 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
       // Set the last cache update time
       lastCacheUpdateRef.current = lastCacheUpdate;
 
+      // Overlay with MMKV cache (per-key latest data overrides file cache)
+      try {
+        const allKeys = Array.from(
+          new Set([
+            ...landingFeeds.map((f) => f.key),
+            ...youtubeFeeds.map((f) => f.key),
+          ])
+        );
+        const overlayResults = await Promise.all(
+          allKeys.map(async (key) => {
+            try {
+              const data = await getCachedData(key);
+              return { key, data };
+            } catch {
+              return { key, data: undefined as any[] | undefined };
+            }
+          })
+        );
+        for (const { key, data } of overlayResults) {
+          if (Array.isArray(data) && data.length > 0) {
+            parsed[key] = data;
+            hasValidCache = true;
+          }
+        }
+      } catch (overlayErr) {
+        // Non-fatal: if MMKV overlay fails we still proceed with file cache
+      }
+      console.log(parsed, "parsed");
       // Apply cached data
       if (hasValidCache && Object.keys(parsed).length > 0) {
         setLandingData(parsed);
@@ -593,32 +621,31 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const lastLandingRefreshRef = useRef<number>(0); // ⬅️ Add near top
 
-const refreshLandingPages = useCallback(async () => {
-  if (!isOnline) return;
+  const refreshLandingPages = useCallback(async () => {
+    if (!isOnline) return;
 
-  const now = Date.now();
-  const elapsed = now - lastLandingRefreshRef.current;
+    const now = Date.now();
+    const elapsed = now - lastLandingRefreshRef.current;
 
-  // Only allow refresh if more than 1 minute has passed
-  if (elapsed < 10 * 1000) {
-    // console.log("⏱ Skipping landing refresh - called too soon");
-    return;
-  }
+    // Only allow refresh if more than 1 minute has passed
+    if (elapsed < 10 * 1000) {
+      // console.log("⏱ Skipping landing refresh - called too soon");
+      return;
+    }
 
-  // console.log("🔁 Refreshing landing pages");
-  lastLandingRefreshRef.current = now;
+    // console.log("🔁 Refreshing landing pages");
+    lastLandingRefreshRef.current = now;
 
-  const landingPages = landingFeeds.filter((feed) =>
-    feed.key.endsWith("-landing")
-  );
+    const landingPages = landingFeeds.filter((feed) =>
+      feed.key.endsWith("-landing")
+    );
 
-  // const results = await Promise.allSettled(
-  //   landingPages.map((feed) => fetchCategoryWithRetry(feed))
-  // );
+    // const results = await Promise.allSettled(
+    //   landingPages.map((feed) => fetchCategoryWithRetry(feed))
+    // );
 
-  // processResults(results);
-}, []);
-
+    // processResults(results);
+  }, []);
 
   // Batch cache update function - only runs once every 24 hours
   const batchUpdateCache = useCallback(async () => {
@@ -736,6 +763,9 @@ const refreshLandingPages = useCallback(async () => {
             ? processYouTubeData(response.data)
             : response.data;
 
+          // Cache the data in mmkv
+          await cacheData(feed.key, processedData);
+
           // Queue for potential cache update (only writes once per 24 hours)
           queueCacheUpdate(feed.key, processedData);
 
@@ -765,40 +795,40 @@ const refreshLandingPages = useCallback(async () => {
   };
 
   const refreshCategoryData = useCallback(
-  async (categoryKey: string): Promise<void> => {
-    if (!isOnline) return;
+    async (categoryKey: string): Promise<void> => {
+      if (!isOnline) return;
 
-    const normalizedKey = normalizeCategoryKey(categoryKey);
+      const normalizedKey = normalizeCategoryKey(categoryKey);
 
-    const category = [...landingFeeds, ...youtubeFeeds].find(
-      (item) => item.key === normalizedKey
-    );
+      const category = [...landingFeeds, ...youtubeFeeds].find(
+        (item) => item.key === normalizedKey
+      );
 
-    if (!category) {
-      // console.warn(`No matching feed found for category "${normalizedKey}"`);
-      return;
-    }
-
-    const result = await fetchCategoryWithRetry(category);
-    if (result) {
-      const { data } = result; // ⬅️ no longer using result.key
-      const filteredData = filterValidArticles(data);
-
-      // Always use normalizedKey to update landingData
-      setLandingData((prev) => ({ ...prev, [normalizedKey]: data }));
-
-      // Save filtered data under normalizedKey
-      if (filteredData.length > 0) {
-        setFilteredLandingData((prev) => {
-          const updated = { ...prev, [normalizedKey]: filteredData };
-          updateMainLandingData(updated);
-          return updated;
-        });
+      if (!category) {
+        // console.warn(`No matching feed found for category "${normalizedKey}"`);
+        return;
       }
-    }
-  },
-  []
-);
+
+      const result = await fetchCategoryWithRetry(category);
+      if (result) {
+        const { data } = result; // ⬅️ no longer using result.key
+        const filteredData = filterValidArticles(data);
+
+        // Always use normalizedKey to update landingData
+        setLandingData((prev) => ({ ...prev, [normalizedKey]: data }));
+
+        // Save filtered data under normalizedKey
+        if (filteredData.length > 0) {
+          setFilteredLandingData((prev) => {
+            const updated = { ...prev, [normalizedKey]: filteredData };
+            updateMainLandingData(updated);
+            return updated;
+          });
+        }
+      }
+    },
+    []
+  );
 
   const processResults = useCallback(
     (results: PromiseSettledResult<{ key: string; data: any[] } | null>[]) => {
