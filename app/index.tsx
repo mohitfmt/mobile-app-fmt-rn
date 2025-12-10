@@ -14,6 +14,12 @@
 //
 // -----------------------------------------------------------------------------
 
+import { initializeFirstTimeNotifications } from "@/app/hooks/useSubscribeTopic";
+import { categories, categoriesList } from "@/app/lib/categories";
+import { setSelectedCategory } from "@/app/store/categorySlice";
+import axios from "axios";
+import { StatusBar } from "expo-status-bar";
+import { Menu } from "lucide-react-native";
 import React, {
   useCallback,
   useContext,
@@ -23,26 +29,20 @@ import React, {
   useState,
 } from "react";
 import {
+  Animated,
+  Image,
   StyleSheet,
   TouchableOpacity,
-  Animated,
-  View,
-  Image,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
-import { Menu } from "lucide-react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
-import { setSelectedCategory } from "@/app/store/categorySlice";
 import CustomTabNavigator from "./components/navigationBars/CustomTabNavigator";
-import { ThemeContext } from "./providers/ThemeProvider";
-import { useLandingData } from "./providers/LandingProvider";
 import Sidebar from "./components/navigationBars/Sidebar";
 import ConnectionErrorNotification from "./NetworkBanner";
-import axios from "axios";
-import { categories, categoriesList } from "@/app/lib/categories";
-import { initializeFirstTimeNotifications } from "@/app/hooks/useSubscribeTopic";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useLandingData } from "./providers/LandingProvider";
+import { ThemeContext } from "./providers/ThemeProvider";
 
 // HEADER_HEIGHT: Constant for header bar height.
 const HEADER_HEIGHT = 48;

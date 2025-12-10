@@ -14,23 +14,29 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { useEffect, useState, useCallback, useContext } from "react";
-import { View, Text, FlatList, TouchableOpacity, Platform } from "react-native";
-import { router } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { Bookmark, X } from "lucide-react-native";
 import { storage } from "@/app/lib/storage";
-import { getArticleTextSize } from "../functions/Functions";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { useBookmarks } from "../../providers/BookmarkContext";
-import { DataContext } from "@/app/providers/DataProvider";
-import { LoadingIndicator } from "../functions/ActivityIndicator";
-import { BookmarkModel } from "@/app/types/bookmark";
 import { formatTimeAgoMalaysia } from "@/app/lib/utils";
+import { DataContext } from "@/app/providers/DataProvider";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { BookmarkModel } from "@/app/types/bookmark";
+import { router } from "expo-router";
+import { Bookmark, X } from "lucide-react-native";
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import {
+  FlatList,
+  Platform,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { useBookmarks } from "../../providers/BookmarkContext";
 import SmallNewsCard from "../cards/SmallNewsCard";
-import { useWindowDimensions } from "react-native";
 import TabletNewsCard from "../cards/TabletNewsCard";
+import { LoadingIndicator } from "../functions/ActivityIndicator";
+import { getArticleTextSize } from "../functions/Functions";
 
 export default function Bookmarks() {
   const { bookmarkedArticles } = useBookmarks();
@@ -58,7 +64,7 @@ export default function Bookmarks() {
       const bookmarkDetails = await Promise.all(
         bookmarkedArticles.map(async (id) => {
           try {
-            const articleData = storage.getString(`article_${id}`);
+            const articleData = await storage.getString(`article_${id}`);
             if (articleData) {
               const parsedData = JSON.parse(articleData);
               return {

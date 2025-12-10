@@ -15,24 +15,23 @@
  * @author FMT Developers
  */
 
+import { Settings } from "@/app/assets/AllSVGs";
+import { storage } from "@/app/lib/storage";
+import * as Application from "expo-application";
+import * as Device from "expo-device";
+import { useRouter } from "expo-router";
+import { MessageSquareWarning } from "lucide-react-native";
 import React, { useContext } from "react";
 import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
-  Linking,
   Alert,
+  Linking,
+  StyleSheet,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { MessageSquareWarning } from "lucide-react-native";
-import { Settings } from "@/app/assets/AllSVGs";
-import { useRouter } from "expo-router";
-import { ThemeContext } from "../../providers/ThemeProvider";
-import * as Device from "expo-device";
-import * as Application from "expo-application";
-import { storage } from "@/app/lib/storage";
-import uuid from "react-native-uuid";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import uuid from "react-native-uuid";
+import { ThemeContext } from "../../providers/ThemeProvider";
 
 /**
  * BottomActions Component
@@ -49,7 +48,7 @@ const BottomActions: React.FC = () => {
   const sendFeedbackEmail = async () => {
     try {
       const UUID_KEY = "device_uuid";
-      let cleanUuid = storage.getString(UUID_KEY);
+      let cleanUuid = await storage.getString(UUID_KEY);
 
       if (!cleanUuid) {
         cleanUuid = uuid.v4().replace(/-/g, ""); // fallback if not yet set

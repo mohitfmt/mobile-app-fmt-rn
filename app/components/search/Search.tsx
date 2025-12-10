@@ -20,39 +20,36 @@
  * @author FMT Developers
  */
 
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
+import { fetchSearchPosts } from "@/app/lib/gql-queries/get-search-posts";
+import { storage } from "@/app/lib/storage";
+import { formatTimeAgo, stripHtml } from "@/app/lib/utils";
+import { DataContext } from "@/app/providers/DataProvider";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import { ArticleType } from "@/app/types/article";
+import { FlashList } from "@shopify/flash-list";
+import { useRouter } from "expo-router";
+import { ArrowLeft, ChevronLeft, History, X } from "lucide-react-native";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
-  View,
+  InteractionManager,
+  Platform,
+  StyleSheet,
+  Text,
   TextInput,
   TouchableOpacity,
-  Text,
-  StyleSheet,
-  Platform,
-  InteractionManager,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { storage } from "@/app/lib/storage";
-import { useRouter } from "expo-router";
-import { ArrowLeft, X, History, ChevronLeft } from "lucide-react-native";
-import {
-  fetchAndProcessPosts,
-  getArticleTextSize,
-} from "../functions/Functions";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import SmallNewsCard from "../cards/SmallNewsCard";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { LoadingIndicator } from "../functions/ActivityIndicator";
-import { DataContext } from "@/app/providers/DataProvider";
-import { formatTimeAgo, stripHtml } from "@/app/lib/utils";
-import { ArticleType } from "@/app/types/article";
-import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
-import { FlashList } from "@shopify/flash-list";
-import { fetchSearchPosts } from "@/app/lib/gql-queries/get-search-posts";
-import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import TabletNewsCard from "../cards/TabletNewsCard";
-import NewsCard from "../cards/NewsCard";
-import BannerAD from "../ads/Banner";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BannerAD from "../ads/Banner";
+import NewsCard from "../cards/NewsCard";
+import SmallNewsCard from "../cards/SmallNewsCard";
+import TabletNewsCard from "../cards/TabletNewsCard";
+import { LoadingIndicator } from "../functions/ActivityIndicator";
+import { getArticleTextSize } from "../functions/Functions";
 
 const NewsCardItem = ({
   item,
@@ -450,18 +447,18 @@ const ArticleSearch = () => {
    */
   useEffect(() => {
     const loadHistory = async () => {
-      const history = storage.getString("searchHistory");
+      const history = await storage.getString("searchHistory");
       setSearchHistory(history ? JSON.parse(history) : []);
     };
     loadHistory();
   }, []);
 
   // Save a new search term to mmkv
-  const saveSearchQuery = () => {
+  const saveSearchQuery = async () => {
     if (query.trim() && !searchHistory.includes(query.trim())) {
       const updatedHistory = [query.trim(), ...searchHistory];
       setSearchHistory(updatedHistory);
-      storage.set("searchHistory", JSON.stringify(updatedHistory));
+      await storage.set("searchHistory", JSON.stringify(updatedHistory));
     }
   };
 

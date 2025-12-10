@@ -17,41 +17,40 @@
 // -----------------------------------------------------------------------------
 
 globalThis.RNFB_SILENCE_MODULAR_DEPRECATION_WARNINGS = true;
+import { VisitedArticlesProvider } from "@/app/providers/VisitedArticleProvider";
+import notifee, {
+  AndroidImportance,
+  AndroidStyle,
+  AuthorizationStatus,
+  EventType,
+} from "@notifee/react-native";
+import analytics from "@react-native-firebase/analytics";
+import messaging from "@react-native-firebase/messaging";
+import axios from "axios";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import {
   Linking,
-  Platform,
   PermissionsAndroid,
+  Platform,
   Text,
   TextInput,
 } from "react-native";
-import messaging from "@react-native-firebase/messaging";
-import notifee, {
-  AndroidImportance,
-  EventType,
-  AuthorizationStatus,
-  AndroidStyle,
-} from "@notifee/react-native";
-import "./global.css";
-import { Provider } from "react-redux";
-import store from "./store";
-import { ThemeContext, ThemeProvider } from "./providers/ThemeProvider";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
+import { Provider } from "react-redux";
+import "./global.css";
+import ConnectionErrorNotification from "./NetworkBanner";
 import { BookmarkProvider } from "./providers/BookmarkContext";
-import analytics from "@react-native-firebase/analytics";
-import { GlobalSettingsProvider } from "./providers/GlobalSettingsProvider";
 import { DataProvider } from "./providers/DataProvider";
+import { GlobalSettingsProvider } from "./providers/GlobalSettingsProvider";
 import {
   LandingDataProvider,
   useLandingData,
 } from "./providers/LandingProvider";
-import ConnectionErrorNotification from "./NetworkBanner";
-import axios from "axios";
-import { router } from "expo-router";
-import { VisitedArticlesProvider } from "@/app/providers/VisitedArticleProvider";
+import { ThemeContext, ThemeProvider } from "./providers/ThemeProvider";
+import store from "./store";
 import { TextWithDefaultProps } from "./types/text";
 
 if (Platform.OS === "android") {

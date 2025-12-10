@@ -17,7 +17,7 @@
 
 import { storage } from "@/app/lib/storage";
 import messaging from "@react-native-firebase/messaging";
-import { Alert, Linking, Platform } from "react-native";
+import { Platform } from "react-native";
 
 // DEFAULT_NOTIFICATION_SETTINGS: List of all notification topics and their settings.
 const DEFAULT_NOTIFICATION_SETTINGS = [
@@ -85,8 +85,8 @@ export const initializeFirstTimeNotifications = async (
   maxRetries = 3,
   retryDelayMs = 2000
 ) => {
-  const isFirstTime = storage.getString("notificationsInitialized");
-  if (isFirstTime !== null) {
+  const isFirstTime = await storage.getString("notificationsInitialized");
+  if (isFirstTime) {
     return;
   }
 
@@ -126,17 +126,17 @@ export const initializeFirstTimeNotifications = async (
       );
       if (headlineSetting) {
         await messaging().subscribeToTopic(headlineSetting.topic);
-        storage.set(headlineSetting.key, "true");
+        await storage.set(headlineSetting.key, "true");
       }
 
       // ❌ Disable all others by default
       for (const setting of DEFAULT_NOTIFICATION_SETTINGS) {
         if (setting.topic !== "breakingNews") {
-          storage.set(setting.key, "false");
+          await storage.set(setting.key, "false");
         }
       }
 
-      storage.set("notificationsInitialized", "true");
+      await storage.set("notificationsInitialized", "true");
     } catch (error: any) {
       console.error(
         `Error in initializeFirstTimeNotifications (attempt ${retries + 1}):`,

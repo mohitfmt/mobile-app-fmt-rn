@@ -13,15 +13,15 @@
 //
 // -----------------------------------------------------------------------------
 
+import { storage } from "@/app/lib/storage";
 import React, {
   createContext,
-  useContext,
-  useState,
-  useEffect,
-  useCallback,
   ReactNode,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
 } from "react";
-import { storage } from "@/app/lib/storage";
 
 // VisitedArticlesContextType: The shape of the context value provided to consumers.
 interface VisitedArticlesContextType {
@@ -46,7 +46,7 @@ export const VisitedArticlesProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const loadVisitedArticles = async () => {
       try {
-        const visitedArticlesStr = storage.getString("visitedArticles");
+        const visitedArticlesStr = await storage.getString("visitedArticles");
         if (visitedArticlesStr) {
           const visitedArray: string[] = JSON.parse(visitedArticlesStr);
           setVisitedArticles(visitedArray);

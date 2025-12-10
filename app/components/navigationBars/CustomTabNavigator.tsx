@@ -14,47 +14,44 @@
 //
 // -----------------------------------------------------------------------------
 
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { CustomTabNavigatorProps } from "@/app/types/tabs";
 import React, {
+  forwardRef,
+  memo,
+  useCallback,
   useContext,
+  useEffect,
+  useImperativeHandle,
   useRef,
   useState,
-  useCallback,
-  memo,
-  useEffect,
-  forwardRef,
-  useImperativeHandle,
 } from "react";
+import type { FlatList as FlatListType } from "react-native";
 import {
-  View,
-  TouchableOpacity,
-  StyleSheet,
   Dimensions,
   LayoutChangeEvent,
   Platform,
+  StyleSheet,
+  TouchableOpacity,
   useWindowDimensions,
 } from "react-native";
-import Animated, {
-  useSharedValue,
-  useAnimatedScrollHandler,
-  useAnimatedStyle,
-  interpolate,
-  interpolateColor,
-  withTiming,
-  runOnJS,
-  useAnimatedGestureHandler,
-  withDecay,
-} from "react-native-reanimated";
 import {
   Gesture,
   GestureDetector,
-  PanGestureHandlerGestureEvent,
+  ScrollView,
 } from "react-native-gesture-handler";
-import { ScrollView } from "react-native-gesture-handler";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { CustomTabNavigatorProps } from "@/app/types/tabs";
+import Animated, {
+  interpolate,
+  interpolateColor,
+  runOnJS,
+  useAnimatedScrollHandler,
+  useAnimatedStyle,
+  useSharedValue,
+  withDecay,
+  withTiming,
+} from "react-native-reanimated";
 import MemoizedTabScreen from "../mainCategory/MemoizedTabScreen";
 import HeaderBar from "./Headerbar";
-import type { FlatList as FlatListType } from "react-native";
 
 // HEADER_HEIGHT: Constant for tab bar/header height.
 const HEADER_HEIGHT = 48;
@@ -482,7 +479,7 @@ const CustomTabNavigator = forwardRef(
                 index === activeIndex - 1 ||
                 index === activeIndex + 1;
               return (
-                <View
+                <Animated.View
                   key={item.key}
                   style={[{ width: SCREEN_WIDTH }, headerAnimatedStyle]}
                 >
@@ -491,7 +488,7 @@ const CustomTabNavigator = forwardRef(
                     isVisible={isVisible}
                     onScroll={onContentScroll}
                   />
-                </View>
+                </Animated.View>
               );
             }}
             scrollEventThrottle={16}

@@ -14,16 +14,16 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, {
-  createContext,
-  useState,
-  useEffect,
-  useCallback,
-  ReactNode,
-} from "react";
-import { Appearance, AppState, AppStateStatus } from "react-native";
 import { storage } from "@/app/lib/storage";
 import axios from "axios";
+import React, {
+  createContext,
+  ReactNode,
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+import { Appearance, AppState, AppStateStatus } from "react-native";
 
 // Define themes: These are the color palettes for light and dark modes.
 const themes = {
@@ -89,7 +89,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // applyTheme: Loads the user's theme preference from mmkv and applies it.
   const applyTheme = async () => {
     try {
-      const storedTheme = storage.getString("appTheme");
+      const storedTheme = await storage.getString("appTheme");
       setSelectedTheme(storedTheme || "system");
 
       if (storedTheme === "light") {
@@ -149,7 +149,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     try {
       if (newTheme) {
         setSelectedTheme(newTheme);
-        storage.set("appTheme", newTheme);
+        await storage.set("appTheme", newTheme);
 
         if (newTheme === "light") {
           setTheme(themes.light);
@@ -162,7 +162,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       } else {
         const toggledTheme = theme === themes.light ? "dark" : "light";
         setSelectedTheme(toggledTheme);
-        storage.set("appTheme", toggledTheme);
+        await storage.set("appTheme", toggledTheme);
         setTheme(toggledTheme === "dark" ? themes.dark : themes.light);
       }
     } catch (err) {
