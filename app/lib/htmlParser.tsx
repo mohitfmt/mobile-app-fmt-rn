@@ -15,27 +15,27 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { useContext, useEffect, useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  ScrollView,
-  TouchableOpacity,
-  TextStyle,
-  Platform,
-  Linking,
-} from "react-native";
-import { Parser } from "htmlparser2";
-import { decode } from "html-entities";
-import { truncateHtml } from "./utils";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { getArticleTextSize } from "@/app/components/functions/Functions";
 import BannerAD from "@/app/components/ads/Banner";
-import CloudflareImageComponent from "./CloudflareImageComponent";
+import { getArticleTextSize } from "@/app/components/functions/Functions";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { decode } from "html-entities";
+import { Parser } from "htmlparser2";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import {
+  Dimensions,
+  Linking,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import YoutubePlayer from "react-native-youtube-iframe";
+import CloudflareImageComponent from "./CloudflareImageComponent";
+import { truncateHtml } from "./utils";
 // Type Definitions: AdUnitKey, ParsedNode, HTMLContentParserProps for type safety and clarity.
 type AdUnitKey = "home" | "article1" | "article2" | "article3" | "ros";
 
@@ -666,6 +666,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
                       style={[
                         styles.paragraph,
                         {
+                          lineHeight: getArticleTextSize(19.0, textSize) * 1.4,
                           fontSize: getArticleTextSize(19.0, textSize),
                           color: theme.textColor,
                           flexShrink: 1,
@@ -728,6 +729,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
               style={[
                 styles.paragraph,
                 {
+                  lineHeight: getArticleTextSize(19.0, textSize) * 1.4,
                   fontSize: getArticleTextSize(19.0, textSize),
                   color: theme.textColor,
                   flexShrink: 1,
@@ -946,10 +948,6 @@ const styles = StyleSheet.create({
     }),
   },
   paragraph: {
-    lineHeight: Platform.select({
-      ios: 24,
-      android: 28, // Increased line height for Android
-    }),
     marginVertical: 8,
     fontFamily: Platform.select({
       ios: "SF-Pro-Display-Regular",

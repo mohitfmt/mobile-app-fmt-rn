@@ -13,8 +13,7 @@
  * @author FMT Developers
  */
 
-import { Platform } from "react-native";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 const articleStyles = StyleSheet.create({
   // Header Section Styles
@@ -115,6 +114,7 @@ const articleStyles = StyleSheet.create({
     ...(Platform.OS === "ios" && {
       fontFamily: "SF-Pro-Display-RegularItalic",
       fontStyle: "italic",
+      paddingLeft: 2,
     }),
     ...(Platform.OS === "android" && {
       fontFamily: "SF-Pro-Display-RegularItalic",

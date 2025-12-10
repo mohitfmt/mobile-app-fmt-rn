@@ -12,27 +12,9 @@
  * - Provides navigation to previous and next articles.
  */
 
-import React, { useContext, useEffect, useState } from "react";
-import {
-  Dimensions,
-  Platform,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-} from "react-native";
-import { View } from "react-native";
-import { ScrollView } from "react-native";
-import {
-  getArticleTextSize,
-  getPreferredCategory,
-} from "../functions/Functions";
-import DividerContainer from "../functions/DividerContainer";
-import BannerAD from "../ads/Banner";
-import RelatedArticle from "./RelatedArticle";
-import { router, useRouter } from "expo-router";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { ArticleType, TagProps } from "@/app/types/article";
+import articleStyles from "@/app/css/articleCss";
+import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
+import HTMLContentParser from "@/app/lib/htmlParser";
 import {
   capitalizeFirstLetter,
   formatMalaysianDateTimeS,
@@ -40,16 +22,33 @@ import {
   formatTimeAgoMalaysia,
   htmlToPlainText,
 } from "@/app/lib/utils";
-import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
-import HTMLContentParser from "@/app/lib/htmlParser";
-import articleStyles from "@/app/css/articleCss";
-import Tag from "./TagBox";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import TabletRelatedArticle from "./TabletRelatedArticle";
+import { ArticleType } from "@/app/types/article";
+import { router } from "expo-router";
+import React, { useContext, useEffect, useState } from "react";
+import {
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import BannerAD from "../ads/Banner";
+import DividerContainer from "../functions/DividerContainer";
+import {
+  getArticleTextSize,
+  getPreferredCategory,
+} from "../functions/Functions";
+import RelatedArticle from "./RelatedArticle";
+import TabletRelatedArticle from "./TabletRelatedArticle";
+import Tag from "./TagBox";
 
 // Main article content component
 const ArticleContent = React.memo(
@@ -182,6 +181,7 @@ const ArticleContent = React.memo(
                     color: theme.textColor,
                     paddingVertical: 10,
                     fontSize: getArticleTextSize(19.0, textSize),
+                    lineHeight: getArticleTextSize(19.0, textSize) * 1.4,
                   },
                 ]}
               >
