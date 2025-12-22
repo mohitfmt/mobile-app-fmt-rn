@@ -1,29 +1,21 @@
-import React, {
-  useContext,
-  useState,
-  useEffect,
-  useLayoutEffect,
-  useRef,
-} from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Animated,
-  Image,
-  StyleSheet,
-  useWindowDimensions,
-  Share,
-  Platform,
-} from "react-native";
-import { useRouter } from "expo-router";
+import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { useBookmarks } from "@/app/providers/BookmarkContext";
-import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useRouter } from "expo-router";
+import React, { useContext } from "react";
+import {
+  Platform,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { getArticleTextSize } from "../functions/Functions";
-import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 const TabletNewsCard = ({
   id,
@@ -129,9 +121,9 @@ const TabletNewsCard = ({
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: 20,
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : undefined,
+                // fontFamily:
+                //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+                fontWeight: Platform.OS === "android" ? "700" : "700",
               },
             ]}
           >
@@ -145,11 +137,11 @@ const TabletNewsCard = ({
               {
                 fontSize: 15,
                 color: "#6b6b6b",
-                fontFamily:
-                  Platform.OS === "android"
-                    ? undefined
-                    : "SF-Pro-Display-Medium",
-                fontWeight: Platform.OS === "android" ? "500" : undefined,
+                // fontFamily:
+                //   Platform.OS === "android"
+                //     ? undefined
+                //     : "SF-Pro-Display-Medium",
+                fontWeight: Platform.OS === "android" ? "500" : "500",
               },
             ]}
           >
@@ -175,9 +167,9 @@ const TabletNewsCard = ({
           <Text
             style={{
               fontSize: getArticleTextSize(14, textSize),
-              fontFamily:
-                Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-              fontWeight: Platform.OS === "android" ? "700" : undefined,
+              // fontFamily:
+              //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+              fontWeight: Platform.OS === "android" ? "700" : "700",
               color: "#c62828",
             }}
           >
@@ -250,9 +242,9 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#999",
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    // fontFamily:
+    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : "400",
   },
   actions: {
     flexDirection: "row",

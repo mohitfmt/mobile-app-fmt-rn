@@ -7,35 +7,25 @@
  *
  */
 
-import React, {
-  useContext,
-  memo,
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-} from "react";
-import {
-  View,
-  Text,
-  Animated,
-  TouchableOpacity,
-  Share,
-  Alert,
-  StyleSheet,
-  useWindowDimensions,
-  Linking,
-  Image,
-  Platform,
-} from "react-native";
-import { Play } from "lucide-react-native";
 import { ShareIcon } from "@/app/assets/AllSVGs";
-import { getArticleTextSize } from "../functions/Functions";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { VideoCardProps } from "@/app/types/cards";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
-import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { Play } from "lucide-react-native";
+import React, { memo, useContext } from "react";
+import {
+  Alert,
+  Linking,
+  Platform,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { getArticleTextSize } from "../functions/Functions";
 
 function TabletVideoCard({
   title,
@@ -111,9 +101,9 @@ function TabletVideoCard({
               {
                 color: theme.textColor,
                 fontSize: 20,
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : undefined,
+                // fontFamily:
+                //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+                fontWeight: Platform.OS === "android" ? "700" : "700",
               },
             ]}
             numberOfLines={3}
@@ -129,11 +119,11 @@ function TabletVideoCard({
                 {
                   fontSize: 15,
                   color: "#6b6b6b",
-                  fontFamily:
-                    Platform.OS === "android"
-                      ? undefined
-                      : "SF-Pro-Display-Medium",
-                  fontWeight: Platform.OS === "android" ? "500" : undefined,
+                  // fontFamily:
+                  //   Platform.OS === "android"
+                  //     ? undefined
+                  //     : "SF-Pro-Display-Medium",
+                  fontWeight: Platform.OS === "android" ? "500" : "500",
                 },
               ]}
             >
@@ -152,11 +142,11 @@ function TabletVideoCard({
               {
                 fontSize: getArticleTextSize(14, textSize),
                 color: "#9e9e9e",
-                fontFamily:
-                  Platform.OS === "android"
-                    ? undefined
-                    : "SF-Pro-Display-Regular",
-                fontWeight: Platform.OS === "android" ? "400" : undefined,
+                // fontFamily:
+                //   Platform.OS === "android"
+                //     ? undefined
+                //     : "SF-Pro-Display-Regular",
+                fontWeight: Platform.OS === "android" ? "400" : "400",
               },
             ]}
           >

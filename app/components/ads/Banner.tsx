@@ -12,13 +12,13 @@
  * @author FMT Developers
  */
 
-import React, { useContext, useState, useMemo } from "react";
-import { View, Text, StyleSheet, Platform } from "react-native";
-import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { getArticleTextSize } from "../functions/Functions";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { AdUnitKey, BannerADProps } from "@/app/types/ads";
+import React, { useContext, useMemo, useState } from "react";
+import { Platform, StyleSheet, Text, View } from "react-native";
+import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
+import { getArticleTextSize } from "../functions/Functions";
 
 const BannerAD: React.FC<BannerADProps> = ({ unit }) => {
   const [isAdLoaded, setIsAdLoaded] = useState(false); // Track ad loading status
@@ -94,9 +94,9 @@ const styles = StyleSheet.create({
   },
   adText: {
     marginBottom: 5,
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    // fontFamily:
+    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : "400",
   },
   separator: {
     height: 10,

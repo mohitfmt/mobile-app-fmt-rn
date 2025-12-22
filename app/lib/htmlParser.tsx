@@ -344,8 +344,8 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             // ...(Platform.OS === "ios" && {
             //   fontFamily: "SF-Pro-Display-MediumItalic",
             // }),
+            fontWeight: "bold", // Use "bold" keyword, not "500"
             ...(Platform.OS === "android" && {
-              fontWeight: "bold", // Use "bold" keyword, not "500"
               lineHeight: 28,
             }),
           }}
@@ -394,7 +394,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             alignSelf: "flex-start",
             // fontFamily:
             // Platform.OS === "android" ? undefined : "SF-Pro-Display-Semibold",
-            fontWeight: Platform.OS === "android" ? "600" : undefined,
+            fontWeight: Platform.OS === "android" ? "600" : "600",
             fontSize: getArticleTextSize(19.0, ""),
             color: theme.textColor,
           }}
@@ -488,7 +488,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             //   Platform.OS === "android"
             //     ? undefined
             //     : "SF-Pro-Display-RegularItalic",
-            fontWeight: Platform.OS === "android" ? "400" : undefined,
+            fontWeight: Platform.OS === "android" ? "400" : "400",
             fontStyle: "italic",
           }}
         >
@@ -952,7 +952,7 @@ const styles = StyleSheet.create({
       // ios: "SF-Pro-Display-Regular",
       android: undefined, // Use system font on Android
     }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: Platform.OS === "android" ? "400" : "400",
     textAlign: "left",
     width: "95%",
     alignSelf: "flex-start",
@@ -1020,7 +1020,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     // fontFamily:
     // Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: Platform.OS === "android" ? "400" : "400",
     width: 32,
     textAlign: "left",
   },
@@ -1036,7 +1036,7 @@ const styles = StyleSheet.create({
       // ios: "SF-Pro-Display-Regular",
       android: undefined,
     }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: Platform.OS === "android" ? "400" : "400",
     width: "90%", // or flex: 1
   },
   blockquote: {
@@ -1055,7 +1055,7 @@ const styles = StyleSheet.create({
     }),
     color: "#c62828",
     textDecorationLine: "underline",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: Platform.OS === "android" ? "400" : "400",
   },
   linkText: {
     textDecorationLine: "underline",
@@ -1064,7 +1064,7 @@ const styles = StyleSheet.create({
       // ios: "SF-Pro-Display-Regular",
       android: undefined,
     }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: Platform.OS === "android" ? "400" : "400",
   },
   textContainer: {
     width: "100%",

@@ -16,41 +16,41 @@
  * @author FMT Developers
  */
 
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-  useRef,
-} from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Easing,
-  useWindowDimensions,
-  Platform,
-} from "react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { getArticleTextSize } from "../functions/Functions";
-import { Animated } from "react-native";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import SmallNewsCard from "../cards/SmallNewsCard";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { LoadingIndicator } from "../functions/ActivityIndicator";
-import { DataContext } from "@/app/providers/DataProvider";
-import { Post } from "@/app/types/tag";
-import { formatTimeAgoMalaysia } from "@/app/lib/utils";
 import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
 import { getRelatedTagPosts } from "@/app/lib/gql-queries/get-related-tag-posts";
-import TagHeader from "./TagHeader";
-import { FlashList } from "@shopify/flash-list";
-import BannerAD from "../ads/Banner";
+import { formatTimeAgoMalaysia } from "@/app/lib/utils";
+import { DataContext } from "@/app/providers/DataProvider";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import { TouchableOpacity } from "react-native";
-import TabletNewsCard from "../cards/TabletNewsCard";
-import NewsCard from "../cards/NewsCard";
+import { Post } from "@/app/types/tag";
+import { FlashList } from "@shopify/flash-list";
+import { router, useLocalSearchParams } from "expo-router";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
+import {
+  Animated,
+  Easing,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BannerAD from "../ads/Banner";
+import NewsCard from "../cards/NewsCard";
+import SmallNewsCard from "../cards/SmallNewsCard";
+import TabletNewsCard from "../cards/TabletNewsCard";
+import { LoadingIndicator } from "../functions/ActivityIndicator";
+import { getArticleTextSize } from "../functions/Functions";
+import TagHeader from "./TagHeader";
 
 const NewsCardItem = ({
   item,
@@ -491,8 +491,8 @@ const styles = StyleSheet.create({
   relatedTitle: {
     flex: 1,
     textAlign: "center",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : "900",
     textTransform: "uppercase",
   },
   contentWrapper: {
