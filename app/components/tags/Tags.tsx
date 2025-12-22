@@ -16,7 +16,13 @@
  * @author FMT Developers
  */
 
-import React, { useState, useEffect, useContext, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useContext,
+  useCallback,
+  useRef,
+} from "react";
 import {
   View,
   Text,
@@ -139,6 +145,7 @@ const TagPosts = () => {
   const currentTag = params.tagName as string;
   const [processedData, setProcessedData] = useState<any[]>([]);
   const insets = useSafeAreaInsets();
+  const isNavigatingRef = useRef<boolean>(false);
   /**
    * Processes posts to insert ads after every 5 posts.
    */
@@ -308,6 +315,8 @@ const TagPosts = () => {
 
   const handlePress = useCallback(
     (item: any, index: number) => {
+      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
       if (item.id) {
         // console.log('Calling markAsVisited for article ID:', item.id);
         markAsVisited(item.id);
@@ -316,6 +325,7 @@ const TagPosts = () => {
       }
 
       const processedData = processPosts(tagCache[currentTag] || []);
+      isNavigatingRef.current = true;
       setTagPosts(
         currentTag,
         processedData.filter((item) => item.type !== "AD_ITEM")
@@ -331,8 +341,19 @@ const TagPosts = () => {
           },
         });
       }, 100);
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 500);
     },
-    [currentTag, markAsVisited, setTagPosts, tagCache, processPosts, router]
+    [
+      currentTag,
+      markAsVisited,
+      setTagPosts,
+      tagCache,
+      processPosts,
+      router,
+      isNavigatingRef,
+    ]
   );
 
   const handleViewableItemsChanged = useCallback(

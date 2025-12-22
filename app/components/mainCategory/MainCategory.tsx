@@ -403,6 +403,8 @@ const HomeLandingSection = ({
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const lastAutoRefreshRef = useRef<number>(Date.now());
+  const isNavigatingRef = useRef<boolean>(false);
+
   const categoryKey = useMemo(() => {
     switch (categoryName.toLowerCase()) {
       case "home":
@@ -615,6 +617,8 @@ const HomeLandingSection = ({
 
   const handlePress = useCallback(
     (visibleIndex: number) => {
+      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
       const selectedItem = visibleData[visibleIndex];
       if (!selectedItem) return;
 
@@ -628,6 +632,8 @@ const HomeLandingSection = ({
       const isYouTubeLink = selectedItem.permalink?.includes?.("youtube.com");
 
       if (isMetaType || isVideoType || isYouTubeLink) return;
+
+      isNavigatingRef.current = true;
 
       if (selectedItem.id) {
         markAsVisited(selectedItem.id);
@@ -649,6 +655,10 @@ const HomeLandingSection = ({
           },
         });
       }
+
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 500);
     },
     [
       router,

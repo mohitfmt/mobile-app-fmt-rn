@@ -27,7 +27,7 @@ import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { ArticleType } from "@/app/types/article";
 import { router } from "expo-router";
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Platform,
   ScrollView,
@@ -72,7 +72,7 @@ const ArticleContent = React.memo(
     const { width: Tabwidth } = useWindowDimensions(); // ✅ This updates when orientation changes
     const isTablet = Tabwidth >= 600;
     const insets = useSafeAreaInsets();
-
+    const isNavigatingRef = useRef<boolean>(false);
     // Fetch related posts not available in article data
     useEffect(() => {
       const fetchAndSetRelatedPosts = async () => {
@@ -431,7 +431,10 @@ const ArticleContent = React.memo(
                   )}
                   uri={related?.node?.uri || related.permalink || related.uri}
                   onPress={() => {
+                    if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
                     markAsVisited(related?.id || related?.node?.id);
+                    isNavigatingRef.current = true;
                     router.push({
                       pathname: `/components/articles/NetworkArticle`,
                       params: {
@@ -439,6 +442,9 @@ const ArticleContent = React.memo(
                         date: related?.node?.dateGmt || related.date,
                       },
                     });
+                    setTimeout(() => {
+                      isNavigatingRef.current = false;
+                    }, 500);
                   }}
                 />
               );
@@ -461,7 +467,10 @@ const ArticleContent = React.memo(
                   time={formatTimeAgoMalaysia(related?.date)}
                   uri={related?.node?.uri || related.permalink || related.uri}
                   onPress={() => {
+                    if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
                     markAsVisited(related?.id || related?.node?.id);
+                    isNavigatingRef.current = true;
                     router.push({
                       pathname: `/components/articles/NetworkArticle`,
                       params: {
@@ -469,6 +478,9 @@ const ArticleContent = React.memo(
                         date: related?.date,
                       },
                     });
+                    setTimeout(() => {
+                      isNavigatingRef.current = false;
+                    }, 500);
                   }}
                 />
               );

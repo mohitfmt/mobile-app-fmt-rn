@@ -32,7 +32,13 @@ import { ArticleType } from "@/app/types/article";
 import { FlashList } from "@shopify/flash-list";
 import { useRouter } from "expo-router";
 import { ArrowLeft, ChevronLeft, History, X } from "lucide-react-native";
-import React, { useCallback, useContext, useEffect, useState } from "react";
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import {
   InteractionManager,
   Platform,
@@ -146,7 +152,7 @@ const SearchList = ({ query }: { query: string }) => {
     useContext(DataContext);
   const { textSize } = useContext(GlobalSettingsContext);
   const { isVisited, markAsVisited } = useVisitedArticles();
-
+  const isNavigatingRef = useRef<boolean>(false);
   /**
    * Processes posts to insert ads after every 5 posts.
    * Same logic as TagPosts component.
@@ -274,6 +280,8 @@ const SearchList = ({ query }: { query: string }) => {
    */
   const handleArticlePress = useCallback(
     (item: ArticleType, index: number) => {
+      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
       if (item.id) {
         markAsVisited(item.id);
         // console.log(`Marked article as visited: ${item.id}`);
@@ -287,6 +295,7 @@ const SearchList = ({ query }: { query: string }) => {
       );
       setMainData(filteredArticles);
 
+      isNavigatingRef.current = true;
       setTimeout(() => {
         router.push({
           pathname: "/components/mainCategory/SwipableArticle",
@@ -296,8 +305,11 @@ const SearchList = ({ query }: { query: string }) => {
           },
         });
       }, 100);
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 500);
     },
-    [processedData, markAsVisited, setMainData, router]
+    [processedData, markAsVisited, setMainData, router, isNavigatingRef]
   );
 
   /**

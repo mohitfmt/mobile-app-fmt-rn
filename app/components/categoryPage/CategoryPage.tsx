@@ -150,6 +150,8 @@ const CategoryPosts = () => {
   ); // Track visible items
   const rotation = useState(new Animated.Value(0))[0];
   const { width } = useWindowDimensions();
+  const isNavigatingRef = useRef<boolean>(false);
+
   const isTablet = width >= 600;
 
   const startRotationSequence = useCallback(() => {
@@ -312,6 +314,8 @@ const CategoryPosts = () => {
 
   const handlePress = useCallback(
     (item: any, index: number) => {
+      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
       if (item.id) {
         // ('Calling markAsVisited for article ID:', item.id);
         markAsVisited(item.id);
@@ -333,6 +337,7 @@ const CategoryPosts = () => {
       }
 
       if (articleIndex !== -1) {
+        isNavigatingRef.current = true;
         setTimeout(() => {
           router.push({
             pathname: "/components/mainCategory/SwipableArticle",
@@ -342,11 +347,21 @@ const CategoryPosts = () => {
             },
           });
         }, 100);
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 500);
       } else {
         console.error("Could not find article index:", item.id || item.uri);
       }
     },
-    [router, params.CategoryName, setMainData, processedData, markAsVisited]
+    [
+      router,
+      params.CategoryName,
+      setMainData,
+      processedData,
+      markAsVisited,
+      isNavigatingRef,
+    ]
   );
 
   const getNonAdIndex = useCallback(
