@@ -62,10 +62,10 @@ export async function getRelatedPostsWithTag(tag: TagData, databaseId: string) {
 
   try {
     const data = await gqlFetchAPI(query, { variables });
-    return data?.posts ? { post: data.posts } : null;
+    return data?.posts || { edges: [] };
   } catch (error) {
     console.error("Error fetching post data related:", error);
-    return null;
+    return { edges: [] };
   }
 }
 

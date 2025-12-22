@@ -95,7 +95,8 @@ const ArticleContent = React.memo(
             if (
               !relatedData ||
               !("edges" in relatedData) ||
-              !Array.isArray(relatedData.edges)
+              !Array.isArray(relatedData.edges) ||
+              relatedData.edges.length === 0
             ) {
               // console.warn(` No valid related posts found for ${item.slug}`, relatedData);
               setRelatedPosts([]); // Set empty array if no related posts are found

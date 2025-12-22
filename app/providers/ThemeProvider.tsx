@@ -76,7 +76,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   const checkNetworkConnectivity = useCallback(async () => {
     // console.log('📡 ThemeProvider: Checking network connectivity...');
     try {
-      await axios.head("https://www.google.com", { timeout: 3000 });
+      await axios.head("https://www.google.com", { timeout: 2000 }); // Reduced timeout for faster response
       setIsOnline(true);
       // console.log('ThemeProvider: Manual network check, isOnline: true');
     } catch (err: unknown) {
@@ -107,8 +107,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // useEffect: Schedules network checks and handles app state changes (foreground/background).
   useEffect(() => {
+    // Check connectivity immediately on mount
     checkNetworkConnectivity();
-    const interval = setInterval(checkNetworkConnectivity, 30000); // Check every 30 seconds
+
+    // Check more frequently initially (every 2 seconds for the first 30 seconds)
+    const initialInterval = setInterval(checkNetworkConnectivity, 2000);
+    const initialTimeout = setTimeout(() => {
+      clearInterval(initialInterval);
+    }, 30000); // Stop frequent checks after 30 seconds
+
+    // Then check every 30 seconds
+    const regularInterval = setInterval(checkNetworkConnectivity, 30000);
+
     const appStateSubscription = AppState.addEventListener(
       "change",
       (nextAppState) => {
@@ -124,7 +134,9 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
     );
 
     return () => {
-      clearInterval(interval);
+      clearInterval(initialInterval);
+      clearInterval(regularInterval);
+      clearTimeout(initialTimeout);
       appStateSubscription.remove();
     };
   }, [appState, checkNetworkConnectivity]);

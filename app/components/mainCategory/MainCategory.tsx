@@ -16,20 +16,24 @@
 // -----------------------------------------------------------------------------
 
 import { PlayIcon } from "@/app/assets/AllSVGs";
+import { categoriesNavigation } from "@/app/constants/Constants";
 import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
-import { formatTimeAgoMalaysia } from "@/app/lib/utils";
+import {
+  buildContentSection,
+  fetchPropertyTabData,
+  fetchTabCategoryData,
+  fetchVideosData,
+  formatTimeAgo,
+  formatTimeAgoMalaysia,
+  getCategoryData,
+} from "@/app/lib/utils";
 import { DataContext } from "@/app/providers/DataProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import {
-  landingFeeds,
-  useLandingData,
-  youtubeFeeds,
-} from "@/app/providers/LandingProvider";
+import { useLandingData } from "@/app/providers/LandingProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { ArticleType } from "@/app/types/article";
 import { FlashList } from "@shopify/flash-list";
-import axios, { AxiosError } from "axios";
 import { useRouter } from "expo-router";
 import React, {
   useCallback,
@@ -105,12 +109,26 @@ const filterValidArticles = (articles: any[]): any[] => {
   const seenTitles = new Set();
   return articles.filter((item) => {
     if (!item) return false;
-    if (!item.id || !item.title || !item.thumbnail) return false;
-    if (item.type === "AD_ITEM" || item.type === "MORE_ITEM") return false;
+    const isMetaType = [
+      "AD_ITEM",
+      "MORE_ITEM",
+      "CARD_TITLE",
+      "LOADING_ITEM",
+    ].includes(item.type);
+    if (isMetaType) return false;
+
+    if (!item.id || !item.title) return false;
+
+    const hasThumb = !!(
+      item?.thumbnail || item?.featuredImage?.node?.sourceUrl
+    );
+    if (!hasThumb) return false;
+
     if (item.type === "CARD_TITLE") {
       if (seenTitles.has(item.title)) return false;
       seenTitles.add(item.title);
     }
+
     return true;
   });
 };
@@ -256,20 +274,24 @@ const VideoCardItem = React.memo(
           shouldUseTabletLayout ? (
             <TabletVideoCard
               title={item.title}
-              permalink={item.permalink}
+              permalink={item?.permalink || item?.uri}
               content={item.content}
-              date={formatTimeAgoMalaysia(item.date)}
-              thumbnail={item.thumbnail}
+              date={formatTimeAgo(item?.date)}
+              thumbnail={
+                item?.thumbnail || item?.featuredImage?.node?.sourceUrl
+              }
               type="video-featured"
               onPress={onPress}
             />
           ) : (
             <VideoCard
               title={item.title}
-              permalink={item.permalink}
+              permalink={item?.permalink || item?.uri}
               content={item.content}
-              date={formatTimeAgoMalaysia(item.date)}
-              thumbnail={item.thumbnail}
+              date={formatTimeAgo(item?.date)}
+              thumbnail={
+                item?.thumbnail || item?.featuredImage?.node?.sourceUrl
+              }
               type="video-featured"
               visited={visited}
             />
@@ -277,20 +299,20 @@ const VideoCardItem = React.memo(
         ) : shouldUseTabletLayout ? (
           <TabletVideoCard
             title={item.title}
-            permalink={item.permalink}
+            permalink={item?.permalink || item?.uri}
             content={item.content}
-            date={formatTimeAgoMalaysia(item.date)}
-            thumbnail={item.thumbnail}
+            date={formatTimeAgo(item?.date)}
+            thumbnail={item?.thumbnail || item?.featuredImage?.node?.sourceUrl}
             type="video-small"
             onPress={onPress}
           />
         ) : (
           <SmallVideoCard
             title={item.title}
-            permalink={item.permalink}
+            permalink={item?.permalink || item?.uri}
             content={item.content}
-            date={formatTimeAgoMalaysia(item.date)}
-            thumbnail={item.thumbnail}
+            date={formatTimeAgo(item?.date)}
+            thumbnail={item?.thumbnail || item?.featuredImage?.node?.sourceUrl}
             visited={visited}
           />
         )}
@@ -327,16 +349,20 @@ const NewsCardItem = React.memo(
       return (
         <View style={styles.tabletItemContainer}>
           <TabletNewsCard
-            id={item.id}
-            imageUri={item.thumbnail}
+            id={item?.id || item?.databaseId}
+            imageUri={item?.thumbnail || item?.featuredImage?.node?.sourceUrl}
             heading={item.title}
-            info={item.excerpt}
+            info={item?.excerpt}
             time={formatTimeAgoMalaysia(item.date)}
-            category={item.featuredCategory || "Malaysia"}
-            slug={item.slug}
+            category={
+              item?.featuredCategory ||
+              item?.categories?.edges?.[0]?.node?.name ||
+              "Malaysia"
+            }
+            slug={(item as any)?.slug}
             posts={item}
             index={index}
-            uri={item.permalink}
+            uri={(item as any)?.permalink || (item as any)?.uri}
             main={true}
             visited={visited}
             onPress={onPress}
@@ -350,16 +376,20 @@ const NewsCardItem = React.memo(
     return (
       <TouchableOpacity onPress={onPress}>
         <CardComponent
-          id={item.id}
-          imageUri={item.thumbnail}
+          id={item?.id || item?.databaseId}
+          imageUri={item?.thumbnail || item?.featuredImage?.node?.sourceUrl}
           heading={item.title}
-          info={item.excerpt}
+          info={item?.excerpt}
           time={formatTimeAgoMalaysia(item.date)}
-          category={item.featuredCategory || "Malaysia"}
-          slug={item.slug}
+          category={
+            item?.featuredCategory ||
+            item?.categories?.edges?.[0]?.node?.name ||
+            "Malaysia"
+          }
+          slug={item?.slug}
           posts={item}
           index={index}
-          uri={item.permalink}
+          uri={item?.permalink || item?.uri}
           main={true}
           isVisible={isVisible}
           visited={visited}
@@ -473,57 +503,6 @@ const HomeLandingSection = ({
     return true;
   }, [isOnline, fullArticles]);
 
-  const fetchCategoryWithRetry = async (
-    feed: Feed,
-    maxRetries = 2
-  ): Promise<{ key: string; data: any[] } | null> => {
-    const isYoutube = youtubeFeeds.some((f) => f.key === feed.key);
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      if (!checkOnlineStatus()) return null;
-      try {
-        const response = await axios.get(feed.url, {
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        });
-        if (!checkOnlineStatus()) return null;
-        if (response.data && Array.isArray(response.data)) {
-          const processedData = isYoutube
-            ? processYouTubeData(response.data)
-            : response.data;
-          // Cache the data in mmkv
-          await cacheData(feed.key, processedData);
-          // Also update the existing cache mechanism
-          queueCacheUpdate(feed.key, processedData);
-          return { key: feed.key, data: processedData };
-        } else {
-          console.warn(`Invalid response format for ${feed.key}`);
-        }
-      } catch (err) {
-        const isLastAttempt = attempt === maxRetries;
-        const errorMsg = (err as AxiosError).message;
-        if (isLastAttempt) {
-          console.warn(
-            `Failed to fetch ${feed.key} after ${
-              maxRetries + 1
-            } attempts: ${errorMsg}`
-          );
-        } else {
-          console.warn(
-            `Attempt ${attempt + 1} failed for ${feed.key}, retrying...`
-          );
-          await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, attempt) * 1000)
-          );
-        }
-      }
-    }
-    return null;
-  };
-
   const fetchIfNeeded = async () => {
     try {
       if (!sectionVisible || isCategoryLoading) return;
@@ -532,52 +511,248 @@ const HomeLandingSection = ({
       const lastFetch = refreshCooldownMap[categoryKey] || 0;
       if (now - lastFetch < 60000) {
         //skip fetch for at least 1 minute on tab change to avoid too many api calls
-        // (`⏳ Skipping fetch for "${categoryKey}" (cooldown active - ${Math.ceil((10000 - (now - lastFetch)) / 1000)}s remaining)`);
         return;
       }
 
-      // If offline, try to load cached data
-      if (!isOnline) {
-        const cachedData = await getCachedData(categoryKey);
-        if (cachedData && hasCachedData(cachedData)) {
-          setLandingData((prev) => ({ ...prev, [categoryKey]: cachedData }));
-          const filteredData = filterValidArticles(cachedData);
-          if (filteredData.length > 0) {
-            setFilteredLandingData((prev) => ({
-              ...prev,
-              [categoryKey]: filteredData,
-            }));
-          }
-          setDataReady(true);
+      // Always try to load cached data first
+      const cachedData = await getCachedData(categoryKey);
+
+      // If we have cached data, use it immediately
+      if (cachedData && hasCachedData(cachedData)) {
+        setLandingData((prev) => ({ ...prev, [categoryKey]: cachedData }));
+        const filteredData = filterValidArticles(cachedData);
+        if (filteredData.length > 0) {
+          setFilteredLandingData((prev) => ({
+            ...prev,
+            [categoryKey]: filteredData,
+          }));
+        }
+        setDataReady(true);
+
+        // If offline, stop here - don't attempt any API calls
+        if (!isOnline) {
           return;
         }
+      } else if (!isOnline) {
+        // No cached data and offline - show offline fallback
         console.warn(`Offline and no cached data for ${categoryKey}`);
-        setDataReady(true); // Allow rendering to show OfflineFallback
-        return;
-      }
-      refreshCooldownMap[categoryKey] = now;
-      setIsCategoryLoading(true);
-      const feed = [...landingFeeds, ...youtubeFeeds].find(
-        (item) => item.key === categoryKey
-      );
-      if (!feed) {
-        console.warn(`No matching feed found for category "${categoryKey}"`);
+        setDataReady(true);
         return;
       }
 
-      const result = await fetchCategoryWithRetry(feed);
-      if (result) {
-        const { key, data } = result;
-        const filteredData = filterValidArticles(data);
-        setLandingData((prev) => ({ ...prev, [key]: data }));
-        if (filteredData.length > 0) {
-          setFilteredLandingData((prev) => ({ ...prev, [key]: filteredData }));
-        }
+      // Only proceed with API calls if online
+      if (!isOnline) {
+        return;
+      }
+
+      refreshCooldownMap[categoryKey] = now;
+      setIsCategoryLoading(true);
+
+      if (categoryKey === "home-landing") {
+        loadData();
+      } else {
+        loadTabCategoryData();
       }
     } catch (err) {
       console.error(`Failed to fetch data for ${categoryKey}:`, err);
     } finally {
       setIsCategoryLoading(false);
+    }
+  };
+
+  const loadData = async () => {
+    try {
+      if (!checkOnlineStatus()) return null;
+      const response = await getCategoryData();
+      const props = (response as any)?.props || {};
+
+      const addType = (node: any, idx: number, section: string) => {
+        if (section === "videos") {
+          return { ...node, type: idx === 0 ? "video-featured" : "video" };
+        }
+        return { ...node, type: idx === 0 ? "featured" : "default" };
+      };
+
+      const hero = Array.isArray(props.heroPosts)
+        ? props.heroPosts.map((n: any, i: number) =>
+            addType(n, i, "super-highlight")
+          )
+        : [];
+
+      const built = [
+        ...hero,
+
+        ...buildContentSection({
+          variant: "highlight",
+          list: props.highlightPosts,
+          key: "highlight",
+          title: "Highlights",
+        }),
+
+        ...buildContentSection({
+          title: "Top News",
+          list: props.topNewsPosts,
+          key: "top-news",
+        }),
+
+        ...buildContentSection({
+          title: "Berita Utama",
+          list: props.beritaPosts,
+          key: "berita",
+        }),
+
+        ...buildContentSection({
+          title: "Videos",
+          list: props.videoPosts,
+          key: "videos",
+          isVideo: true,
+        }),
+
+        ...buildContentSection({
+          title: "Opinion",
+          list: props.opinionPosts,
+          key: "opinion",
+        }),
+
+        ...buildContentSection({
+          title: "World",
+          list: props.worldPosts,
+          key: "world",
+        }),
+
+        ...buildContentSection({
+          title: "Lifestyle",
+          list: props.leisurePosts,
+          key: "lifestyle",
+        }),
+
+        ...buildContentSection({
+          title: "Business",
+          list: props.businessPosts,
+          key: "business",
+        }),
+
+        ...buildContentSection({
+          title: "Sports",
+          list: props.sportsPosts,
+          key: "sports",
+        }),
+      ];
+
+      if (categoryKey === "home-landing") {
+        setLandingData((prev) => ({ ...prev, [categoryKey]: built }));
+        const filtered = filterValidArticles(built);
+        if (filtered.length > 0) {
+          setFilteredLandingData((prev) => ({
+            ...prev,
+            [categoryKey]: filtered,
+          }));
+        }
+        queueCacheUpdate(categoryKey, built);
+        await cacheData(categoryKey, built);
+        setDataReady(true);
+      }
+    } catch (err) {
+      console.error("Failed to build landing from graphql props:", err);
+    }
+  };
+
+  const loadVideosData = async () => {
+    try {
+      if (!checkOnlineStatus()) return null;
+      const videosData = await fetchVideosData();
+
+      setLandingData((prev) => ({
+        ...prev,
+        [categoryKey]: videosData,
+      }));
+
+      const filtered = filterValidArticles(videosData);
+      if (filtered.length > 0) {
+        setFilteredLandingData((prev) => ({
+          ...prev,
+          [categoryKey]: filtered,
+        }));
+      }
+
+      queueCacheUpdate(categoryKey, videosData);
+      await cacheData(categoryKey, videosData);
+      setDataReady(true);
+    } catch (err) {
+      console.error("Failed to load videos data:", err);
+    }
+  };
+
+  const loadPropertyData = async () => {
+    try {
+      if (!checkOnlineStatus()) return null;
+      const propertyData = await fetchPropertyTabData();
+
+      setLandingData((prev) => ({
+        ...prev,
+        [categoryKey]: propertyData,
+      }));
+
+      const filtered = filterValidArticles(propertyData);
+      if (filtered.length > 0) {
+        setFilteredLandingData((prev) => ({
+          ...prev,
+          [categoryKey]: filtered,
+        }));
+      }
+
+      queueCacheUpdate(categoryKey, propertyData);
+      await cacheData(categoryKey, propertyData);
+      setDataReady(true);
+    } catch (err) {
+      console.error("Failed to load property data:", err);
+    }
+  };
+
+  const loadTabCategoryData = async () => {
+    try {
+      if (!checkOnlineStatus()) return null;
+
+      const tabPath = categoryName.toLowerCase();
+      if (tabPath === "home") return;
+
+      // Handle videos tab separately
+      if (tabPath === "videos") {
+        await loadVideosData();
+        return;
+      }
+
+      // Handle property tab separately
+      if (tabPath === "property") {
+        await loadPropertyData();
+        return;
+      }
+
+      const config = categoriesNavigation.find(
+        (c) => c.path.toLowerCase() === tabPath
+      );
+      if (!config) return;
+
+      const sections = await fetchTabCategoryData(config);
+
+      setLandingData((prev) => ({
+        ...prev,
+        [categoryKey]: sections,
+      }));
+
+      const filtered = filterValidArticles(sections);
+      if (filtered.length > 0) {
+        setFilteredLandingData((prev) => ({
+          ...prev,
+          [categoryKey]: filtered,
+        }));
+      }
+
+      queueCacheUpdate(categoryKey, sections);
+      await cacheData(categoryKey, sections);
+      setDataReady(true);
+    } catch (err) {
+      console.error("Failed to load tab category data:", err);
     }
   };
 

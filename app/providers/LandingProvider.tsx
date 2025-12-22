@@ -18,18 +18,17 @@
 //
 // -----------------------------------------------------------------------------
 
+import * as FileSystem from "expo-file-system/legacy";
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
-  useState,
-  useCallback,
   useRef,
+  useState,
 } from "react";
-import axios, { AxiosError } from "axios";
-import * as FileSystem from "expo-file-system/legacy";
+import { getCachedData } from "../lib/cacheUtils";
 import { ThemeContext } from "./ThemeProvider";
-import { cacheData, getCachedData } from "../lib/cacheUtils";
 
 // Type Definitions
 // Feed: Represents a single feed source (S3 JSON endpoint) with a priority.
@@ -404,7 +403,13 @@ const filterValidArticles = (articles: any[]): any[] => {
       // console.warn('Filtered out: null item');
       return false;
     }
-    if (!item.id || !item.title || !item.thumbnail) {
+    if (!item.id || !item.title) {
+      return false;
+    }
+    const hasThumb = !!(
+      item?.thumbnail || item?.featuredImage?.node?.sourceUrl
+    );
+    if (!hasThumb) {
       return false;
     }
     if (item.type === "AD_ITEM" || item.type === "MORE_ITEM") {
@@ -737,59 +742,6 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
     [shouldUpdateCache, batchUpdateCache]
   );
 
-  const fetchCategoryWithRetry = async (
-    feed: Feed,
-    maxRetries = 2
-  ): Promise<{ key: string; data: any[] } | null> => {
-    const isYoutube = youtubeFeeds.some((f) => f.key === feed.key);
-
-    for (let attempt = 0; attempt <= maxRetries; attempt++) {
-      if (!checkOnlineStatus()) return null;
-
-      try {
-        const response = await axios.get(feed.url, {
-          headers: {
-            "Cache-Control": "no-cache",
-            Pragma: "no-cache",
-            "Content-Type": "application/json",
-          },
-          timeout: 10000,
-        });
-
-        if (!checkOnlineStatus()) return null;
-
-        if (response.data && Array.isArray(response.data)) {
-          const processedData = isYoutube
-            ? processYouTubeData(response.data)
-            : response.data;
-
-          // Cache the data in mmkv
-          await cacheData(feed.key, processedData);
-
-          // Queue for potential cache update (only writes once per 24 hours)
-          queueCacheUpdate(feed.key, processedData);
-
-          return { key: feed.key, data: processedData };
-        } else {
-          // console.warn(`Invalid response format for ${feed.key}`);
-        }
-      } catch (err) {
-        const isLastAttempt = attempt === maxRetries;
-        const errorMsg = (err as AxiosError).message;
-
-        if (isLastAttempt) {
-          // console.warn(`Failed to fetch ${feed.key} after ${maxRetries + 1} attempts: ${errorMsg}`);
-        } else {
-          // console.warn(`Attempt ${attempt + 1} failed for ${feed.key}, retrying...`);
-          await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, attempt) * 1000)
-          );
-        }
-      }
-    }
-    return null;
-  };
-
   const normalizeCategoryKey = (category: string): string => {
     return categoryMapping[category.toUpperCase()] || category.toLowerCase();
   };
@@ -809,23 +761,23 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         return;
       }
 
-      const result = await fetchCategoryWithRetry(category);
-      if (result) {
-        const { data } = result; // ⬅️ no longer using result.key
-        const filteredData = filterValidArticles(data);
+      // const result = await fetchCategoryWithRetry(category);
+      // if (result) {
+      //   const { data } = result; // ⬅️ no longer using result.key
+      //   const filteredData = filterValidArticles(data);
 
-        // Always use normalizedKey to update landingData
-        setLandingData((prev) => ({ ...prev, [normalizedKey]: data }));
+      //   // Always use normalizedKey to update landingData
+      //   setLandingData((prev) => ({ ...prev, [normalizedKey]: data }));
 
-        // Save filtered data under normalizedKey
-        if (filteredData.length > 0) {
-          setFilteredLandingData((prev) => {
-            const updated = { ...prev, [normalizedKey]: filteredData };
-            updateMainLandingData(updated);
-            return updated;
-          });
-        }
-      }
+      //   // Save filtered data under normalizedKey
+      //   if (filteredData.length > 0) {
+      //     setFilteredLandingData((prev) => {
+      //       const updated = { ...prev, [normalizedKey]: filteredData };
+      //       updateMainLandingData(updated);
+      //       return updated;
+      //     });
+      //   }
+      // }
     },
     []
   );
