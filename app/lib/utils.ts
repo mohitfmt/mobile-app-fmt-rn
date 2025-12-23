@@ -312,24 +312,210 @@ export async function aggressiveRetry<T>(
   throw new Error(`${category} failed after ${maxRetries} attempts`);
 }
 
+const transformVideoData = (videoData: any) => {
+  if (!videoData) return { transformVideo: null, transformedVideos: [] };
+
+  const transformVideo = (
+    video: any,
+    index: number,
+    type: string = "default"
+  ) => {
+    if (!video) return null;
+
+    return {
+      id: video.videoId,
+      title: video.title,
+      excerpt: video.description,
+      content: video.description,
+      date: video.publishedAt,
+      thumbnail:
+        video.thumbnails?.maxres ||
+        video.thumbnails?.high ||
+        video.thumbnails?.medium ||
+        video.thumbnails?.default ||
+        "",
+      permalink: `https://www.youtube.com/watch?v=${video.videoId}`,
+      uri: `https://www.youtube.com/watch?v=${video.videoId}`,
+      videoId: video.videoId,
+      type: type,
+      duration: video.duration,
+      durationSeconds: video.durationSeconds,
+      statistics: video.statistics,
+      channelTitle: video.channelTitle,
+      tags: video.tags || [],
+      tier: video.tier || "standard",
+    };
+  };
+
+  return { transformVideo, transformedVideos: [] };
+};
+
+export const fetchVideosDataForHome = async (): Promise<any[]> => {
+  const FMT_URL = process.env.EXPO_PUBLIC_FMT_URL;
+
+  try {
+    const response = await aggressiveRetry(
+      "videos-home",
+      async () => {
+        const res = await fetch(`${FMT_URL}/videos/gallery`);
+        if (!res.ok) throw new Error(`Videos API returned ${res.status}`);
+        const data = await res.json();
+        return data;
+      },
+      5
+    );
+
+    if (!response || !response.hero) {
+      return [];
+    }
+
+    console.log("responseasd", response);
+
+    const { transformVideo } = transformVideoData(response);
+
+    if (!transformVideo) {
+      return [];
+    }
+
+    // Only return hero videos for home page
+    const heroVideos = response.hero
+      .map((video: any, index: number) =>
+        transformVideo(video, index, index === 0 ? "video-featured" : "video")
+      )
+      .filter(Boolean);
+
+    return heroVideos;
+  } catch (error) {
+    console.error("[Videos Home] Failed to fetch videos:", error);
+    return [];
+  }
+};
+
 export const fetchVideosData = async (): Promise<any[]> => {
-  const S3 = process.env.EXPO_PUBLIC_S3;
+  const FMT_URL = process.env.EXPO_PUBLIC_FMT_URL;
 
   try {
     const response = await aggressiveRetry(
       "videos",
       async () => {
-        const res = await fetch(
-          `https://${S3}/json/app/landing/videos-landing.json`
-        );
+        const res = await fetch(`${FMT_URL}/videos/gallery`);
         if (!res.ok) throw new Error(`Videos API returned ${res.status}`);
         const data = await res.json();
-        return data ?? [];
+        return data;
       },
       5
     );
 
-    return response || [];
+    if (!response) {
+      return [];
+    }
+
+    const { transformVideo } = transformVideoData(response);
+    const transformedVideos: any[] = [];
+
+    if (!transformVideo) {
+      return [];
+    }
+
+    if (response.hero && Array.isArray(response.hero)) {
+      const heroVideos = response.hero
+        .map((video: any, index: number) =>
+          transformVideo(video, index, index === 0 ? "video-featured" : "video")
+        )
+        .filter(Boolean);
+
+      transformedVideos.push(...heroVideos);
+
+      if (heroVideos.length > 0) {
+        transformedVideos.push({ type: "AD_ITEM", id: "ad-hero-videos" });
+      }
+    }
+
+    if (response.shorts && Array.isArray(response.shorts)) {
+      if (response.shorts.length > 0) {
+        transformedVideos.push({
+          type: "CARD_TITLE",
+          title: "Shorts",
+          id: "shorts-title",
+        });
+
+        const shortsVideos = response.shorts
+          .slice(0, TOTAL_PER_SECTION)
+          .map((video: any, index: number) =>
+            transformVideo(
+              video,
+              index,
+              index === 0 ? "video-featured" : "video"
+            )
+          )
+          .filter(Boolean);
+
+        transformedVideos.push(...shortsVideos);
+
+        if (response.shorts.length > TOTAL_PER_SECTION) {
+          transformedVideos.push({
+            type: "MORE_ITEM",
+            id: "more-shorts",
+            title: "Shorts",
+          });
+        }
+
+        transformedVideos.push({ type: "AD_ITEM", id: "ad-shorts" });
+      }
+    }
+
+    if (response.playlists && typeof response.playlists === "object") {
+      Object.entries(response.playlists).forEach(
+        ([playlistKey, playlist]: [string, any]) => {
+          if (
+            playlist &&
+            playlist.videos &&
+            Array.isArray(playlist.videos) &&
+            playlist.videos.length > 0
+          ) {
+            transformedVideos.push({
+              type: "CARD_TITLE",
+              title:
+                playlist.name ||
+                playlistKey
+                  .replace(/-/g, " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase()),
+              id: `${playlistKey}-title`,
+            });
+
+            const playlistVideos = playlist.videos
+              .slice(0, TOTAL_PER_SECTION)
+              .map((video: any, index: number) =>
+                transformVideo(
+                  video,
+                  index,
+                  index === 0 ? "video-featured" : "video"
+                )
+              )
+              .filter(Boolean);
+
+            transformedVideos.push(...playlistVideos);
+
+            transformedVideos.push({
+              type: "MORE_ITEM",
+              id: `more-${playlistKey}`,
+              title:
+                playlist.name ||
+                playlistKey
+                  .replace(/-/g, " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase()),
+            });
+
+            transformedVideos.push({
+              type: "AD_ITEM",
+              id: `ad-${playlistKey}`,
+            });
+          }
+        }
+      );
+    }
+
+    return transformedVideos;
   } catch (error) {
     console.error("[Videos] Failed to fetch videos:", error);
     return [];
@@ -466,7 +652,7 @@ export const getCategoryData = async () => {
     // ========================================
     // STEP 5: Fetch Videos (with retry)
     // ========================================
-    const videoPosts = await fetchVideosData();
+    const videoPosts = await fetchVideosDataForHome();
 
     return {
       props: {
