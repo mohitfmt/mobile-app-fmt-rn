@@ -13,31 +13,26 @@
  * @author FMT Developers
  */
 
-import React, { useState, useEffect, useCallback, useContext } from "react";
+import articleStyles from "@/app/css/articleCss";
+import { getPostData } from "@/app/lib/gql-queries/get-post-data";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useLocalSearchParams, useRouter } from "expo-router";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
-  View,
+  Platform,
+  Share,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  Image,
   useWindowDimensions,
-  Platform,
-  StyleSheet,
+  View,
 } from "react-native";
-import { useLocalSearchParams, useRouter } from "expo-router";
-import { ArrowLeft, Bookmark, ChevronLeft, Share2 } from "lucide-react-native";
-import { useBookmarks } from "../../providers/BookmarkContext";
-import { Share } from "react-native";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { LoadingIndicator } from "../functions/ActivityIndicator";
-import { formatTimeAgo } from "@/app/lib/utils";
-import { getPostData } from "@/app/lib/gql-queries/get-post-data";
-import { fetchRelatedPosts } from "../functions/Functions";
-import StickyHeader from "./StickyHeader";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import Animated from "react-native-reanimated";
-import { Refresh } from "@/app/assets/AllSVGs";
-import articleStyles from "@/app/css/articleCss";
+import { useBookmarks } from "../../providers/BookmarkContext";
+import { LoadingIndicator } from "../functions/ActivityIndicator";
+import { fetchRelatedPosts } from "../functions/Functions";
 import ArticleContent from "./MainArticle";
+import StickyHeader from "./StickyHeader";
 
 const NetworkArticle: React.FC = () => {
   const params = useLocalSearchParams();
@@ -196,8 +191,8 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   relatedTitle: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : "900",
     textAlign: "center",
     flex: 1,
   },
@@ -211,9 +206,9 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    // fontFamily:
+    // Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : "400",
   },
   refreshButton: {
     paddingVertical: 12,
@@ -223,9 +218,9 @@ const styles = StyleSheet.create({
   refreshButtonText: {
     color: "#fff",
     fontSize: 15,
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    // fontFamily:
+    // Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
+    fontWeight: Platform.OS === "android" ? "400" : "400",
   },
 });
 

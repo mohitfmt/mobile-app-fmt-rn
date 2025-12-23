@@ -179,9 +179,9 @@ export default function Bookmarks() {
         <Text
           className="text-center"
           style={{
-            fontFamily:
-              Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-            fontWeight: Platform.OS === "android" ? "700" : undefined,
+            // fontFamily:
+            //   Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
+            fontWeight: Platform.OS === "android" ? "700" : "700",
             color: theme.textColor,
             fontSize: getArticleTextSize(28.0, textSize),
             marginBottom: 0,
@@ -201,9 +201,9 @@ export default function Bookmarks() {
           >
             <Text
               style={{
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-                fontWeight: Platform.OS === "android" ? "400" : undefined,
+                // fontFamily:
+                //   Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+                fontWeight: Platform.OS === "android" ? "400" : "400",
                 fontSize: 16,
                 lineHeight: 22,
                 color: "#6c6c6c",
@@ -218,9 +218,9 @@ export default function Bookmarks() {
             />
             <Text
               style={{
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-                fontWeight: Platform.OS === "android" ? "400" : undefined,
+                // fontFamily:
+                //   Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+                fontWeight: Platform.OS === "android" ? "400" : "400",
                 fontSize: 16,
                 lineHeight: 22,
                 color: "#6c6c6c",
@@ -230,9 +230,9 @@ export default function Bookmarks() {
             </Text>
             <Text
               style={{
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-                fontWeight: Platform.OS === "android" ? "400" : undefined,
+                // fontFamily:
+                //   Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+                fontWeight: Platform.OS === "android" ? "400" : "400",
                 fontSize: 16,
                 lineHeight: 22,
                 color: "#6c6c6c",
@@ -303,9 +303,9 @@ export default function Bookmarks() {
         </TouchableOpacity>
         <Text
           style={{
-            fontFamily:
-              Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-            fontWeight: Platform.OS === "android" ? "900" : undefined,
+            // fontFamily:
+            //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+            fontWeight: Platform.OS === "android" ? "900" : "900",
             color: theme.textColor,
             fontSize: getArticleTextSize(24, textSize),
           }}

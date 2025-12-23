@@ -433,6 +433,8 @@ const HomeLandingSection = ({
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const lastAutoRefreshRef = useRef<number>(Date.now());
+  const isNavigatingRef = useRef<boolean>(false);
+
   const categoryKey = useMemo(() => {
     switch (categoryName.toLowerCase()) {
       case "home":
@@ -790,6 +792,8 @@ const HomeLandingSection = ({
 
   const handlePress = useCallback(
     (visibleIndex: number) => {
+      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
       const selectedItem = visibleData[visibleIndex];
       if (!selectedItem) return;
 
@@ -803,6 +807,8 @@ const HomeLandingSection = ({
       const isYouTubeLink = selectedItem.permalink?.includes?.("youtube.com");
 
       if (isMetaType || isVideoType || isYouTubeLink) return;
+
+      isNavigatingRef.current = true;
 
       if (selectedItem.id) {
         markAsVisited(selectedItem.id);
@@ -824,6 +830,10 @@ const HomeLandingSection = ({
           },
         });
       }
+
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 500);
     },
     [
       router,
@@ -1028,8 +1038,8 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 108 },
   titleContainer: { paddingLeft: 18, paddingVertical: 8 },
   categoryTitle: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
+    fontWeight: Platform.OS === "android" ? "900" : "900",
     fontSize: 22,
   },
   readMoreButton: {
@@ -1046,8 +1056,8 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     color: "#c62828",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-    fontWeight: Platform.OS === "android" ? "700" : undefined,
+    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
+    fontWeight: Platform.OS === "android" ? "700" : "700",
   },
   playIcon: { paddingLeft: 4, justifyContent: "center" },
   listLoader: { position: "absolute", top: 10, right: 10, zIndex: 10 },
