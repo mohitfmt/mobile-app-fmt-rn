@@ -1,5 +1,18 @@
 import { Animated } from "react-native";
 
+export interface CategoryItem {
+  id: number;
+  title: string;
+  href: string;
+}
+
+export interface Category {
+  id: number;
+  title: string;
+  href: string;
+  items?: CategoryItem[];
+}
+
 export interface CategoryAnimations {
   [key: number]: Animated.Value;
 }
@@ -7,7 +20,7 @@ export interface CategoryAnimations {
 export interface SidebarProps {
   isVisible: boolean;
   toggleSidebar: () => void;
-  categories: Array<{ id: number; title: string; subcategories?: string[] }>;
+  categories: Category[];
   handleTabPress: (index: number, key: string) => void;
 }
 
@@ -15,4 +28,3 @@ export interface SidebarProps {
 export default function Sidebar() {
   return null;
 }
-

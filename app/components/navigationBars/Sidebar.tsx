@@ -17,7 +17,11 @@
 
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { CategoryAnimations, SidebarProps } from "@/app/types/sidebar";
+import {
+  CategoryAnimations,
+  CategoryItem,
+  SidebarProps,
+} from "@/app/types/sidebar";
 import { useRouter } from "expo-router";
 import { ChevronDown } from "lucide-react-native";
 import React, {
@@ -59,8 +63,7 @@ const Sidebar = React.memo(
     >(null);
     const { theme } = useContext(ThemeContext);
     const { textSize } = useContext(GlobalSettingsContext);
-    const { width, height } = useWindowDimensions();
-    const isTablet = width >= 600;
+    const { width } = useWindowDimensions();
     const sidebarAnimation = useRef(new Animated.Value(-width)).current;
     const overlayAnimation = useRef(new Animated.Value(0)).current;
     const [renderSidebar, setRenderSidebar] = useState(false);
@@ -245,7 +248,7 @@ const Sidebar = React.memo(
                       {category.title}
                     </Text>
 
-                    {category.subcategories && (
+                    {category.items && (
                       <Animated.View
                         style={
                           spin ? { transform: [{ rotate: spin }] } : undefined
@@ -263,26 +266,28 @@ const Sidebar = React.memo(
                       </Animated.View>
                     )}
                   </TouchableOpacity>
-                  {category.subcategories && isExpanded && (
+                  {category.items && isExpanded && (
                     <View style={styles.subcategories}>
-                      {category.subcategories.map((sub, index) => (
-                        <TouchableOpacity
-                          key={index}
-                          onPress={() => handleSubcategoryPress(sub)}
-                        >
-                          <Text
-                            style={[
-                              styles.subcategoryText,
-                              {
-                                color: theme.textColor,
-                                fontSize: getArticleTextSize(16, textSize),
-                              },
-                            ]}
+                      {category.items.map(
+                        (item: CategoryItem, index: number) => (
+                          <TouchableOpacity
+                            key={index}
+                            onPress={() => handleSubcategoryPress(item.title)}
                           >
-                            {sub}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
+                            <Text
+                              style={[
+                                styles.subcategoryText,
+                                {
+                                  color: theme.textColor,
+                                  fontSize: getArticleTextSize(16, textSize),
+                                },
+                              ]}
+                            >
+                              {item.title}
+                            </Text>
+                          </TouchableOpacity>
+                        )
+                      )}
                     </View>
                   )}
                 </View>

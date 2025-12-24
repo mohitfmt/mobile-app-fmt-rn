@@ -225,6 +225,7 @@ export const buildContentSection = ({
               type: "MORE_ITEM",
               id: `more-${key}`,
               title,
+              isVideo,
             },
           ]
         : []),
@@ -254,6 +255,7 @@ export const buildContentSection = ({
             type: "MORE_ITEM",
             id: `more-${key}`,
             title,
+            isVideo,
           },
         ]
       : []),
@@ -369,8 +371,6 @@ export const fetchVideosDataForHome = async (): Promise<any[]> => {
       return [];
     }
 
-    console.log("responseasd", response);
-
     const { transformVideo } = transformVideoData(response);
 
     if (!transformVideo) {
@@ -457,6 +457,7 @@ export const fetchVideosData = async (): Promise<any[]> => {
             type: "MORE_ITEM",
             id: "more-shorts",
             title: "Shorts",
+            isVideo: true,
           });
         }
 
@@ -504,6 +505,7 @@ export const fetchVideosData = async (): Promise<any[]> => {
                 playlistKey
                   .replace(/-/g, " ")
                   .replace(/\b\w/g, (l) => l.toUpperCase()),
+              isVideo: true,
             });
 
             transformedVideos.push({
@@ -685,90 +687,6 @@ export const getCategoryData = async () => {
         trendingTags: [],
       },
       revalidate: 10,
-    };
-  }
-};
-
-export const fetchCategoryPageData = async ({
-  primaryCategory,
-  secondaryCategory,
-  primaryLimit = 6,
-  secondaryLimit = 6,
-}: {
-  primaryCategory: string;
-  secondaryCategory?: string;
-  primaryLimit?: number;
-  secondaryLimit?: number;
-}) => {
-  try {
-    const variablesPrimary = {
-      first: primaryLimit,
-      where: {
-        taxQuery: {
-          relation: "AND",
-          taxArray: [
-            {
-              field: "SLUG",
-              operator: "AND",
-              taxonomy: "CATEGORY",
-              terms: [primaryCategory],
-            },
-          ],
-        },
-      },
-    };
-
-    const primary = await rawGetCategoryPostsExceptHome(variablesPrimary);
-
-    let secondary: { posts: any[] } = { posts: [] };
-    if (secondaryCategory) {
-      const variablesSecondary = {
-        first: secondaryLimit,
-        where: {
-          taxQuery: {
-            relation: "AND",
-            taxArray: [
-              {
-                field: "SLUG",
-                operator: "AND",
-                taxonomy: "CATEGORY",
-                terms: [secondaryCategory],
-              },
-            ],
-          },
-          excludeQuery: [
-            {
-              first: primaryLimit,
-              status: "PUBLISH",
-              taxQuery: {
-                relation: "AND",
-                taxArray: [
-                  {
-                    field: "SLUG",
-                    operator: "AND",
-                    taxonomy: "CATEGORY",
-                    terms: [primaryCategory],
-                  },
-                ],
-              },
-            },
-          ],
-        },
-      };
-      secondary = await rawGetCategoryPostsExceptHome(variablesSecondary);
-    }
-
-    return {
-      primaryPosts: primary?.posts ?? [],
-      secondaryPosts: secondary?.posts ?? [],
-      error: null,
-    };
-  } catch (error) {
-    console.error("fetchCategoryPageData error:", error);
-    return {
-      primaryPosts: [],
-      secondaryPosts: [],
-      error: "Failed to load content",
     };
   }
 };

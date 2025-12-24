@@ -1,7 +1,9 @@
+import { Category } from "./sidebar";
+
 export interface SidebarProps {
   isVisible: boolean;
   toggleSidebar: () => void;
-  categories: { id: number; title: string; subcategories?: string[] }[];
+  categories: Category[];
 }
 
 export interface BookmarkModel {
@@ -15,4 +17,3 @@ export interface BookmarkModel {
 export default function Navbar() {
   return null;
 }
-

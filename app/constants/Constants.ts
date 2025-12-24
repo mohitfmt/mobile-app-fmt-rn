@@ -8,6 +8,9 @@ export const PROPERTY_FETCH_LIMIT = 35;
 export const PROPERTY_DISPLAY_LIMIT = 30;
 export const PROPERTY_AD_INTERVAL = 5;
 
+//load more
+export const API_LIMIT_LOAD_MORE = 50;
+
 export const CATEGORY_FETCH_PLAN = [
   { key: "topNewsPosts", slug: "top-news", retry: 10 },
   { key: "businessPosts", slug: "business", retry: 10 },

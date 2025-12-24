@@ -1,14 +1,14 @@
 // LandingProvider.tsx
 //
 // This file provides the main data context for the app's landing and category pages.
-// It fetches, caches, and manages news/category/video data from S3 feeds, and exposes
-// this data (and loading state) to the rest of the app via React Context. It also
+// It fetches, caches, and manages news/category/video data using GraphQL and video APIs,
+// and exposes this data (and loading state) to the rest of the app via React Context. It also
 // handles cache updates, prioritization of data loading, and provides hooks for
 // refreshing or updating specific categories. This provider is used at the top level
 // of the app to ensure all components have access to the latest landing/category data.
 //
 // Key responsibilities:
-// - Fetch landing/category/video data from S3 feeds (with priority groups)
+// - Fetch landing/category/video data using GraphQL and video APIs
 // - Cache data locally for offline/fast access (with 24-hour batch updates)
 // - Expose loading state and refresh functions
 // - Filter and normalize data for use in UI
@@ -27,17 +27,18 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { getCachedData } from "../lib/cacheUtils";
+import { categoriesNavigation } from "../constants/Constants";
+import { cacheData, getCachedData } from "../lib/cacheUtils";
+import {
+  buildContentSection,
+  fetchPropertyTabData,
+  fetchTabCategoryData,
+  fetchVideosData,
+  getCategoryData,
+} from "../lib/utils";
 import { ThemeContext } from "./ThemeProvider";
 
 // Type Definitions
-// Feed: Represents a single feed source (S3 JSON endpoint) with a priority.
-interface Feed {
-  key: string;
-  url: string;
-  priority?: "high" | "medium" | "low";
-}
-
 // LandingDataType: Maps category keys to arrays of articles/items.
 interface LandingDataType {
   [category: string]: any[];
@@ -56,9 +57,6 @@ interface LandingContextType {
   filteredLandingData: LandingDataType;
   isLoading: boolean;
   setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  highPriorityLoading: boolean;
-  mediumPriorityLoading: boolean;
-  lowPriorityLoading: boolean;
   priorityDataLoaded: boolean;
   mainLandingData: any[];
   setMainLandingData: React.Dispatch<React.SetStateAction<any[]>>;
@@ -79,9 +77,6 @@ const LandingDataContext = createContext<LandingContextType>({
   filteredLandingData: {},
   isLoading: true,
   setIsLoading: () => {},
-  highPriorityLoading: true,
-  mediumPriorityLoading: true,
-  lowPriorityLoading: true,
   priorityDataLoaded: false,
   mainLandingData: [],
   setMainLandingData: () => {},
@@ -93,8 +88,6 @@ const LandingDataContext = createContext<LandingContextType>({
 });
 
 // Constants
-// S3: S3 bucket domain (from env)
-const S3 = process.env.EXPO_PUBLIC_S3;
 // CACHE_PATH: Where landing data is cached locally
 const CACHE_PATH = `${FileSystem.documentDirectory}landingDataCache.json`;
 // CACHE_EXPIRY_MS: How long cache is considered fresh (1 hour)
@@ -102,305 +95,16 @@ const CACHE_EXPIRY_MS = 1000 * 60 * 60; // 1 hour
 // CACHE_UPDATE_INTERVAL_MS: How often to batch-write cache (24 hours)
 const CACHE_UPDATE_INTERVAL_MS = 24 * 60 * 60 * 1000; // 24 hours for cache updates
 
-// Updated Feeds with S3 URLs
-// landingFeeds: List of all landing/category feeds, grouped by priority.
-export const landingFeeds: Feed[] = [
-  // HIGH PRIORITY - Main landing pages
-
-  {
-    key: "home-landing",
-    url: `https://${S3}/json/app/landing/home-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "news-landing",
-    url: `https://${S3}/json/app/landing/news-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "berita-landing",
-    url: `https://${S3}/json/app/landing/berita-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "opinion-landing",
-    url: `https://${S3}/json/app/landing/opinion-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "business-landing",
-    url: `https://${S3}/json/app/landing/business-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "world-landing",
-    url: `https://${S3}/json/app/landing/world-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "sports-landing",
-    url: `https://${S3}/json/app/landing/sports-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "property-landing",
-    url: `https://${S3}/json/app/landing/property-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "lifestyle-landing",
-    url: `https://${S3}/json/app/landing/lifestyle-landing.json`,
-    priority: "high",
-  },
-  {
-    key: "videos-landing",
-    url: `https://${S3}/json/app/landing/videos-landing.json`,
-    priority: "high",
-  },
-  // MEDIUM PRIORITY - Category lists
-  {
-    key: "malaysia",
-    url: `https://${S3}/json/app/list/malaysia.json`,
-    priority: "medium",
-  },
-  {
-    key: "borneo+",
-    url: `https://${S3}/json/app/list/borneo.json`,
-    priority: "medium",
-  },
-  {
-    key: "all-berita",
-    url: `https://${S3}/json/app/list/all-berita.json`,
-    priority: "medium",
-  },
-  {
-    key: "tempatan",
-    url: `https://${S3}/json/app/list/tempatan.json`,
-    priority: "medium",
-  },
-  // LOW PRIORITY - Detailed category lists
-  {
-    key: "dunia",
-    url: `https://${S3}/json/app/list/dunia.json`,
-    priority: "low",
-  },
-  {
-    key: "pandangan",
-    url: `https://${S3}/json/app/list/pandangan.json`,
-    priority: "low",
-  },
-  {
-    key: "all-opinion",
-    url: `https://${S3}/json/app/list/all-opinion.json`,
-    priority: "low",
-  },
-  {
-    key: "column",
-    url: `https://${S3}/json/app/list/column.json`,
-    priority: "low",
-  },
-  {
-    key: "all-world",
-    url: `https://${S3}/json/app/list/world.json`,
-    priority: "low",
-  },
-  {
-    key: "editorial",
-    url: `https://${S3}/json/app/list/editorial.json`,
-    priority: "low",
-  },
-  {
-    key: "letter",
-    url: `https://${S3}/json/app/list/letters.json`,
-    priority: "low",
-  },
-  {
-    key: "south-east-asia",
-    url: `https://${S3}/json/app/list/south-east-asia.json`,
-    priority: "low",
-  },
-  {
-    key: "all-business",
-    url: `https://${S3}/json/app/list/all-business.json`,
-    priority: "low",
-  },
-  {
-    key: "local-business",
-    url: `https://${S3}/json/app/list/local-business.json`,
-    priority: "low",
-  },
-  {
-    key: "world-business",
-    url: `https://${S3}/json/app/list/world-business.json`,
-    priority: "low",
-  },
-  {
-    key: "property",
-    url: `https://${S3}/json/app/list/property.json`,
-    priority: "low",
-  },
-  {
-    key: "all-sports",
-    url: `https://${S3}/json/app/list/all-sports.json`,
-    priority: "low",
-  },
-  {
-    key: "football",
-    url: `https://${S3}/json/app/list/football.json`,
-    priority: "low",
-  },
-  {
-    key: "badminton",
-    url: `https://${S3}/json/app/list/badminton.json`,
-    priority: "low",
-  },
-  {
-    key: "motorsports",
-    url: `https://${S3}/json/app/list/motorsports.json`,
-    priority: "low",
-  },
-  {
-    key: "tennis",
-    url: `https://${S3}/json/app/list/tennis.json`,
-    priority: "low",
-  },
-  {
-    key: "all-lifestyle",
-    url: `https://${S3}/json/app/list/all-lifestyle.json`,
-    priority: "low",
-  },
-  {
-    key: "travel",
-    url: `https://${S3}/json/app/list/travel.json`,
-    priority: "low",
-  },
-  {
-    key: "food",
-    url: `https://${S3}/json/app/list/food.json`,
-    priority: "low",
-  },
-  {
-    key: "automative",
-    url: `https://${S3}/json/app/list/automotive.json`,
-    priority: "low",
-  },
-  {
-    key: "health",
-    url: `https://${S3}/json/app/list/health.json`,
-    priority: "low",
-  },
-  {
-    key: "entertainment",
-    url: `https://${S3}/json/app/list/entertainment.json`,
-    priority: "low",
-  },
-  {
-    key: "money",
-    url: `https://${S3}/json/app/list/money.json`,
-    priority: "low",
-  },
-  {
-    key: "pets",
-    url: `https://${S3}/json/app/list/pets.json`,
-    priority: "low",
-  },
-  {
-    key: "letter",
-    url: `https://${S3}/json/app/list/letters.json`,
-    priority: "low",
-  },
-  {
-    key: "simple-stories",
-    url: `https://${S3}/json/app/list/simple-stories.json`,
-    priority: "low",
-  },
-];
-
-// youtubeFeeds: List of all YouTube/video feeds, grouped by priority.
-export const youtubeFeeds: Feed[] = [
-  {
-    key: "fmt-news-capsule",
-    url: `https://${S3}/json/app/list/video-news-capsule.json`,
-    priority: "medium",
-  },
-  {
-    key: "fmt-news",
-    url: `https://${S3}/json/app/list/video-news.json`,
-    priority: "high",
-  },
-  {
-    key: "fmt-lifestyle",
-    url: `https://${S3}/json/app/list/video-lifestyle.json`,
-    priority: "low",
-  },
-  {
-    key: "fmt-exclusive",
-    url: `https://${S3}/json/app/list/video-exclusive.json`,
-    priority: "medium",
-  },
-];
-
-// categoryMapping: Maps UI/category names to feed keys for normalization.
-const categoryMapping: Record<string, string> = {
-  VIDEOS: "fmt-news",
-  MALAYSIA: "malaysia",
-  OPINION: "opinion-landing",
-  WORLD: "world-landing",
-  "TOP WORLD": "world-landing",
-  BUSINESS: "business-landing",
-  "TOP BUSINESS": "business-landing",
-  "TOP SPORTS": "sports-landing",
-  SPORTS: "sports-landing",
-  LIFESTYLE: "lifestyle-landing",
-  "BERITA UTAMA": "berita-landing",
-  "TOP NEWS": "news-landing",
-  "TOP BM": "all-berita",
-  HOME: "home-landing",
-  NEWS: "news-landing",
-  COLUMN: "column",
-  EDITORIAL: "editorial",
-  LETTERS: "letter",
-  "LOCAL BUSINESS": "local-business",
-  "WORLD BUSINESS": "world-business",
-  FOOTBALL: "football",
-  BADMINTON: "badminton",
-  MOTORSPORTS: "motorsports",
-  TENNIS: "tennis",
-  PROPERTY: "property",
-  TRAVEL: "travel",
-  AUTOMOTIVE: "automotive",
-  FOOD: "food",
-  HEALTH: "health",
-  ENTERTAINMENT: "entertainment",
-  MONEY: "money",
-  PETS: "pets",
-  "SIMPLE STORIES": "simple-stories",
-  "BORNEO+": "borneo+",
-  "SOUTH EAST ASIA": "south-east-asia",
-  TEMPATAN: "tempatan",
-  DUNIA: "dunia",
-  PANDANGAN: "pandangan",
-  VIDEO: "videos-landing",
-  "FMT NEWS": "fmt-news",
-  "FMT LIFESTYLE": "fmt-lifestyle",
-  "FMT EXCLUSIVE": "fmt-exclusive",
-  "FMT NEWS CAPSULE": "fmt-news-capsule",
-  "SUPER HIGHLIGHT": "super-highlight",
-  HIGHLIGHT: "home-landing",
-};
-
 // Utility Functions
 // filterValidArticles: Filters out invalid, duplicate, or ad items from articles array.
 const filterValidArticles = (articles: any[]): any[] => {
   if (!Array.isArray(articles)) {
-    // console.warn('Filtered out: Input is not an array', articles);
     return [];
   }
 
   const seenTitles = new Set();
   return articles.filter((item) => {
     if (!item) {
-      // console.warn('Filtered out: null item');
       return false;
     }
     if (!item.id || !item.title) {
@@ -426,42 +130,51 @@ const filterValidArticles = (articles: any[]): any[] => {
 };
 
 // processYouTubeData: Normalizes YouTube/video feed data for the app.
-const processYouTubeData = (items: any[]): any[] => {
-  if (!items || !Array.isArray(items)) {
-    // console.warn('No valid YouTube items to process');
-    return [];
-  }
 
-  return items
-    .filter((item) => item?.title && item?.permalink && item?.thumbnail)
-    .map((item, index) => {
-      const videoIdMatch = item.permalink?.match(/v=([^&]+)/);
-      const videoId = videoIdMatch ? videoIdMatch[1] : `yt-${index}`;
-      return {
-        id: item.id || videoId,
-        title: item.title,
-        excerpt: item.content || "",
-        date: item.date || new Date().toISOString(),
-        thumbnail: item.thumbnail,
-        permalink: item.permalink,
-        videoId: videoId,
-        type: index === 0 ? "video-featured" : item.type || "video",
-        content: item.content || "",
-      };
-    });
-};
-
-// getPriorityGroups: Returns feeds grouped by high/medium/low priority.
+// getPriorityGroups: Returns category keys grouped by priority for caching.
 const getPriorityGroups = () => {
-  const highPriority = [...landingFeeds, ...youtubeFeeds].filter(
-    (f) => f.priority === "high"
-  );
-  const mediumPriority = [...landingFeeds, ...youtubeFeeds].filter(
-    (f) => f.priority === "medium"
-  );
-  const lowPriority = [...landingFeeds, ...youtubeFeeds].filter(
-    (f) => f.priority === "low"
-  );
+  const highPriority = [
+    "home-landing",
+    "news-landing",
+    "berita-landing",
+    "opinion-landing",
+    "business-landing",
+    "world-landing",
+    "sports-landing",
+    "property-landing",
+    "lifestyle-landing",
+    "videos-landing",
+  ];
+
+  const mediumPriority = ["malaysia", "borneo+", "all-berita", "tempatan"];
+
+  const lowPriority = [
+    "dunia",
+    "pandangan",
+    "all-opinion",
+    "column",
+    "all-world",
+    "editorial",
+    "letter",
+    "south-east-asia",
+    "all-business",
+    "local-business",
+    "world-business",
+    "property",
+    "all-sports",
+    "football",
+    "badminton",
+    "motorsports",
+    "tennis",
+    "all-lifestyle",
+    "travel",
+    "food",
+    "health",
+    "entertainment",
+    "money",
+    "pets",
+    "simple-stories",
+  ];
 
   return { highPriority, mediumPriority, lowPriority };
 };
@@ -474,15 +187,9 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const [filteredLandingData, setFilteredLandingData] =
     useState<LandingDataType>({});
   const [isLoading, setIsLoading] = useState(false);
-  const [highPriorityLoading, setHighPriorityLoading] = useState(true);
-  const [mediumPriorityLoading, setMediumPriorityLoading] = useState(true);
-  const [lowPriorityLoading, setLowPriorityLoading] = useState(true);
   const [priorityDataLoaded, setPriorityDataLoaded] = useState(false);
   const [mainLandingData, setMainLandingData] = useState<any[]>([]);
   const { isOnline } = useContext(ThemeContext);
-  const isFetchingRef = useRef(false);
-  const lastFetchTimeRef = useRef(0);
-  const isOnlineRef = useRef(isOnline);
   const cacheLoadedRef = useRef(false);
 
   // 24-hour cache system
@@ -490,17 +197,11 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
   const lastCacheUpdateRef = useRef<number>(0);
   const cacheUpdateTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const isOnlineRef = useRef(isOnline);
+
   useEffect(() => {
     isOnlineRef.current = isOnline;
   }, [isOnline]);
-
-  const checkOnlineStatus = (): boolean => {
-    if (!isOnlineRef.current) {
-      // console.warn('Connection lost during fetch - stopping operations');
-      return false;
-    }
-    return true;
-  };
 
   const updateMainLandingData = useCallback((filteredData: LandingDataType) => {
     const seenIds = new Set();
@@ -537,8 +238,6 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
           );
           if (cachedDataString && cachedDataString.trim()) {
             const cachedData: CachedData = JSON.parse(cachedDataString);
-            const isExpired =
-              Date.now() - cachedData.timestamp > CACHE_EXPIRY_MS;
 
             if (cachedData.data && typeof cachedData.data === "object") {
               Object.assign(parsed, cachedData.data);
@@ -556,12 +255,10 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
       // Overlay with MMKV cache (per-key latest data overrides file cache)
       try {
-        const allKeys = Array.from(
-          new Set([
-            ...landingFeeds.map((f) => f.key),
-            ...youtubeFeeds.map((f) => f.key),
-          ])
-        );
+        const { highPriority, mediumPriority, lowPriority } =
+          getPriorityGroups();
+        const allKeys = [...highPriority, ...mediumPriority, ...lowPriority];
+
         const overlayResults = await Promise.all(
           allKeys.map(async (key) => {
             try {
@@ -581,7 +278,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
       } catch (overlayErr) {
         // Non-fatal: if MMKV overlay fails we still proceed with file cache
       }
-      console.log(parsed, "parsed");
+
       // Apply cached data
       if (hasValidCache && Object.keys(parsed).length > 0) {
         setLandingData(parsed);
@@ -600,7 +297,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         // Check if we have priority data
         const { highPriority } = getPriorityGroups();
         const hasPriorityData = highPriority.some(
-          (feed) => filtered[feed.key]?.length > 0
+          (key) => filtered[key]?.length > 0
         );
 
         if (hasPriorityData) {
@@ -624,7 +321,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
     return timeSinceLastUpdate >= CACHE_UPDATE_INTERVAL_MS;
   }, []);
 
-  const lastLandingRefreshRef = useRef<number>(0); // ⬅️ Add near top
+  const lastLandingRefreshRef = useRef<number>(0);
 
   const refreshLandingPages = useCallback(async () => {
     if (!isOnline) return;
@@ -641,16 +338,35 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
     // console.log("🔁 Refreshing landing pages");
     lastLandingRefreshRef.current = now;
 
-    const landingPages = landingFeeds.filter((feed) =>
-      feed.key.endsWith("-landing")
+    // Get all landing page keys
+    const landingPageKeys = [
+      "home-landing",
+      "news-landing",
+      "berita-landing",
+      "opinion-landing",
+      "business-landing",
+      "world-landing",
+      "sports-landing",
+      "property-landing",
+      "lifestyle-landing",
+      "videos-landing",
+    ];
+
+    // Refresh each landing page
+    const results = await Promise.allSettled(
+      landingPageKeys.map((key) => refreshCategoryData(key))
     );
 
-    // const results = await Promise.allSettled(
-    //   landingPages.map((feed) => fetchCategoryWithRetry(feed))
-    // );
-
-    // processResults(results);
-  }, []);
+    // Log any failures
+    results.forEach((result, index) => {
+      if (result.status === "rejected") {
+        console.error(
+          `Failed to refresh ${landingPageKeys[index]}:`,
+          result.reason
+        );
+      }
+    });
+  }, [isOnline]);
 
   // Batch cache update function - only runs once every 24 hours
   const batchUpdateCache = useCallback(async () => {
@@ -742,81 +458,125 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
     [shouldUpdateCache, batchUpdateCache]
   );
 
-  const normalizeCategoryKey = (category: string): string => {
-    return categoryMapping[category.toUpperCase()] || category.toLowerCase();
-  };
-
   const refreshCategoryData = useCallback(
     async (categoryKey: string): Promise<void> => {
       if (!isOnline) return;
 
-      const normalizedKey = normalizeCategoryKey(categoryKey);
+      try {
+        let fetchedData: any[] = [];
 
-      const category = [...landingFeeds, ...youtubeFeeds].find(
-        (item) => item.key === normalizedKey
-      );
+        // Handle different category types based on the key
+        if (categoryKey === "home-landing") {
+          // Fetch home landing data using getCategoryData
+          const response = await getCategoryData();
+          const props = (response as any)?.props || {};
 
-      if (!category) {
-        // console.warn(`No matching feed found for category "${normalizedKey}"`);
-        return;
-      }
+          const addType = (node: any, idx: number, section: string) => {
+            if (section === "videos") {
+              return { ...node, type: idx === 0 ? "video-featured" : "video" };
+            }
+            return { ...node, type: idx === 0 ? "featured" : "default" };
+          };
 
-      // const result = await fetchCategoryWithRetry(category);
-      // if (result) {
-      //   const { data } = result; // ⬅️ no longer using result.key
-      //   const filteredData = filterValidArticles(data);
+          const hero = Array.isArray(props.heroPosts)
+            ? props.heroPosts.map((n: any, i: number) =>
+                addType(n, i, "super-highlight")
+              )
+            : [];
 
-      //   // Always use normalizedKey to update landingData
-      //   setLandingData((prev) => ({ ...prev, [normalizedKey]: data }));
+          fetchedData = [
+            ...hero,
+            ...buildContentSection({
+              variant: "highlight",
+              list: props.highlightPosts,
+              key: "highlight",
+            }),
+            ...buildContentSection({
+              title: "Top News",
+              list: props.topNewsPosts,
+              key: "top-news",
+            }),
+            ...buildContentSection({
+              title: "Berita Utama",
+              list: props.beritaPosts,
+              key: "berita",
+            }),
+            ...buildContentSection({
+              title: "Videos",
+              list: props.videoPosts,
+              key: "videos",
+              isVideo: true,
+            }),
+            ...buildContentSection({
+              title: "Opinion",
+              list: props.opinionPosts,
+              key: "opinion",
+            }),
+            ...buildContentSection({
+              title: "World",
+              list: props.worldPosts,
+              key: "world",
+            }),
+            ...buildContentSection({
+              title: "Lifestyle",
+              list: props.leisurePosts,
+              key: "lifestyle",
+            }),
+            ...buildContentSection({
+              title: "Business",
+              list: props.businessPosts,
+              key: "business",
+            }),
+            ...buildContentSection({
+              title: "Sports",
+              list: props.sportsPosts,
+              key: "sports",
+            }),
+          ];
+        } else if (categoryKey === "videos-landing") {
+          // Fetch videos data
+          fetchedData = await fetchVideosData();
+        } else if (categoryKey === "property-landing") {
+          // Fetch property data
+          fetchedData = await fetchPropertyTabData();
+        } else if (categoryKey.endsWith("-landing")) {
+          // Handle other landing pages (berita, opinion, business, world, sports, lifestyle)
+          const categoryPath = categoryKey.replace("-landing", "");
+          const config = categoriesNavigation.find(
+            (c) => c.path.toLowerCase() === categoryPath
+          );
 
-      //   // Save filtered data under normalizedKey
-      //   if (filteredData.length > 0) {
-      //     setFilteredLandingData((prev) => {
-      //       const updated = { ...prev, [normalizedKey]: filteredData };
-      //       updateMainLandingData(updated);
-      //       return updated;
-      //     });
-      //   }
-      // }
-    },
-    []
-  );
-
-  const processResults = useCallback(
-    (results: PromiseSettledResult<{ key: string; data: any[] } | null>[]) => {
-      const updates: LandingDataType = {};
-      const filteredUpdates: LandingDataType = {};
-      let hasData = false;
-
-      for (const result of results) {
-        if (result.status === "fulfilled" && result.value) {
-          const { key, data } = result.value;
-          updates[key] = data;
-          const filteredData = filterValidArticles(data);
-          if (filteredData.length > 0) {
-            filteredUpdates[key] = filteredData;
-            hasData = true;
+          if (config) {
+            fetchedData = await fetchTabCategoryData(config);
           }
         }
-      }
 
-      // Update landingData (raw data)
-      if (Object.keys(updates).length > 0) {
-        setLandingData((prev) => ({ ...prev, ...updates }));
-      }
+        // Update landing data
+        if (fetchedData.length > 0) {
+          setLandingData((prev) => ({ ...prev, [categoryKey]: fetchedData }));
 
-      // Update filteredLandingData only with valid data
-      if (Object.keys(filteredUpdates).length > 0) {
-        setFilteredLandingData((prev) => {
-          const updated = { ...prev, ...filteredUpdates };
-          updateMainLandingData(updated);
-          return updated;
-        });
-      }
+          // Filter and update filtered data
+          const filteredData = filterValidArticles(fetchedData);
+          if (filteredData.length > 0) {
+            setFilteredLandingData((prev) => {
+              const updated = { ...prev, [categoryKey]: filteredData };
+              updateMainLandingData(updated);
+              return updated;
+            });
+          }
 
-      return hasData;
+          // Cache the data
+          queueCacheUpdate(categoryKey, fetchedData);
+          await cacheData(categoryKey, fetchedData);
+        }
+      } catch (error) {
+        console.error(
+          `Error refreshing category data for ${categoryKey}:`,
+          error
+        );
+      }
     },
-    [updateMainLandingData]
+    [isOnline, queueCacheUpdate, updateMainLandingData]
   );
 
   // Cleanup timeout on unmount
@@ -841,7 +601,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
       }
     };
     loadData();
-  }, []);
+  }, [loadCachedData, isOnline]);
 
   return (
     <LandingDataContext.Provider
@@ -850,9 +610,6 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         filteredLandingData,
         isLoading,
         setIsLoading,
-        highPriorityLoading,
-        mediumPriorityLoading,
-        lowPriorityLoading,
         priorityDataLoaded,
         mainLandingData,
         setMainLandingData,

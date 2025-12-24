@@ -12,56 +12,159 @@
 // -----------------------------------------------------------------------------
 
 export const categoriesList = [
-  { id: 1, title: "Home" },
-  { id: 2, title: "News", subcategories: ["Malaysia", "Borneo+"] },
-  { id: 3, title: "Berita", subcategories: ["Tempatan", "Pandangan", "Dunia"] },
+  {
+    id: 1,
+    title: "Home",
+  },
+  {
+    id: 2,
+    title: "News",
+    items: [
+      {
+        id: 21,
+        title: "Malaysia",
+      },
+      {
+        id: 22,
+        title: "Borneo+",
+      },
+    ],
+  },
+  {
+    id: 3,
+    title: "Berita",
+    items: [
+      {
+        id: 31,
+        title: "Tempatan",
+      },
+      {
+        id: 32,
+        title: "Pandangan",
+      },
+      {
+        id: 33,
+        title: "Dunia",
+      },
+    ],
+  },
   {
     id: 4,
     title: "Opinion",
-    subcategories: ["All Opinions", "Column", "Editorial", "Letters"],
+    items: [
+      {
+        id: 61,
+        title: "Column",
+      },
+      {
+        id: 62,
+        title: "Behind the Bylines",
+      },
+      {
+        id: 63,
+        title: "Letters",
+      },
+      {
+        id: 64,
+        title: "FMT Worldviews",
+      },
+    ],
   },
-  { id: 5, title: "World", subcategories: ["South East Asia"] },
+  {
+    id: 5,
+    title: "World",
+    items: [
+      {
+        id: 71,
+        title: "Southeast Asia",
+      },
+    ],
+  },
   {
     id: 6,
     title: "Business",
-    subcategories: ["All Business", "Local Business", "World Business"],
+    items: [
+      {
+        id: 41,
+        title: "Local Business",
+      },
+      {
+        id: 42,
+        title: "World Business",
+      },
+    ],
   },
-  { id: 7, title: "Property", subcategories: ["All Property"] },
+  {
+    id: 7,
+    title: "Property",
+  },
   {
     id: 8,
     title: "Sports",
-    subcategories: [
-      "All Sports",
-      "Football",
-      "Badminton",
-      "MotorSports",
-      "Tennis",
+    items: [
+      {
+        id: 81,
+        title: "Football",
+      },
+      {
+        id: 82,
+        title: "Badminton",
+      },
+      {
+        id: 83,
+        title: "Motorsports",
+      },
+      {
+        id: 84,
+        title: "Tennis",
+      },
     ],
   },
   {
     id: 9,
     title: "Lifestyle",
-    subcategories: [
-      "All Lifestyle",
-      "Simple Stories",
-      "Travel",
-      "Food",
-      "Entertainment",
-      "Money",
-      "Health & Family",
-      "Pets",
-      "Automotive",
+    items: [
+      {
+        id: 51,
+        title: "Everyday Heroes",
+      },
+      {
+        id: 52,
+        title: "Travel",
+      },
+      {
+        id: 53,
+        title: "Food",
+      },
+      {
+        id: 54,
+        title: "Entertainment",
+      },
+      {
+        id: 55,
+        title: "Money",
+      },
+      {
+        id: 56,
+        title: "Health & Family",
+      },
+      {
+        id: 57,
+        title: "Pets",
+      },
+      {
+        id: 58,
+        title: "Tech",
+      },
+      {
+        id: 59,
+        title: "Automotive",
+      },
     ],
   },
   {
     id: 10,
     title: "Videos",
-    subcategories: [
-      "Fmt News",
-      "Fmt Lifestyle",
-      "Fmt Exclusive",
-      "Fmt News Capsule",
-    ],
   },
 ];
 

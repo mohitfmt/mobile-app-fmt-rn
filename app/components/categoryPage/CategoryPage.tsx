@@ -16,11 +16,12 @@
 // -----------------------------------------------------------------------------
 
 import { Refresh } from "@/app/assets/AllSVGs";
+import { API_LIMIT_LOAD_MORE } from "@/app/constants/Constants";
 import { cacheData, getCachedData, hasCachedData } from "@/app/lib/cacheUtils";
-import { formatTimeAgo, formatTimeAgoMalaysia } from "@/app/lib/utils";
+import { rawGetCategoryPostsExceptHome } from "@/app/lib/gql-queries/get-category-posts";
+import { formatTimeAgoMalaysia } from "@/app/lib/utils";
 import { DataContext } from "@/app/providers/DataProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { useLandingData } from "@/app/providers/LandingProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { ArticleType } from "@/app/types/article";
@@ -46,9 +47,8 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import BannerAD from "../ads/Banner";
-import NewsCard from "../cards/NewsCard"; // Import NewsCard for NewsCardItem
+import NewsCard from "../cards/NewsCard";
 import SmallNewsCard from "../cards/SmallNewsCard";
-import SmallVideoCard from "../cards/SmallVideoCard";
 import TabletNewsCard from "../cards/TabletNewsCard";
 import { LoadingIndicator } from "../functions/ActivityIndicator";
 import { getArticleTextSize } from "../functions/Functions";
@@ -122,9 +122,49 @@ const NewsCardItem = ({
 };
 
 const AdSlotBanner = React.memo(() => <BannerAD unit="ros" />);
-// ⚠️ This is NOT a hook. It's a plain JS object, safe to define outside.
-const categoryRefreshCooldownMap: Record<string, number> = {};
 
+// Category mapping for GraphQL queries
+const getCategorySlugMapping = (categoryName: string): string => {
+  const categoryMap: { [key: string]: string } = {
+    // Main categories
+    "Top News": "top-news",
+    "Berita Utama": "top-bm",
+    Business: "business",
+    Opinion: "opinion",
+    World: "world",
+    Sports: "sports",
+    Lifestyle: "leisure",
+
+    // Subcategories
+    Malaysia: "nation",
+    "Borneo+": "sabahsarawak",
+    "Southeast Asia": "south-east-asia",
+    Tempatan: "tempatan",
+    Pandangan: "pandangan",
+    Dunia: "dunia",
+    "Behind the Bylines": "editorial",
+    Column: "column",
+    Letters: "letters",
+    "World Business": "world-business",
+    "Local Business": "local-business",
+    Football: "football",
+    Badminton: "badminton",
+    Motorsports: "motorsports",
+    Tennis: "tennis",
+    "Everyday Heroes": "simple-stories",
+    Food: "food",
+    Entertainment: "entertainment",
+    "Health & Family": "health",
+    Money: "money",
+    Travel: "travel",
+    Tech: "tech",
+    Pets: "pets",
+  };
+
+  return (
+    categoryMap[categoryName] || categoryName.toLowerCase().replace(/\s+/g, "-")
+  );
+};
 const CategoryPosts = () => {
   const params = useLocalSearchParams();
   const [articles, setArticles] = useState<ArticleType[]>([]);
@@ -134,14 +174,9 @@ const CategoryPosts = () => {
   const { theme } = useContext(ThemeContext);
   const { textSize } = useContext(GlobalSettingsContext);
   const insets = useSafeAreaInsets();
-  const {
-    filteredLandingData,
-    isLoading: globalLoading,
-    refreshCategoryData,
-  } = useLandingData();
   const { setMainData } = useContext(DataContext);
   const { markAsVisited, isVisited } = useVisitedArticles();
-  const flashListRef = useRef<FlashListType<ArticleType>>(null);
+  const flashListRef = useRef<any>(null);
   const [showBottomBorder, setShowBottomBorder] = useState(false);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
     new Set()
@@ -151,6 +186,7 @@ const CategoryPosts = () => {
   const isNavigatingRef = useRef<boolean>(false);
 
   const isTablet = width >= 600;
+  const categoryName = params.CategoryName as string;
 
   const startRotationSequence = useCallback(() => {
     setBackgroundLoading(true);
@@ -173,13 +209,42 @@ const CategoryPosts = () => {
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
-    ]).start();
+    ]).start(() => {
+      setBackgroundLoading(false);
+    });
   }, []);
 
   const rotationInterpolate = rotation.interpolate({
     inputRange: [0, 3],
     outputRange: ["0deg", "1080deg"],
   });
+
+  // Fetch news data from GraphQL
+  const fetchNewsData = async (categorySlug: string): Promise<any[]> => {
+    try {
+      const response = await rawGetCategoryPostsExceptHome({
+        first: API_LIMIT_LOAD_MORE,
+        where: {
+          taxQuery: {
+            relation: "AND",
+            taxArray: [
+              {
+                field: "SLUG",
+                operator: "AND",
+                taxonomy: "CATEGORY",
+                terms: [categorySlug],
+              },
+            ],
+          },
+        },
+      });
+
+      return response?.posts || [];
+    } catch (error) {
+      console.error(`Error fetching news data for ${categorySlug}:`, error);
+      throw error;
+    }
+  };
 
   const processArticles = useCallback(
     (articles: ArticleType[], refresh = false) => {
@@ -205,117 +270,94 @@ const CategoryPosts = () => {
     []
   );
 
-  const getCategoryKey = useCallback((displayName: string): string => {
-    const categoryMap: { [key: string]: string } = {
-      Lifestyle: "all-lifestyle",
-      "Berita Utama": "all-berita",
-      Berita: "all-berita",
-      Letters: "letter",
-      "All Opinions": "all-opinion",
-      Opinion: "all-opinion",
-      "South East Asia": "south-east-asia",
-      "All Business": "all-business",
-      Business: "all-business",
-      "Local Business": "local-business",
-      "World Business": "world-business",
-      "All Sports": "all-sports",
-      Sports: "all-sports",
-      "All Property": "property",
-      "Simple Stories": "simple-stories",
-      "Health & Family": "health",
-      "All Lifestyle": "all-lifestyle",
-      "FMT NEWS": "fmt-news",
-      "FMT LIFESTYLE": "fmt-lifestyle",
-      "FMT EXCLUSIVE": "fmt-exclusive",
-      "FMT NEWS CAPSULE": "fmt-news-capsule",
-      "Top News": "malaysia",
-      Headlines: "malaysia",
-      NEWS: "malaysia",
-      Videos: "videos",
-      World: "all-world",
-      News: "malaysia",
-    };
-
-    return categoryMap[displayName] || displayName.toLowerCase();
-  }, []);
-
-  const initializeCategoryPosts = useCallback(
+  // Main data fetching function
+  const fetchCategoryData = useCallback(
     async (isRefresh = false) => {
-      if (!params.CategoryName) return;
+      if (!categoryName) return;
 
-      const originalName = params.CategoryName as string;
-      const mappedKey = getCategoryKey(originalName);
+      try {
+        setLoading(true);
 
-      let contextArticles = filteredLandingData[mappedKey] || [];
+        // Fetch news data
+        const categorySlug = getCategorySlugMapping(categoryName);
+        const fetchedData = await fetchNewsData(categorySlug);
 
-      // ✅ If no context data, try loading from MMKV
-      if (contextArticles.length === 0) {
-        const cachedData = await getCachedData(mappedKey);
-        if (cachedData && hasCachedData(cachedData)) {
-          // (`📦 Loaded cached data for ${mappedKey}`);
-          contextArticles = cachedData;
+        if (fetchedData.length > 0) {
+          setArticles(fetchedData);
+          const processed = processArticles(fetchedData, isRefresh);
+          setProcessedData(processed);
+
+          const swipableArticles = processed.filter(
+            (item) => item.type !== "AD_ITEM"
+          );
+          setMainData(swipableArticles);
+
+          // Cache the data
+          const cacheKey = getCategorySlugMapping(categoryName);
+          await cacheData(cacheKey, fetchedData);
         }
-      }
 
-      // ✅ Process and display
-      const processed = processArticles(contextArticles, isRefresh);
+        if (isRefresh && flashListRef.current) {
+          flashListRef.current.scrollToIndex({ index: 0, animated: true });
+        }
+      } catch (error) {
+        console.error("Error fetching category data:", error);
 
-      if (contextArticles.length > 0) {
-        setArticles(contextArticles);
-        setProcessedData(processed);
-
-        const swipableArticles = processed.filter(
-          (item) => item.type !== "AD_ITEM"
-        );
-        setMainData(swipableArticles);
-
-        // ✅ Save to cache (non-blocking)
-        cacheData(mappedKey, contextArticles);
-
+        // Try to load cached data as fallback
+        const cacheKey = getCategorySlugMapping(categoryName);
+        const cachedData = getCachedData(cacheKey);
+        if (cachedData && hasCachedData(cachedData)) {
+          setArticles(cachedData);
+          const processed = processArticles(cachedData, isRefresh);
+          setProcessedData(processed);
+          setMainData(processed.filter((item) => item.type !== "AD_ITEM"));
+        }
+      } finally {
         setLoading(false);
       }
-
-      if (isRefresh && flashListRef.current) {
-        flashListRef.current.scrollToIndex({ index: 0, animated: true });
-      }
     },
-    [
-      params.CategoryName,
-      filteredLandingData,
-      processArticles,
-      getCategoryKey,
-      setMainData,
-    ]
+    [categoryName, processArticles, setMainData]
   );
 
+  // Load data on component mount and category change
   useEffect(() => {
-    initializeCategoryPosts();
-  }, [params.CategoryName, filteredLandingData, initializeCategoryPosts]);
+    fetchCategoryData();
+  }, [fetchCategoryData]);
 
-  useEffect(() => {
-    if (!params.CategoryName) return;
+  const handleRefresh = useCallback(async () => {
+    startRotationSequence();
+    await fetchCategoryData(true);
+  }, [fetchCategoryData, startRotationSequence]);
 
-    const originalName = params.CategoryName as string;
-    const normalizedKey = getCategoryKey(originalName);
-    const now = Date.now();
-    const lastRefresh = categoryRefreshCooldownMap[normalizedKey] || 0;
+  // const getNonAdIndex = useCallback(
+  //   (currentIndex: number) => {
+  //     return (
+  //       processedData
+  //         .slice(0, currentIndex + 1)
+  //         .filter((item) => item.type !== "AD_ITEM").length - 1
+  //     );
+  //   },
+  //   [processedData]
+  // );
 
-    if (now - lastRefresh >= 30 * 1000) {
-      // (`🔁 Refreshing category "${normalizedKey}"`);
-      refreshCategoryData(normalizedKey);
-      categoryRefreshCooldownMap[normalizedKey] = now;
-    } else {
-      const secondsLeft = Math.ceil((30 * 1000 - (now - lastRefresh)) / 1000);
-      //(`⏳ Skipped refresh for "${normalizedKey}" - wait ${secondsLeft}s`);
-    }
-  }, [params.CategoryName]);
+  // const handleViewableItemsChanged = useCallback(
+  //   ({ viewableItems }: { viewableItems: any[] }) => {
+  //     const newVisibleIndices = new Set<number>();
+  //     viewableItems.forEach(({ index }) => {
+  //       if (index !== null) {
+  //         newVisibleIndices.add(index);
+  //       }
+  //     });
+  //     setVisibleItemIndices(newVisibleIndices);
+  //   },
+  //   []
+  // );
 
   const handlePress = useCallback(
     (item: any, index: number) => {
       if (isNavigatingRef.current) return; // 🔒 block multiple taps
 
       if (item.id) {
-        // ('Calling markAsVisited for article ID:', item.id);
         markAsVisited(item.id);
       } else {
         console.warn(`No ID found for article: ${item.title}`);
@@ -337,11 +379,12 @@ const CategoryPosts = () => {
       if (articleIndex !== -1) {
         isNavigatingRef.current = true;
         setTimeout(() => {
+          // Navigate to article swiper
           router.push({
             pathname: "/components/mainCategory/SwipableArticle",
             params: {
               articleIndex: articleIndex.toString(),
-              categoryName: params.CategoryName,
+              categoryName: categoryName,
             },
           });
         }, 100);
@@ -354,7 +397,7 @@ const CategoryPosts = () => {
     },
     [
       router,
-      params.CategoryName,
+      categoryName,
       setMainData,
       processedData,
       markAsVisited,
@@ -374,11 +417,7 @@ const CategoryPosts = () => {
   );
 
   const handleViewableItemsChanged = useCallback(
-    ({
-      viewableItems,
-    }: {
-      viewableItems: Array<{ index: number | null; item: ArticleType }>;
-    }) => {
+    ({ viewableItems }: { viewableItems: any[] }) => {
       const newVisibleIndices = new Set<number>();
       viewableItems.forEach(({ index }) => {
         if (index !== null) {
@@ -399,32 +438,8 @@ const CategoryPosts = () => {
           return <AdSlotBanner />;
         }
 
-        const isVideo =
-          item.type === "video" ||
-          item.type === "video-featured" ||
-          item.videoId ||
-          item.subcategory === "Video" ||
-          item.subcategory === "Videos" ||
-          (item.subcategory?.includes("Fmt") &&
-            params.CategoryName === "Videos") ||
-          params.CategoryName === "Videos";
-
         const nonAdIndex = getNonAdIndex(index);
         const isItemVisible = visibleItemIndices.has(index);
-
-        if (isVideo) {
-          return (
-            <TouchableOpacity onPress={() => handlePress(item, nonAdIndex)}>
-              <SmallVideoCard
-                title={item.title}
-                permalink={item.permalink || ""}
-                content={item.content || item.excerpt || ""}
-                date={formatTimeAgo(item.date || item.dateGmt)}
-                thumbnail={item.thumbnail}
-              />
-            </TouchableOpacity>
-          );
-        }
 
         return (
           <NewsCardItem
@@ -439,18 +454,10 @@ const CategoryPosts = () => {
         return null;
       }
     },
-    [
-      theme.textColor,
-      textSize,
-      params.CategoryName,
-      handlePress,
-      getNonAdIndex,
-      visibleItemIndices,
-      isVisited,
-    ]
+    [handlePress, getNonAdIndex, visibleItemIndices]
   );
 
-  if ((loading || globalLoading) && !backgroundLoading) {
+  if (loading && !backgroundLoading) {
     return (
       <View
         style={[styles.container, { backgroundColor: theme.backgroundColor }]}
@@ -460,9 +467,15 @@ const CategoryPosts = () => {
     );
   }
 
-  if (processedData.length === 0 && !loading && !globalLoading) {
+  if (processedData.length === 0 && !loading) {
     return (
-      <View style={{ flex: 1, backgroundColor: theme.backgroundColor }}>
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: theme.backgroundColor,
+          paddingTop: insets.top,
+        }}
+      >
         <View
           style={[styles.header, { backgroundColor: theme.backgroundColor }]}
         >
@@ -486,10 +499,10 @@ const CategoryPosts = () => {
               },
             ]}
           >
-            {params.CategoryName}
+            {categoryName}
           </Text>
           <TouchableOpacity
-            onPress={startRotationSequence}
+            onPress={handleRefresh}
             style={styles.iconContainer}
           >
             <Animated.View
@@ -505,7 +518,7 @@ const CategoryPosts = () => {
           </Text>
           <TouchableOpacity
             style={[styles.refreshButton, { backgroundColor: "#DC2626" }]}
-            onPress={startRotationSequence}
+            onPress={handleRefresh}
           >
             <Text style={styles.refreshButtonText}>Refresh</Text>
           </TouchableOpacity>
@@ -557,14 +570,9 @@ const CategoryPosts = () => {
             },
           ]}
         >
-          {(params.CategoryName as string).toUpperCase() === "HOME"
-            ? "HEADLINES"
-            : params.CategoryName}
+          {categoryName.toUpperCase() === "HOME" ? "HEADLINES" : categoryName}
         </Text>
-        <TouchableOpacity
-          onPress={startRotationSequence}
-          style={styles.iconContainer}
-        >
+        <TouchableOpacity onPress={handleRefresh} style={styles.iconContainer}>
           <Animated.View
             style={{ transform: [{ rotate: rotationInterpolate }] }}
           >

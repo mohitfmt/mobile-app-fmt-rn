@@ -214,45 +214,39 @@ const CardTitleSection = React.memo(
   )
 );
 
-const ReadMoreButton = React.memo(({ title }: { title: string }) => {
-  const router = useRouter();
-  const { textSize } = useContext(GlobalSettingsContext);
-  const normalizedTitle = title.toLowerCase();
-  const isVideo = [
-    "fmt news",
-    "fmt lifestyle",
-    "fmt exclusive",
-    "fmt news capsule",
-    "videos",
-  ].includes(normalizedTitle);
+const ReadMoreButton = React.memo(
+  ({ title, item }: { title: string; item: any }) => {
+    const router = useRouter();
+    const { textSize } = useContext(GlobalSettingsContext);
 
-  const handlePress = useCallback(() => {
-    router.push({
-      pathname: isVideo
-        ? "/components/videos/CategoryVideoPage"
-        : "/components/categoryPage/CategoryPage",
-      params: { CategoryName: title },
-    });
-  }, [router, isVideo, title]);
+    const handlePress = useCallback(() => {
+      router.push({
+        pathname: item.isVideo
+          ? "/components/videos/CategoryVideoPage"
+          : "/components/categoryPage/CategoryPage",
+        params: { CategoryName: title },
+      });
+    }, [router, item.isVideo, title]);
 
-  return (
-    <TouchableOpacity style={[styles.readMoreButton]} onPress={handlePress}>
-      <View style={styles.loadMoreContainer}>
-        <Text
-          style={[
-            styles.readMoreText,
-            { fontSize: getArticleTextSize(14.0, textSize) },
-          ]}
-        >
-          Load More
-        </Text>
-        <View style={styles.playIcon}>
-          <PlayIcon />
+    return (
+      <TouchableOpacity style={[styles.readMoreButton]} onPress={handlePress}>
+        <View style={styles.loadMoreContainer}>
+          <Text
+            style={[
+              styles.readMoreText,
+              { fontSize: getArticleTextSize(14.0, textSize) },
+            ]}
+          >
+            Load More
+          </Text>
+          <View style={styles.playIcon}>
+            <PlayIcon />
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-});
+      </TouchableOpacity>
+    );
+  }
+);
 
 const VideoCardItem = React.memo(
   ({
@@ -588,7 +582,6 @@ const HomeLandingSection = ({
           variant: "highlight",
           list: props.highlightPosts,
           key: "highlight",
-          title: "Highlights",
         }),
 
         ...buildContentSection({
@@ -880,7 +873,7 @@ const HomeLandingSection = ({
       }
 
       if (type === "MORE_ITEM") {
-        return <ReadMoreButton title={item.title || "Malaysia"} />;
+        return <ReadMoreButton title={item.title || "Malaysia"} item={item} />;
       }
 
       if (type === "AD_ITEM") {
