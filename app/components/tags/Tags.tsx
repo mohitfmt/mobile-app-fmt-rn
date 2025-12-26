@@ -318,7 +318,7 @@ const TagPosts = () => {
       if (isNavigatingRef.current) return; // 🔒 block multiple taps
 
       if (item.id) {
-        // console.log('Calling markAsVisited for article ID:', item.id);
+        // 'Calling markAsVisited for article ID:', item.id
         markAsVisited(item.id);
       } else {
         console.warn(`No ID found for article: ${item.title}`);
@@ -380,8 +380,7 @@ const TagPosts = () => {
       }
 
       const isItemVisible = visibleItemIndices.has(index);
-      //   console.log(`Rendering item ${index}: ID = ${item.id}, Title = ${item.title}, Visited = ${item.id ? isVisited(item.id) : false}`);
-
+      //  `Rendering item ${index}: ID = ${item.id}, Title = ${item.title}, Visited = ${item.id ? isVisited(item.id) : false}`
       return (
         <NewsCardItem
           item={{ ...item, tagName: currentTag, permalink: item.uri }}

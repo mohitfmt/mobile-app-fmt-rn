@@ -284,7 +284,7 @@ const SearchList = ({ query }: { query: string }) => {
 
       if (item.id) {
         markAsVisited(item.id);
-        // console.log(`Marked article as visited: ${item.id}`);
+        // `Marked article as visited: ${item.id}`
       } else {
         console.warn(`No ID found for article: ${item.title}`);
       }

@@ -66,10 +66,10 @@ export const getFcmToken = async () => {
       await messaging().registerDeviceForRemoteMessages();
 
       const apnsToken = await messaging().getAPNSToken();
-      // console.log('APNs Token:', apnsToken);
+      // 'APNs Token:', apnsToken'
 
       if (!apnsToken) {
-        // console.log('Retrying to get APNs token...');
+        // 'Retrying to get APNs token...'
         return new Promise((resolve) =>
           setTimeout(() => resolve(getFcmToken()), 3000)
         );
@@ -77,7 +77,7 @@ export const getFcmToken = async () => {
     }
 
     const fcmToken = await messaging().getToken();
-    // console.log('FCM Token:', fcmToken);
+    // 'FCM Token:', fcmToken'
     return fcmToken;
   } catch (error) {
     console.error("Error getting FCM token:", error);
@@ -244,10 +244,10 @@ const SettingsPage: React.FC = () => {
     try {
       if (subscribe) {
         await messaging().subscribeToTopic(topic);
-        // console.log(`Subscribed to topic: ${topic}`);
+        // `Subscribed to topic: ${topic}`
       } else {
         await messaging().unsubscribeFromTopic(topic);
-        // console.log(`Unsubscribed from topic: ${topic}`);
+        // `Unsubscribed from topic: ${topic}`
       }
     } catch (error) {
       console.error(
@@ -315,7 +315,7 @@ const SettingsPage: React.FC = () => {
         );
       });
 
-      // console.log('[Init] Only Headlines notification enabled by default on first install');
+      // '[Init] Only Headlines notification enabled by default on first install'
     } catch (error) {
       console.error("Error initializing first-time notifications:", error);
     }

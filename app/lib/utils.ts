@@ -27,7 +27,7 @@ import {
 } from "../constants/Constants";
 import { BuildSectionOptions } from "../types/mainPage";
 import {
-  rawGetCategoryPosts,
+  rawGetCategoryNews,
   rawGetCategoryPostsExceptHome,
 } from "./gql-queries/get-category-posts";
 
@@ -106,7 +106,6 @@ export const formatTimeAgo = (date: string) => {
 };
 
 export const formatMalaysianDateTimeS = (inputDate: string | Date): string => {
-  // console.log(inputDate);
   const date = inputDate instanceof Date ? inputDate : new Date(inputDate);
 
   const datePart = new Intl.DateTimeFormat("en-US", {
@@ -325,7 +324,7 @@ const transformVideoData = (videoData: any) => {
     if (!video) return null;
 
     return {
-      id: video.videoId,
+      id: video?.videoId || video?.id,
       title: video.title,
       excerpt: video.description,
       content: video.description,
@@ -336,9 +335,11 @@ const transformVideoData = (videoData: any) => {
         video.thumbnails?.medium ||
         video.thumbnails?.default ||
         "",
-      permalink: `https://www.youtube.com/watch?v=${video.videoId}`,
-      uri: `https://www.youtube.com/watch?v=${video.videoId}`,
-      videoId: video.videoId,
+      permalink: `https://www.youtube.com/watch?v=${
+        video?.videoId || video?.id
+      }`,
+      uri: `https://www.youtube.com/watch?v=${video?.videoId || video?.id}`,
+      videoId: video?.videoId || video?.id,
       type: type,
       duration: video.duration,
       durationSeconds: video.durationSeconds,
@@ -359,10 +360,10 @@ export const fetchVideosDataForHome = async (): Promise<any[]> => {
     const response = await aggressiveRetry(
       "videos-home",
       async () => {
-        const res = await fetch(`${FMT_URL}/videos/gallery`);
+        const res = await fetch(`${FMT_URL}/homepage`);
         if (!res.ok) throw new Error(`Videos API returned ${res.status}`);
         const data = await res.json();
-        return data;
+        return data?.data?.videos ? { hero: data.data.videos } : {};
       },
       5
     );
@@ -370,9 +371,7 @@ export const fetchVideosDataForHome = async (): Promise<any[]> => {
     if (!response || !response.hero) {
       return [];
     }
-
     const { transformVideo } = transformVideoData(response);
-
     if (!transformVideo) {
       return [];
     }
@@ -383,7 +382,6 @@ export const fetchVideosDataForHome = async (): Promise<any[]> => {
         transformVideo(video, index, index === 0 ? "video-featured" : "video")
       )
       .filter(Boolean);
-
     return heroVideos;
   } catch (error) {
     console.error("[Videos Home] Failed to fetch videos:", error);
@@ -438,7 +436,6 @@ export const fetchVideosData = async (): Promise<any[]> => {
           title: "Shorts",
           id: "shorts-title",
         });
-
         const shortsVideos = response.shorts
           .slice(0, TOTAL_PER_SECTION)
           .map((video: any, index: number) =>
@@ -531,12 +528,10 @@ export const getCategoryData = async () => {
     // =====================================
     const heroResponse = await aggressiveRetry(
       "hero",
-      () => rawGetCategoryPosts("super-highlight", 0, 1),
+      () => rawGetCategoryNews("super-highlight", 1, false),
       10
     );
-
-    const heroPosts = heroResponse.posts ?? [];
-
+    const heroPosts = heroResponse ?? [];
     const excludeSlugs = Array.isArray(heroPosts)
       ? heroPosts.map((post) => post?.slug).filter(Boolean)
       : [];
@@ -549,30 +544,27 @@ export const getCategoryData = async () => {
       additionalExcludes: string[] = []
     ) => {
       try {
-        let collected: any[] = [];
-        let offset = 0;
-        let total = Infinity;
+        const allPosts = await rawGetCategoryNews(
+          categoryName,
+          limit + excludeSlugs?.length + additionalExcludes?.length,
+          false
+        );
 
-        while (collected.length < limit && offset < total) {
-          const { posts, total: apiTotal } = await rawGetCategoryPosts(
-            categoryName,
-            offset,
-            PAGE_SIZE
+        // ✅ DEFENSIVE: Ensure allPosts is actually an array
+        if (!Array.isArray(allPosts)) {
+          console.error(
+            `[HomePage ISR] ${categoryName} returned non-array:`,
+            typeof allPosts
           );
-
-          total = apiTotal;
-
-          const filtered = posts.filter(
-            (post: { slug: string }) =>
-              !excludeSlugs.includes(post.slug) &&
-              !additionalExcludes.includes(post.slug)
-          );
-
-          collected.push(...filtered);
-          offset += PAGE_SIZE;
+          return [];
         }
-
-        return collected.slice(0, limit);
+        return allPosts
+          .filter(
+            (post: { slug: string }) =>
+              !excludeSlugs?.includes(post?.slug) &&
+              !additionalExcludes?.includes(post?.slug)
+          )
+          .slice(0, limit);
       } catch (error) {
         console.error(`Error fetching ${categoryName}:`, error);
         return [];
@@ -582,19 +574,22 @@ export const getCategoryData = async () => {
     // ========================================
     // STEP 2: Fetch Highlights (sequential!)
     // ========================================
-    const highlightPosts = await aggressiveRetry(
+    let highlightPosts = await aggressiveRetry(
       "highlights",
-      () =>
-        getFilteredCategoryNews("highlight", HOME_FETCH_LIMIT, excludeSlugs),
+      () => rawGetCategoryNews("highlight", 5, false),
       15
     ).catch((error) => {
       console.error("[HomePage ISR] Error fetching highlight", error.message);
       return [];
     });
-
     if (Array.isArray(highlightPosts)) {
+      highlightPosts = highlightPosts.filter(
+        (post: { slug: string }) => !excludeSlugs?.includes(post?.slug)
+      );
       excludeSlugs.push(
-        ...highlightPosts.map((post) => post?.slug).filter(Boolean)
+        ...highlightPosts
+          .map((post: { slug: string }) => post?.slug)
+          .filter(Boolean)
       );
     }
 
@@ -610,9 +605,7 @@ export const getCategoryData = async () => {
         ).then((data) => [key, data])
       )
     );
-
     const sections = Object.fromEntries(results);
-
     // ========================================
     // STEP 4: Fetch Berita posts (sequential)
     // ========================================
@@ -818,11 +811,6 @@ export const fetchTabCategoryData = async (categoryConfig: any) => {
       });
     }
 
-    // Get primary post slugs to exclude from subcategories
-    const primarySlugs = primaryPosts
-      .map((post: any) => post.slug)
-      .filter(Boolean);
-
     // 2️⃣ Then fetch each subcategory with title (excluding primary posts)
     for (const subCategory of categoryConfig.subCategories) {
       const subResponse = await rawGetCategoryPostsExceptHome({
@@ -840,26 +828,7 @@ export const fetchTabCategoryData = async (categoryConfig: any) => {
             ],
           },
           // Exclude primary posts from subcategory results using excludeQuery
-          excludeQuery:
-            primarySlugs.length > 0
-              ? [
-                  {
-                    first: primaryPosts.length,
-                    status: "PUBLISH",
-                    taxQuery: {
-                      relation: "AND",
-                      taxArray: [
-                        {
-                          field: "SLUG",
-                          operator: "AND",
-                          taxonomy: "CATEGORY",
-                          terms: [categoryConfig.slug],
-                        },
-                      ],
-                    },
-                  },
-                ]
-              : undefined,
+          excludeQuery: categoryConfig.excluedSlugs || undefined,
         },
       });
 

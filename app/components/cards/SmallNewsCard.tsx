@@ -95,7 +95,7 @@ export default function SmallNewsCard({
 
       // Handle iOS-specific result
       if (Platform.OS === "ios" && result.action === Share.dismissedAction) {
-        // console.log('Share dismissed');
+        // 'Share dismissed'
       }
     } catch (error) {
       console.error("Share error:", error);

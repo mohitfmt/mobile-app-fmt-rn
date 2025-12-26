@@ -331,11 +331,11 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
     // Only allow refresh if more than 1 minute has passed
     if (elapsed < 10 * 1000) {
-      // console.log("⏱ Skipping landing refresh - called too soon");
+      // "⏱ Skipping landing refresh - called too soon";
       return;
     }
 
-    // console.log("🔁 Refreshing landing pages");
+    // "🔁 Refreshing landing pages";
     lastLandingRefreshRef.current = now;
 
     // Get all landing page keys
@@ -373,7 +373,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       // Check if 24 hours have passed
       if (!shouldUpdateCache()) {
-        // console.log('⏰ Cache update skipped - less than 24 hours since last update');
+        // '⏰ Cache update skipped - less than 24 hours since last update');
         return;
       }
 
@@ -425,7 +425,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
         const cacheString = JSON.stringify(cacheData, null, 2);
         await FileSystem.writeAsStringAsync(CACHE_PATH, cacheString);
-        // console.log(`💾 Batch cached ${Object.keys(updates).length} categories (24-hour update)`);
+        // `💾 Batch cached ${Object.keys(updates).length} categories (24-hour update)`);
       }
     } catch (err) {
       console.error("Batch cache update error:", err);

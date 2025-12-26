@@ -6,7 +6,7 @@ export const fetchSearchPosts = async (
   size: number = 6,
   offset: number = 0
 ) => {
-  // console.log(`fetchSearchPosts called with offset: ${offset}, size: ${size}`);
+  // `fetchSearchPosts called with offset: ${offset}, size: ${size}`;
 
   const variables = {
     where: {

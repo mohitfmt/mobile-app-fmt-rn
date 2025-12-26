@@ -92,10 +92,10 @@ export const getFcmToken = async (): Promise<string | null> => {
         settings === messaging.AuthorizationStatus.PROVISIONAL
       ) {
         const apnsToken = await messaging().getAPNSToken();
-        // console.log('APNs Token:', apnsToken);
+        // 'APNs Token:', apnsToken'
 
         if (!apnsToken) {
-          // console.log("Retrying to get APNs token...");
+          // 'Retrying to get APNs token...'
           return new Promise((resolve) =>
             setTimeout(() => resolve(getFcmToken()), 3000)
           );
@@ -108,7 +108,7 @@ export const getFcmToken = async (): Promise<string | null> => {
     await messaging().subscribeToTopic("check");
 
     const fcmToken = await messaging().getToken();
-    // console.log("FCM Token:", fcmToken);
+    // 'FCM Token:', fcmToken'
     return fcmToken;
   } catch (error) {
     console.error("Error getting FCM token:", error);

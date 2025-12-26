@@ -74,15 +74,15 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   // checkNetworkConnectivity: Checks if the device is online by making a HEAD request to Google.
   const checkNetworkConnectivity = useCallback(async () => {
-    // console.log('📡 ThemeProvider: Checking network connectivity...');
+    // '📡 ThemeProvider: Checking network connectivity...'
     try {
       await axios.head("https://www.google.com", { timeout: 2000 }); // Reduced timeout for faster response
       setIsOnline(true);
-      // console.log('ThemeProvider: Manual network check, isOnline: true');
+      // 'ThemeProvider: Manual network check, isOnline: true';
     } catch (err: unknown) {
       setIsOnline(false);
       const errorMessage = err instanceof Error ? err.message : "Unknown error";
-      // console.log('ThemeProvider: Manual network check, isOnline: false', errorMessage);
+      // 'ThemeProvider: Manual network check, isOnline: false', errorMessage;
     }
   }, []);
 
@@ -126,7 +126,7 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
           appState.match(/inactive|background/) &&
           nextAppState === "active"
         ) {
-          // console.log('📱 ThemeProvider: App foregrounded, checking connectivity');
+          // '📱 ThemeProvider: App foregrounded, checking connectivity');
           checkNetworkConnectivity();
         }
         setAppState(nextAppState);

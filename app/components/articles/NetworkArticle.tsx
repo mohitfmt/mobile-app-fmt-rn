@@ -43,7 +43,7 @@ const NetworkArticle: React.FC = () => {
   const insets = useSafeAreaInsets();
   const [article, setArticle] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  // console.log(params.date, params.slug);
+  // params.date, params.slug;
   const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
 
   // Fetch article based on slug

@@ -46,6 +46,23 @@ export const categoriesNavigation = [
         href: "/category/category/world/",
       },
     ],
+    excluedSlugs: [
+      {
+        first: 5,
+        status: "PUBLISH",
+        taxQuery: {
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["top-news"],
+            },
+          ],
+          relation: "AND",
+        },
+      },
+    ],
   },
   {
     path: "berita",
@@ -67,6 +84,38 @@ export const categoriesNavigation = [
         href: "/category/category/bahasa/dunia/",
       },
     ],
+    excluedSlugs: [
+      {
+        first: 1,
+        status: "PUBLISH",
+        taxQuery: {
+          relation: "AND",
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["super-bm"],
+            },
+          ],
+        },
+      },
+      {
+        first: 4,
+        status: "PUBLISH",
+        taxQuery: {
+          relation: "AND",
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["top-bm"],
+            },
+          ],
+        },
+      },
+    ],
   },
   {
     path: "business",
@@ -81,6 +130,38 @@ export const categoriesNavigation = [
         title: "Local Business",
         slug: "local-business",
         href: "/category/category/business/local-business/",
+      },
+    ],
+    excluedSlugs: [
+      {
+        first: 1,
+        status: "PUBLISH",
+        taxQuery: {
+          relation: "AND",
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["super-bm"],
+            },
+          ],
+        },
+      },
+      {
+        first: 5,
+        status: "PUBLISH",
+        taxQuery: {
+          relation: "AND",
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["business"],
+            },
+          ],
+        },
       },
     ],
   },
@@ -129,6 +210,38 @@ export const categoriesNavigation = [
         href: "/category/category/leisure/pets/",
       },
     ],
+    excluedSlugs: [
+      {
+        first: 1,
+        status: "PUBLISH",
+        taxQuery: {
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["top-lifestyle"],
+            },
+          ],
+          relation: "AND",
+        },
+      },
+      {
+        first: 4,
+        status: "PUBLISH",
+        taxQuery: {
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["leisure"],
+            },
+          ],
+          relation: "AND",
+        },
+      },
+    ],
   },
   {
     path: "opinion",
@@ -148,6 +261,23 @@ export const categoriesNavigation = [
         title: "Letters",
         slug: "letters",
         href: "/category/category/opinion/letters/",
+      },
+    ],
+    excluedSlugs: [
+      {
+        first: 5,
+        status: "PUBLISH",
+        taxQuery: {
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["opinion"],
+            },
+          ],
+          relation: "AND",
+        },
       },
     ],
   },
@@ -176,6 +306,23 @@ export const categoriesNavigation = [
         href: "/category/category/sports/tennis/",
       },
     ],
+    excluedSlugs: [
+      {
+        first: 5,
+        status: "PUBLISH",
+        taxQuery: {
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["sports"],
+            },
+          ],
+          relation: "AND",
+        },
+      },
+    ],
   },
   {
     path: "world",
@@ -190,6 +337,23 @@ export const categoriesNavigation = [
         title: "Southeast Asia",
         slug: "south-east-asia",
         href: "/category/category/south-east-asia/",
+      },
+    ],
+    excluedSlugs: [
+      {
+        first: 5,
+        status: "PUBLISH",
+        taxQuery: {
+          taxArray: [
+            {
+              field: "SLUG",
+              operator: "AND",
+              taxonomy: "CATEGORY",
+              terms: ["world"],
+            },
+          ],
+          relation: "AND",
+        },
       },
     ],
   },
