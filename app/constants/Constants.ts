@@ -24,6 +24,7 @@ export const categoriesNavigation = [
   {
     path: "news",
     slug: "top-news",
+    displayTitle: "News",
     subCategories: [
       {
         title: "Malaysia",
@@ -67,6 +68,7 @@ export const categoriesNavigation = [
   {
     path: "berita",
     slug: "top-bm",
+    displayTitle: "Berita",
     subCategories: [
       {
         title: "Tempatan",
@@ -120,6 +122,7 @@ export const categoriesNavigation = [
   {
     path: "business",
     slug: "top-business",
+    displayTitle: "Business",
     subCategories: [
       {
         title: "World Business",
@@ -168,6 +171,7 @@ export const categoriesNavigation = [
   {
     path: "lifestyle",
     slug: "top-lifestyle",
+    displayTitle: "Lifestyle",
     subCategories: [
       {
         title: "Everyday Heroes",
@@ -246,6 +250,7 @@ export const categoriesNavigation = [
   {
     path: "opinion",
     slug: "opinion",
+    displayTitle: "Opinion",
     subCategories: [
       {
         title: "Behind the Bylines",
@@ -284,6 +289,7 @@ export const categoriesNavigation = [
   {
     path: "sports",
     slug: "sports",
+    displayTitle: "Sports",
     subCategories: [
       {
         title: "Football",
@@ -327,6 +333,7 @@ export const categoriesNavigation = [
   {
     path: "world",
     slug: "world",
+    displayTitle: "World",
     subCategories: [
       {
         title: "World",

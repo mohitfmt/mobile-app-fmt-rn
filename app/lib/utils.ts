@@ -203,6 +203,7 @@ export const buildContentSection = ({
   isVideo = false,
   totalPerSection = TOTAL_PER_SECTION,
   highlightCount = REGULAR_COUNT,
+  displayTitle,
 }: BuildSectionOptions) => {
   if (!Array.isArray(list) || list.length === 0) return [];
 
@@ -225,6 +226,7 @@ export const buildContentSection = ({
               id: `more-${key}`,
               title,
               isVideo,
+              displayTitle,
             },
           ]
         : []),
@@ -255,6 +257,7 @@ export const buildContentSection = ({
             id: `more-${key}`,
             title,
             isVideo,
+            displayTitle,
           },
         ]
       : []),
@@ -455,6 +458,7 @@ export const fetchVideosData = async (): Promise<any[]> => {
             id: "more-shorts",
             title: "Shorts",
             isVideo: true,
+            displayTitle: "Shorts",
           });
         }
 
@@ -503,6 +507,11 @@ export const fetchVideosData = async (): Promise<any[]> => {
                   .replace(/-/g, " ")
                   .replace(/\b\w/g, (l) => l.toUpperCase()),
               isVideo: true,
+              displayTitle:
+                playlist.name ||
+                playlistKey
+                  .replace(/-/g, " ")
+                  .replace(/\b\w/g, (l) => l.toUpperCase()),
             });
 
             transformedVideos.push({
@@ -742,6 +751,7 @@ export const fetchPropertyTabData = async () => {
         type: "MORE_ITEM",
         id: "more-property",
         title: "Property",
+        displayTitle: "Property",
       });
     }
 
@@ -802,6 +812,7 @@ export const fetchTabCategoryData = async (categoryConfig: any) => {
           type: "MORE_ITEM",
           id: `more-primary-${categoryConfig.slug}`,
           title: formattedTitle,
+          displayTitle: categoryConfig.displayTitle,
         });
       }
 
@@ -839,6 +850,7 @@ export const fetchTabCategoryData = async (categoryConfig: any) => {
           title: subCategory.title,
           list: subPosts,
           key: subCategory.slug,
+          displayTitle: subCategory.title,
         });
 
         sections.push(...builtSection);
@@ -850,6 +862,46 @@ export const fetchTabCategoryData = async (categoryConfig: any) => {
     console.error("fetchTabCategoryData error:", error);
     return [];
   }
+};
+
+export const formatViewCount = (count?: number | string) => {
+  if (!count || count === "0" || count === 0) return "";
+
+  const num = typeof count === "string" ? parseInt(count, 10) : count;
+  if (Number.isNaN(num) || num <= 0) return "";
+
+  const format = (value: number, suffix: string) =>
+    `${value.toFixed(1).replace(/\.0$/, "")}${suffix}`;
+
+  if (num >= 1_000_000) return format(num / 1_000_000, "M");
+  if (num >= 1_000) return format(num / 1_000, "K");
+
+  return num.toString();
+};
+
+export const formatDuration = (seconds?: number | string) => {
+  if (!seconds) return "";
+
+  const total = typeof seconds === "string" ? parseInt(seconds, 10) : seconds;
+
+  if (Number.isNaN(total) || total <= 0) return "";
+
+  const hours = Math.floor(total / 3600);
+  const minutes = Math.floor((total % 3600) / 60);
+  const secs = total % 60;
+
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")}h`;
+  }
+
+  return `${minutes}:${secs.toString().padStart(2, "0")}m`;
+};
+
+export const formatPostedTime = (date?: string): string => {
+  if (!date) return "Recently";
+  return formatTimeAgoMalaysia(date);
 };
 
 // Default export to satisfy Expo Router

@@ -8,6 +8,7 @@ export type BuildSectionOptions = {
   isVideo?: boolean;
   totalPerSection?: number;
   highlightCount?: number;
+  displayTitle?: string;
 };
 
 export interface TaxQuery {

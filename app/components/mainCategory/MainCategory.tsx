@@ -23,7 +23,6 @@ import {
   fetchPropertyTabData,
   fetchTabCategoryData,
   fetchVideosData,
-  formatTimeAgo,
   formatTimeAgoMalaysia,
   getCategoryData,
 } from "@/app/lib/utils";
@@ -70,9 +69,7 @@ interface Feed {
   priority?: "high" | "medium" | "low";
 }
 
-const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList as unknown as new (...args: any[]) => FlashList<ArticleType>
-);
+const AnimatedFlashList = Animated.createAnimatedComponent(FlashList<any>);
 
 const useDeviceType = () => {
   const { width, height } = useWindowDimensions();
@@ -224,7 +221,7 @@ const ReadMoreButton = React.memo(
         pathname: item.isVideo
           ? "/components/videos/CategoryVideoPage"
           : "/components/categoryPage/CategoryPage",
-        params: { CategoryName: title },
+        params: { CategoryName: title, displayTitle: item.displayTitle },
       });
     }, [router, item.isVideo, title]);
 
@@ -259,56 +256,26 @@ const VideoCardItem = React.memo(
     onPress: () => void;
   }) => {
     const { isVisited } = useVisitedArticles();
-    const visited = item.id ? isVisited(item.id) : false;
+    // For videos, check visited status using videoId for consistency
+    const visited = item.videoId
+      ? isVisited(item.videoId)
+      : item.id
+      ? isVisited(item.id)
+      : false;
     const { shouldUseTabletLayout } = useDeviceType();
 
     const videoContent = (
       <>
         {item.type === "video-featured" ? (
           shouldUseTabletLayout ? (
-            <TabletVideoCard
-              title={item.title}
-              permalink={item?.permalink || item?.uri}
-              content={item.content}
-              date={formatTimeAgo(item?.date)}
-              thumbnail={
-                item?.thumbnail || item?.featuredImage?.node?.sourceUrl
-              }
-              type="video-featured"
-              onPress={onPress}
-            />
+            <TabletVideoCard item={item} visited={visited} onPress={onPress} />
           ) : (
-            <VideoCard
-              title={item.title}
-              permalink={item?.permalink || item?.uri}
-              content={item.content}
-              date={formatTimeAgo(item?.date)}
-              thumbnail={
-                item?.thumbnail || item?.featuredImage?.node?.sourceUrl
-              }
-              type="video-featured"
-              visited={visited}
-            />
+            <VideoCard item={item} visited={visited} onPress={onPress} />
           )
         ) : shouldUseTabletLayout ? (
-          <TabletVideoCard
-            title={item.title}
-            permalink={item?.permalink || item?.uri}
-            content={item.content}
-            date={formatTimeAgo(item?.date)}
-            thumbnail={item?.thumbnail || item?.featuredImage?.node?.sourceUrl}
-            type="video-small"
-            onPress={onPress}
-          />
+          <TabletVideoCard item={item} visited={visited} onPress={onPress} />
         ) : (
-          <SmallVideoCard
-            title={item.title}
-            permalink={item?.permalink || item?.uri}
-            content={item.content}
-            date={formatTimeAgo(item?.date)}
-            thumbnail={item?.thumbnail || item?.featuredImage?.node?.sourceUrl}
-            visited={visited}
-          />
+          <SmallVideoCard item={item} visited={visited} onPress={onPress} />
         )}
       </>
     );
@@ -415,7 +382,7 @@ const HomeLandingSection = ({
     isLoading,
     queueCacheUpdate,
   } = useLandingData();
-  const flashListRef = useRef<FlashList<ArticleType>>(null);
+  const flashListRef = useRef<any>(null);
   const [expanded, setExpanded] = useState(false);
   const { setMainData } = useContext(DataContext);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
@@ -799,14 +766,56 @@ const HomeLandingSection = ({
       const isVideoType = selectedItem.type?.toLowerCase?.().includes("video");
       const isYouTubeLink = selectedItem.permalink?.includes?.("youtube.com");
 
-      if (isMetaType || isVideoType || isYouTubeLink) return;
+      if (isMetaType) return;
 
       isNavigatingRef.current = true;
 
       if (selectedItem.id) {
-        markAsVisited(selectedItem.id);
+        // For videos, use videoId for consistency with VideoPlayer
+        const idToMark =
+          isVideoType || isYouTubeLink
+            ? selectedItem.videoId || selectedItem.id
+            : selectedItem.id;
+        markAsVisited(idToMark);
       }
 
+      // Handle video items
+      if (isVideoType || isYouTubeLink) {
+        router.push({
+          pathname: "/components/videos/VideoPlayer",
+          params: {
+            videoId: selectedItem.videoId,
+            title: selectedItem.title,
+            content: selectedItem.content || selectedItem.excerpt || "",
+            date: formatTimeAgoMalaysia(selectedItem.date),
+            permalink: selectedItem.permalink || selectedItem.uri,
+            viewCount:
+              selectedItem.statistics?.viewCount ||
+              selectedItem.viewCount ||
+              "0",
+            durationSeconds: (
+              selectedItem.contentDetails?.durationSeconds ||
+              selectedItem.durationSeconds ||
+              "0"
+            ).toString(),
+            duration: selectedItem.duration || "0:00",
+            channelTitle: selectedItem.channelTitle || "FMT",
+            tags:
+              typeof selectedItem.tags === "string"
+                ? selectedItem.tags
+                : JSON.stringify(selectedItem.tags || []),
+            statistics: JSON.stringify(selectedItem.statistics || {}),
+            publishedAt: selectedItem.publishedAt || selectedItem.date || "",
+          },
+        });
+
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 500);
+        return;
+      }
+
+      // Handle regular articles
       const targetSlug = selectedItem.slug || selectedItem.permalink;
       const articleIndex = validArticles.findIndex(
         (item) => item.slug === targetSlug || item.permalink === targetSlug

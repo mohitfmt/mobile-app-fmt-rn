@@ -133,6 +133,29 @@ const VideoPage = () => {
                 date={formatTimeAgoMalaysia(item.date)}
                 permalink={item.permalink}
                 type="video-featured"
+                videoId={item.videoId}
+                onPress={() => {
+                  router.push({
+                    pathname: "/components/videos/VideoPlayer",
+                    params: {
+                      videoId: item.videoId,
+                      title: item.title,
+                      content: item.content || item.excerpt || "",
+                      date: formatTimeAgoMalaysia(item.date),
+                      permalink: item.permalink || item.uri,
+                      viewCount: item.statistics?.viewCount || "0",
+                      durationSeconds:
+                        item.contentDetails?.durationSeconds ||
+                        item.durationSeconds ||
+                        "0",
+                      duration: item.duration || "0:00",
+                      channelTitle: item.channelTitle || "FMT",
+                      tags: JSON.stringify(item.tags || []),
+                      statistics: JSON.stringify(item.statistics || {}),
+                      publishedAt: item.publishedAt || item.date || "",
+                    },
+                  });
+                }}
               />
             );
           }
@@ -145,6 +168,29 @@ const VideoPage = () => {
               content={item.content}
               date={formatTimeAgoMalaysia(item.date)}
               permalink={item.permalink}
+              videoId={item.videoId}
+              onPress={() => {
+                router.push({
+                  pathname: "/components/videos/VideoPlayer",
+                  params: {
+                    videoId: item.videoId,
+                    title: item.title,
+                    content: item.content || item.excerpt || "",
+                    date: formatTimeAgoMalaysia(item.date),
+                    permalink: item.permalink || item.uri,
+                    viewCount: item.statistics?.viewCount || "0",
+                    durationSeconds:
+                      item.contentDetails?.durationSeconds ||
+                      item.durationSeconds ||
+                      "0",
+                    duration: item.duration || "0:00",
+                    channelTitle: item.channelTitle || "FMT",
+                    tags: JSON.stringify(item.tags || []),
+                    statistics: JSON.stringify(item.statistics || {}),
+                    publishedAt: item.publishedAt || item.date || "",
+                  },
+                });
+              }}
             />
           );
         })}

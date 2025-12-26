@@ -31,24 +31,36 @@ export interface SmallNewsCardProps {
   visited?: boolean;
 }
 
-export interface SmallVideoCardProps {
-  thumbnail: string;
+export interface VideoItem {
+  id?: string;
   title: string;
-  content: string;
+  content?: string;
+  excerpt?: string;
   date: string;
+  thumbnail: string;
   permalink: string;
-  category?: string;
+  uri?: string;
+  videoId: string;
+  type?: string;
+  viewCount?: string;
+  durationSeconds?: string | number;
+  duration?: string;
+  tags?: string[] | string;
+  channelTitle?: string;
+  statistics?: any;
+  publishedAt?: string;
+}
+
+export interface SmallVideoCardProps {
+  item: VideoItem;
   visited?: boolean;
+  onPress?: () => void;
 }
 
 export interface VideoCardProps {
-  title: string;
-  permalink: string;
-  content: string;
-  date: string;
-  thumbnail: string;
-  type: string;
+  item: VideoItem;
   visited?: boolean;
+  onPress?: () => void;
 }
 
 // Default export to satisfy Expo Router

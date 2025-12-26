@@ -9,15 +9,15 @@
 
 import { ShareIcon } from "@/app/assets/AllSVGs";
 import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
+import { formatPostedTime, htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { VideoCardProps } from "@/app/types/cards";
+import { router } from "expo-router";
 import { Play } from "lucide-react-native";
 import React, { memo, useContext } from "react";
 import {
   Alert,
-  Linking,
   Platform,
   Share,
   StyleSheet,
@@ -27,26 +27,23 @@ import {
 } from "react-native";
 import { getArticleTextSize } from "../functions/Functions";
 
-function TabletVideoCard({
-  title,
-  permalink,
-  content,
-  date,
-  thumbnail,
-  type,
-  onPress, // Add this prop to handle press from parent
-}: VideoCardProps & { onPress?: () => void }) {
+function TabletVideoCard({ item, visited, onPress }: VideoCardProps) {
   const { theme, isOnline } = useContext(ThemeContext);
   const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext);
 
   // Handles Sharing the Video Link
   const handleShare = async () => {
     try {
-      const mainHeading = stripHtml(title);
-      const cleanExcerpt = content ? stripHtml(content) : "";
+      const mainHeading = stripHtml(item.title);
+      const cleanExcerpt =
+        item.content || item.excerpt
+          ? stripHtml(item.content || item.excerpt)
+          : "";
       const shareMessage = cleanExcerpt
-        ? `${mainHeading}\n\n${cleanExcerpt}\n\nWatch: ${permalink}`
-        : `${mainHeading}\n\nWatch: ${permalink}`;
+        ? `${mainHeading}\n\n${cleanExcerpt}\n\nWatch: ${
+            item.permalink || item.uri
+          }`
+        : `${mainHeading}\n\nWatch: ${item.permalink || item.uri}`;
 
       await Share.share({
         message: shareMessage,
@@ -56,11 +53,33 @@ function TabletVideoCard({
     }
   };
 
-  // Opens Video Link in an External Browser
+  // Navigate to in-app video player
   const navigateToVideo = () => {
-    Linking.openURL(permalink).catch((err) =>
-      Alert.alert("Error", "Failed to open video")
-    );
+    if (onPress) {
+      onPress();
+      return;
+    }
+
+    router.push({
+      pathname: "/components/videos/VideoPlayer",
+      params: {
+        videoId: item.videoId,
+        title: item.title,
+        content: item.content || item.excerpt || "",
+        date: item.date,
+        permalink: item.permalink || item.uri,
+        viewCount: item.statistics?.viewCount || item.viewCount || "0",
+        durationSeconds: item.durationSeconds?.toString() || "0",
+        duration: item.duration || "0:00",
+        channelTitle: item.channelTitle || "FMT",
+        tags:
+          typeof item.tags === "string"
+            ? item.tags
+            : JSON.stringify(item.tags || []),
+        statistics: JSON.stringify(item.statistics || {}),
+        publishedAt: item.publishedAt || item.date || "",
+      },
+    });
   };
 
   return (
@@ -80,10 +99,10 @@ function TabletVideoCard({
         {/* Left: Video Thumbnail with Play Button */}
         <View style={styles.imageContainer}>
           <CloudflareImageComponent
-            src={thumbnail}
+            src={item.thumbnail}
             width={400}
             height={250}
-            accessibilityLabel={title}
+            accessibilityLabel={item.title || "Video thumbnail"}
           />
           {/* Play Button Overlay */}
           <View style={styles.playButtonContainer}>
@@ -99,7 +118,7 @@ function TabletVideoCard({
             style={[
               styles.title,
               {
-                color: theme.textColor,
+                color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: 20,
                 // fontFamily:
                 //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
@@ -108,10 +127,10 @@ function TabletVideoCard({
             ]}
             numberOfLines={3}
           >
-            {htmlToPlainText(title)}
+            {htmlToPlainText(item.title)}
           </Text>
 
-          {standfirstEnabled && content && (
+          {standfirstEnabled && (item.content || item.excerpt) && (
             <Text
               numberOfLines={3}
               style={[
@@ -127,7 +146,7 @@ function TabletVideoCard({
                 },
               ]}
             >
-              {htmlToPlainText(content)}
+              {htmlToPlainText(item.content || item.excerpt || "")}
             </Text>
           )}
         </View>
@@ -150,7 +169,7 @@ function TabletVideoCard({
               },
             ]}
           >
-            {date}
+            {formatPostedTime(item.date)}
           </Text>
         </View>
 

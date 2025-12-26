@@ -492,6 +492,10 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="components/videos/VideoPlayer"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="components/mainCategory/SwipableArticle"
           options={{ headerShown: false }}
         />

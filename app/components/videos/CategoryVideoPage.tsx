@@ -17,7 +17,7 @@
 
 import { Refresh } from "@/app/assets/AllSVGs";
 import { API_LIMIT_LOAD_MORE } from "@/app/constants/Constants";
-import { cacheData, getCachedData, hasCachedData } from "@/app/lib/cacheUtils";
+import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
 import { formatTimeAgoMalaysia } from "@/app/lib/utils";
 import { DataContext } from "@/app/providers/DataProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
@@ -65,7 +65,11 @@ const VideoCardItem = React.memo(
     isVisible: boolean;
   }) => {
     const { isVisited } = useVisitedArticles();
-    const visited = item.id ? isVisited(item.id) : false;
+    const visited = item.videoId
+      ? isVisited(item.videoId)
+      : item.id
+      ? isVisited(item.id)
+      : false;
 
     const { width } = useWindowDimensions();
     const isTablet = width >= 600;
@@ -75,47 +79,15 @@ const VideoCardItem = React.memo(
         {item.type === "video-featured" ? (
           // Use TabletVideoCard for tablets, VideoCard for mobile
           isTablet ? (
-            <TabletVideoCard
-              title={item.title}
-              permalink={item.permalink}
-              content={item.content}
-              date={formatTimeAgoMalaysia(item.date)}
-              thumbnail={item.thumbnail}
-              type="video-featured"
-              onPress={onPress}
-              // visited={visited} // Add this if TabletVideoCard supports visited state
-            />
+            <TabletVideoCard item={item} visited={visited} onPress={onPress} />
           ) : (
-            <SmallVideoCard
-              title={item.title}
-              permalink={item.permalink}
-              content={item.content}
-              date={formatTimeAgoMalaysia(item.date)}
-              thumbnail={item.thumbnail}
-              // isVisible={isVisible}
-            />
+            <SmallVideoCard item={item} visited={visited} onPress={onPress} />
           )
         ) : // Use TabletVideoCard for small videos on tablet too, or create TabletSmallVideoCard
         isTablet ? (
-          <TabletVideoCard
-            title={item.title}
-            permalink={item.permalink}
-            content={item.content}
-            date={formatTimeAgoMalaysia(item.date)}
-            thumbnail={item.thumbnail}
-            type="video-small"
-            onPress={onPress}
-            // visited={visited}
-          />
+          <TabletVideoCard item={item} visited={visited} onPress={onPress} />
         ) : (
-          <SmallVideoCard
-            title={item.title}
-            permalink={item.permalink}
-            content={item.content}
-            date={formatTimeAgoMalaysia(item.date)}
-            thumbnail={item.thumbnail}
-            // isVisible={isVisible}
-          />
+          <SmallVideoCard item={item} visited={visited} onPress={onPress} />
         )}
       </TouchableOpacity>
     );
@@ -220,6 +192,11 @@ const getVideoApiUrl = (categoryName: string): string => {
 // Check if category uses shorts API
 const isShortsCategory = (categoryName: string): boolean => {
   return categoryName.toLowerCase() === "shorts";
+};
+
+// Utility function to check if cached data exists
+const hasCachedData = (data: any[] | undefined): boolean => {
+  return Array.isArray(data) && data.length > 0;
 };
 
 const CategoryVideos = () => {
@@ -332,7 +309,57 @@ const CategoryVideos = () => {
     async (isRefresh = false) => {
       if (!categoryName) return;
 
+      const cacheKey = `video-${categoryName
+        .toLowerCase()
+        .replace(/\s+/g, "-")}`;
+
       try {
+        // Always try to load cached data first
+        const cachedData = await getCachedData(cacheKey);
+        const hasCached = cachedData && hasCachedData(cachedData);
+
+        // If we have cached data and it's not a manual refresh, use it immediately
+        if (hasCached && !isRefresh) {
+          setVideos(cachedData);
+          const processed = processVideos(cachedData, false);
+          setProcessedData(processed);
+
+          const swipableVideos = processed.filter(
+            (item) => item.type !== "AD_ITEM"
+          );
+          setMainData(swipableVideos);
+          setLoading(false);
+
+          // Start background fetch without showing loader
+          setTimeout(() => {
+            setBackgroundLoading(true);
+            fetchVideoData(categoryName)
+              .then((fetchedData) => {
+                if (fetchedData.length > 0) {
+                  setVideos(fetchedData);
+                  const processed = processVideos(fetchedData, false);
+                  setProcessedData(processed);
+
+                  const swipableVideos = processed.filter(
+                    (item) => item.type !== "AD_ITEM"
+                  );
+                  setMainData(swipableVideos);
+
+                  // Update cache with fresh data
+                  cacheData(cacheKey, fetchedData);
+                }
+              })
+              .catch((bgError) => {
+                console.error("Background video fetch error:", bgError);
+              })
+              .finally(() => {
+                setBackgroundLoading(false);
+              });
+          }, 100);
+          return;
+        }
+
+        // No cached data or refresh requested - show loader and fetch
         setLoading(true);
 
         // Fetch video data using the category name directly
@@ -349,9 +376,6 @@ const CategoryVideos = () => {
           setMainData(swipableVideos);
 
           // Cache the data with a normalized key
-          const cacheKey = `video-${categoryName
-            .toLowerCase()
-            .replace(/\s+/g, "-")}`;
           await cacheData(cacheKey, fetchedData);
         } else {
           console.warn(`No videos found for category: ${categoryName}`);
@@ -364,9 +388,6 @@ const CategoryVideos = () => {
         console.error("Error fetching video data:", error);
 
         // Try to load cached data as fallback
-        const cacheKey = `video-${categoryName
-          .toLowerCase()
-          .replace(/\s+/g, "-")}`;
         const cachedData = getCachedData(cacheKey);
         if (cachedData && hasCachedData(cachedData)) {
           setVideos(cachedData);
@@ -396,42 +417,44 @@ const CategoryVideos = () => {
       if (isNavigatingRef.current) return; // 🔒 block multiple taps
 
       if (item.id) {
-        markAsVisited(item.id);
+        // For videos, use videoId for consistency with VideoPlayer
+        const idToMark = item.videoId || item.id;
+        markAsVisited(idToMark);
       } else {
         console.warn(`No ID found for video: ${item.title}`);
       }
 
-      setMainData(processedData.filter((item) => item.type !== "AD_ITEM"));
-
-      let videoIndex = index;
-
-      if (
-        processedData[videoIndex]?.id !== item.id &&
-        processedData[videoIndex]?.uri !== item.uri
-      ) {
-        videoIndex = processedData.findIndex(
-          (video: any) => video.id === item.id || video.uri === item.uri
-        );
-      }
-
-      if (videoIndex !== -1) {
-        isNavigatingRef.current = true;
-        setTimeout(() => {
-          // Navigate to video player or video details page
-          router.push({
-            pathname: "/components/videos/VideoPage", // Adjust path as needed
-            params: {
-              videoId: item.videoId,
-              title: item.title,
-            },
-          });
-        }, 100);
-        setTimeout(() => {
-          isNavigatingRef.current = false;
-        }, 500);
-      } else {
-        console.error("Could not find video index:", item.id || item.uri);
-      }
+      isNavigatingRef.current = true;
+      setTimeout(() => {
+        // Navigate to in-app video player
+        router.push({
+          pathname: "/components/videos/VideoPlayer",
+          params: {
+            videoId: item.videoId,
+            title: item.title,
+            content: item.content || item.excerpt || "",
+            date: formatTimeAgoMalaysia(item.date),
+            permalink: item.permalink || item.uri,
+            viewCount: item.statistics?.viewCount || item.viewCount || "0",
+            durationSeconds: (
+              item.contentDetails?.durationSeconds ||
+              item.durationSeconds ||
+              "0"
+            ).toString(),
+            duration: item.duration || "0:00",
+            channelTitle: item.channelTitle || "FMT",
+            tags:
+              typeof item.tags === "string"
+                ? item.tags
+                : JSON.stringify(item.tags || []),
+            statistics: JSON.stringify(item.statistics || {}),
+            publishedAt: item.publishedAt || item.date || "",
+          },
+        });
+      }, 100);
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 500);
     },
     [
       router,
@@ -622,7 +645,6 @@ const CategoryVideos = () => {
       <FlashList
         ref={flashListRef}
         data={processedData}
-        estimatedItemSize={140}
         keyExtractor={(item, index) =>
           item.type === "AD_ITEM"
             ? item.id

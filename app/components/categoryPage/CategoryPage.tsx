@@ -17,7 +17,7 @@
 
 import { Refresh } from "@/app/assets/AllSVGs";
 import { API_LIMIT_LOAD_MORE } from "@/app/constants/Constants";
-import { cacheData, getCachedData, hasCachedData } from "@/app/lib/cacheUtils";
+import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
 import { rawGetCategoryPostsExceptHome } from "@/app/lib/gql-queries/get-category-posts";
 import { formatTimeAgoMalaysia } from "@/app/lib/utils";
 import { DataContext } from "@/app/providers/DataProvider";
@@ -124,6 +124,11 @@ const NewsCardItem = ({
 const AdSlotBanner = React.memo(() => <BannerAD unit="ros" />);
 
 // Category mapping for GraphQL queries
+// Utility function to check if cached data exists
+const hasCachedData = (data: any[] | undefined): boolean => {
+  return Array.isArray(data) && data.length > 0;
+};
+
 const getCategorySlugMapping = (categoryName: string): string => {
   const categoryMap: { [key: string]: string } = {
     // Main categories
@@ -187,6 +192,7 @@ const CategoryPosts = () => {
 
   const isTablet = width >= 600;
   const categoryName = params.CategoryName as string;
+  const displayTitle = params.displayTitle as string;
 
   const startRotationSequence = useCallback(() => {
     setBackgroundLoading(true);
@@ -275,13 +281,59 @@ const CategoryPosts = () => {
     async (isRefresh = false) => {
       if (!categoryName) return;
 
+      const categorySlug = getCategorySlugMapping(categoryName);
+      const cacheKey = `category-${categorySlug}`;
+
       try {
+        // Always try to load cached data first
+        const cachedData = await getCachedData(cacheKey);
+        const hasCached = cachedData && hasCachedData(cachedData);
+
+        // If we have cached data and it's not a manual refresh, use it immediately
+        if (hasCached && !isRefresh) {
+          setArticles(cachedData);
+          const processed = processArticles(cachedData, false);
+          setProcessedData(processed);
+
+          const swipableArticles = processed.filter(
+            (item) => item.type !== "AD_ITEM"
+          );
+          setMainData(swipableArticles);
+          setLoading(false);
+
+          // Start background fetch without showing loader
+          setTimeout(() => {
+            setBackgroundLoading(true);
+            fetchNewsData(categorySlug)
+              .then((fetchedData) => {
+                if (fetchedData.length > 0) {
+                  setArticles(fetchedData);
+                  const processed = processArticles(fetchedData, false);
+                  setProcessedData(processed);
+                  const swipableArticles = processed.filter(
+                    (item) => item.type !== "AD_ITEM"
+                  );
+                  setMainData(swipableArticles);
+
+                  // Update cache with fresh data
+                  cacheData(cacheKey, fetchedData);
+                }
+              })
+              .catch((bgError) => {
+                console.error("Background fetch error:", bgError);
+              })
+              .finally(() => {
+                setBackgroundLoading(false);
+              });
+          }, 100);
+          return;
+        }
+
+        // No cached data or refresh requested - show loader and fetch
         setLoading(true);
 
         // Fetch news data
-        const categorySlug = getCategorySlugMapping(categoryName);
         const fetchedData = await fetchNewsData(categorySlug);
-
         if (fetchedData.length > 0) {
           setArticles(fetchedData);
           const processed = processArticles(fetchedData, isRefresh);
@@ -293,7 +345,6 @@ const CategoryPosts = () => {
           setMainData(swipableArticles);
 
           // Cache the data
-          const cacheKey = getCategorySlugMapping(categoryName);
           await cacheData(cacheKey, fetchedData);
         }
 
@@ -304,7 +355,6 @@ const CategoryPosts = () => {
         console.error("Error fetching category data:", error);
 
         // Try to load cached data as fallback
-        const cacheKey = getCategorySlugMapping(categoryName);
         const cachedData = getCachedData(cacheKey);
         if (cachedData && hasCachedData(cachedData)) {
           setArticles(cachedData);
@@ -328,30 +378,6 @@ const CategoryPosts = () => {
     startRotationSequence();
     await fetchCategoryData(true);
   }, [fetchCategoryData, startRotationSequence]);
-
-  // const getNonAdIndex = useCallback(
-  //   (currentIndex: number) => {
-  //     return (
-  //       processedData
-  //         .slice(0, currentIndex + 1)
-  //         .filter((item) => item.type !== "AD_ITEM").length - 1
-  //     );
-  //   },
-  //   [processedData]
-  // );
-
-  // const handleViewableItemsChanged = useCallback(
-  //   ({ viewableItems }: { viewableItems: any[] }) => {
-  //     const newVisibleIndices = new Set<number>();
-  //     viewableItems.forEach(({ index }) => {
-  //       if (index !== null) {
-  //         newVisibleIndices.add(index);
-  //       }
-  //     });
-  //     setVisibleItemIndices(newVisibleIndices);
-  //   },
-  //   []
-  // );
 
   const handlePress = useCallback(
     (item: any, index: number) => {
@@ -499,7 +525,7 @@ const CategoryPosts = () => {
               },
             ]}
           >
-            {categoryName}
+            {displayTitle || categoryName}
           </Text>
           <TouchableOpacity
             onPress={handleRefresh}
@@ -570,7 +596,10 @@ const CategoryPosts = () => {
             },
           ]}
         >
-          {categoryName.toUpperCase() === "HOME" ? "HEADLINES" : categoryName}
+          {displayTitle ||
+            (categoryName.toUpperCase() === "HOME"
+              ? "HEADLINES"
+              : categoryName)}
         </Text>
         <TouchableOpacity onPress={handleRefresh} style={styles.iconContainer}>
           <Animated.View
