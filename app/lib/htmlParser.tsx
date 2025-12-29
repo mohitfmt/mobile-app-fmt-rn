@@ -94,18 +94,22 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           currentNode = newNode;
         },
         ontext(text) {
-          if (text.trim()) {
-            const textNode: ParsedNode = {
-              type: "text",
-              data: text.trim(),
-              parent: currentNode,
-            };
-            if (currentNode) {
-              currentNode.children = currentNode.children || [];
-              currentNode.children.push(textNode);
-            } else {
-              nodes.push(textNode);
-            }
+          // Ignore pure layout whitespace (newlines, indentation, tag gaps)
+          if (!text || !text.replace(/\s/g, "").length) {
+            return;
+          }
+
+          const textNode: ParsedNode = {
+            type: "text",
+            data: text, // preserve original spacing
+            parent: currentNode,
+          };
+
+          if (currentNode) {
+            currentNode.children = currentNode.children || [];
+            currentNode.children.push(textNode);
+          } else {
+            nodes.push(textNode);
           }
         },
         onclosetag() {
@@ -297,11 +301,11 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     // Handle plain text
     if (node.type === "text") {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
-      if (text === "“" || text === "‘") {
-        text = " " + text; // Add space before opening quote
-      } else if (text === "”") {
-        text = text + " "; // Add space after closing quote
-      }
+      // if (text === "“" || text === "‘") {
+      //   text = " " + text; // Add space before opening quote
+      // } else if (text === "”") {
+      //   text = text + " "; // Add space after closing quote
+      // }
 
       return (
         <Text
@@ -523,11 +527,11 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
   ): React.ReactNode => {
     if (node.type === "text" && !node.name) {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
-      if (text === "“" || text === "‘") {
-        text = " " + text; // Add space before opening quote
-      } else if (text === "”") {
-        text = text + " "; // Add space after closing quote
-      }
+      // if (text === "“" || text === "‘") {
+      //   text = " " + text; // Add space before opening quote
+      // } else if (text === "”") {
+      //   text = text + " "; // Add space after closing quote
+      // }
 
       return text ? (
         <Text
