@@ -18,7 +18,6 @@ import React, { memo, useContext } from "react";
 import {
   Alert,
   Linking,
-  Platform,
   Share,
   StyleSheet,
   Text,
@@ -101,9 +100,7 @@ function TabletVideoCard({
               {
                 color: theme.textColor,
                 fontSize: 20,
-                // fontFamily:
-                //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : "700",
+                fontWeight: "700",
               },
             ]}
             numberOfLines={3}
@@ -119,11 +116,7 @@ function TabletVideoCard({
                 {
                   fontSize: 15,
                   color: "#6b6b6b",
-                  // fontFamily:
-                  //   Platform.OS === "android"
-                  //     ? undefined
-                  //     : "SF-Pro-Display-Medium",
-                  fontWeight: Platform.OS === "android" ? "500" : "500",
+                  fontWeight: "500",
                 },
               ]}
             >
@@ -142,11 +135,7 @@ function TabletVideoCard({
               {
                 fontSize: getArticleTextSize(14, textSize),
                 color: "#9e9e9e",
-                // fontFamily:
-                //   Platform.OS === "android"
-                //     ? undefined
-                //     : "SF-Pro-Display-Regular",
-                fontWeight: Platform.OS === "android" ? "400" : "400",
+                fontWeight: "400",
               },
             ]}
           >

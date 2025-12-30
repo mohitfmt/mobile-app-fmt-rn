@@ -145,9 +145,7 @@ export default function SmallNewsCard({
               styles.heading,
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
-                // fontFamily:
-                //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : "700",
+                fontWeight: "700",
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -256,14 +254,12 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#9e9e9e",
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : "500",
+    fontWeight: "500",
   },
   info: {
     color: "#9e9e9e",
     lineHeight: 18,
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : "500",
+    fontWeight: "500",
   },
   iconRow: {
     flexDirection: "row",

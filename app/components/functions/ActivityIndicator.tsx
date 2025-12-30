@@ -19,14 +19,7 @@
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import React, { useContext, useEffect, useRef } from "react";
-import {
-  Animated,
-  Easing,
-  Platform,
-  StyleSheet,
-  Text,
-  View,
-} from "react-native";
+import { Animated, Easing, StyleSheet, Text, View } from "react-native";
 import { getArticleTextSize } from "./Functions";
 
 /**
@@ -162,8 +155,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   loadingText: {
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
     letterSpacing: 1,
   },
 });

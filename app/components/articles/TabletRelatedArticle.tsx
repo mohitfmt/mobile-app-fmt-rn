@@ -23,14 +23,7 @@ import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { RelatedArticleProps } from "@/app/types/article";
 import React, { useContext, useEffect, useState } from "react";
-import {
-  Platform,
-  Share,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getArticleTextSize } from "../functions/Functions";
 
 // TabletRelatedArticle: Main component for displaying a related article card on tablets.
@@ -103,9 +96,7 @@ const TabletRelatedArticle = ({
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: 20,
-                // fontFamily:
-                //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : "700",
+                fontWeight: "700",
               },
             ]}
           >
@@ -120,11 +111,7 @@ const TabletRelatedArticle = ({
                 {
                   fontSize: 15,
                   color: "#6b6b6b",
-                  // fontFamily:
-                  //   Platform.OS === "android"
-                  //     ? undefined
-                  //     : "SF-Pro-Display-Medium",
-                  fontWeight: Platform.OS === "android" ? "500" : "500",
+                  fontWeight: "500",
                 },
               ]}
             >
@@ -194,9 +181,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#999",
-    // fontFamily:
-    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   timeAuthorWrapper: {
     flexDirection: "row",

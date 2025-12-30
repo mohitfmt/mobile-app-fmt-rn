@@ -21,7 +21,6 @@
 import React, { useContext, useEffect, useRef, useState } from "react";
 import {
   Animated,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -188,16 +187,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "white",
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : "500",
+    fontWeight: "500",
   },
   button: {
     // No background needed as it's just text
   },
   buttonText: {
     color: "white",
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : "500",
+    fontWeight: "500",
   },
 });
 

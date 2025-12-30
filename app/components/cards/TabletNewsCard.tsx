@@ -7,7 +7,6 @@ import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useRouter } from "expo-router";
 import React, { useContext } from "react";
 import {
-  Platform,
   Share,
   StyleSheet,
   Text,
@@ -121,9 +120,7 @@ const TabletNewsCard = ({
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: 20,
-                // fontFamily:
-                //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : "700",
+                fontWeight: "700",
               },
             ]}
           >
@@ -137,11 +134,7 @@ const TabletNewsCard = ({
               {
                 fontSize: 15,
                 color: "#6b6b6b",
-                // fontFamily:
-                //   Platform.OS === "android"
-                //     ? undefined
-                //     : "SF-Pro-Display-Medium",
-                fontWeight: Platform.OS === "android" ? "500" : "500",
+                fontWeight: "500",
               },
             ]}
           >
@@ -167,9 +160,7 @@ const TabletNewsCard = ({
           <Text
             style={{
               fontSize: getArticleTextSize(14, textSize),
-              // fontFamily:
-              //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-              fontWeight: Platform.OS === "android" ? "700" : "700",
+              fontWeight: "700",
               color: "#c62828",
             }}
           >
@@ -242,9 +233,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#999",
-    // fontFamily:
-    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   actions: {
     flexDirection: "row",
