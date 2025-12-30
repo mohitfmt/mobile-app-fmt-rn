@@ -211,12 +211,14 @@ export async function rawGetCategoryNews(
             }) {
             edges {
               node {
+               id
                 databaseId
                 title
                 excerpt
                 slug
                 uri
                 date
+                content
                 dateGmt
                 featuredImage {
                   node {

@@ -276,9 +276,7 @@ const VideoPlayer = () => {
           }}
         >
           {/* Video Category Badge */}
-          <View
-            style={[styles.categoryBadge, { paddingLeft: isTablet ? 40 : 18 }]}
-          >
+          <View style={[styles.categoryBadge, { paddingLeft: 18 }]}>
             <Text
               style={[
                 styles.categoryText,
@@ -303,14 +301,14 @@ const VideoPlayer = () => {
                 paddingTop: 5,
                 fontSize: getArticleTextSize(isTablet ? 36.0 : 30.0, textSize),
                 fontWeight: Platform.OS === "android" ? "700" : "700",
-                paddingHorizontal: isTablet ? 40 : 18,
+                paddingHorizontal: 18,
               },
             ]}
           >
             {htmlToPlainText(title)}
           </Text>
 
-          <View style={{ paddingHorizontal: isTablet ? 40 : 18 }}>
+          <View style={{ paddingHorizontal: 18 }}>
             <DividerContainer />
           </View>
 
@@ -320,7 +318,7 @@ const VideoPlayer = () => {
               style={[
                 styles.author,
                 {
-                  paddingHorizontal: isTablet ? 40 : 18,
+                  paddingHorizontal: 18,
                   fontSize: getArticleTextSize(
                     isTablet ? 18.0 : 16.0,
                     textSize
@@ -334,12 +332,7 @@ const VideoPlayer = () => {
           )}
 
           {/* Video Date and Stats */}
-          <View
-            style={[
-              styles.statsContainer,
-              { paddingHorizontal: isTablet ? 40 : 18 },
-            ]}
-          >
+          <View style={[styles.statsContainer, { paddingHorizontal: 18 }]}>
             {publishedAt && (
               <Text
                 style={[
@@ -399,7 +392,7 @@ const VideoPlayer = () => {
             </View>
           </View>
 
-          <View style={{ paddingHorizontal: isTablet ? 40 : 18 }}>
+          <View style={{ paddingHorizontal: 18 }}>
             <DividerContainer />
           </View>
 
@@ -411,12 +404,17 @@ const VideoPlayer = () => {
             ]}
           >
             <YoutubePlayer
-              height={isTablet ? Math.min(400, (width - 80) * 0.5625) : 220}
+              height={
+                isTablet
+                  ? Math.min(440, (width - 30) * 0.5625)
+                  : Math.min(250, Math.max(180, (width - 36) * 0.5625))
+              }
               play={playing}
               videoId={videoId}
               onChangeState={onStateChange}
               webViewStyle={{
                 backgroundColor: theme.backgroundColor,
+                overflow: "hidden",
               }}
               initialPlayerParams={{
                 cc_lang_pref: "en",
@@ -433,9 +431,9 @@ const VideoPlayer = () => {
               style={{
                 backgroundColor: theme.backgroundColor,
                 flex: 1,
-                paddingHorizontal: isTablet ? 40 : 18,
+                paddingHorizontal: 18,
                 paddingRight: Platform.select({
-                  ios: isTablet ? 40 : 18,
+                  ios: 18,
                   android: isTablet ? 42 : 20,
                 }),
               }}
@@ -460,18 +458,13 @@ const VideoPlayer = () => {
                       isTablet ? 16.0 : 14.0,
                       textSize
                     ),
-                    paddingHorizontal: isTablet ? 40 : 18,
+                    paddingHorizontal: 18,
                   },
                 ]}
               >
                 Tags
               </Text>
-              <View
-                style={[
-                  styles.tagsWrapper,
-                  { paddingHorizontal: isTablet ? 40 : 18 },
-                ]}
-              >
+              <View style={[styles.tagsWrapper, { paddingHorizontal: 18 }]}>
                 {tags.map((tag: string, index: number) => (
                   <Tag key={index} label={tag} />
                 ))}
@@ -489,7 +482,7 @@ const VideoPlayer = () => {
                   styles.relatedTitle,
                   {
                     color: theme.textColor,
-                    paddingHorizontal: isTablet ? 40 : 18,
+                    paddingHorizontal: 18,
                     fontSize: getArticleTextSize(
                       isTablet ? 28.0 : 24.0,
                       textSize
@@ -622,10 +615,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 18,
     marginVertical: 10,
     borderRadius: 8,
+    alignSelf: "stretch",
+    minHeight: 180,
     overflow: "hidden",
   },
   tabletPlayerContainer: {
-    marginHorizontal: 40,
     marginVertical: 20,
     borderRadius: 12,
   },
