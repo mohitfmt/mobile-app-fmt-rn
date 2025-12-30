@@ -301,11 +301,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     // Handle plain text
     if (node.type === "text") {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
-      // if (text === "“" || text === "‘") {
-      //   text = " " + text; // Add space before opening quote
-      // } else if (text === "”") {
-      //   text = text + " "; // Add space after closing quote
-      // }
 
       return (
         <Text
@@ -515,11 +510,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
   ): React.ReactNode => {
     if (node.type === "text" && !node.name) {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
-      // if (text === "“" || text === "‘") {
-      //   text = " " + text; // Add space before opening quote
-      // } else if (text === "”") {
-      //   text = text + " "; // Add space after closing quote
-      // }
 
       return text ? (
         <Text
