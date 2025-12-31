@@ -4,22 +4,22 @@
  * Header component for tag posts screen with navigation and refresh controls
  */
 
+import { Refresh } from "@/app/assets/AllSVGs";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { TagHeaderProps } from "@/app/types/tag";
+import { router } from "expo-router";
+import { ArrowLeft, ChevronLeft } from "lucide-react-native";
 import React, { useState } from "react";
 import {
-  View,
-  TouchableOpacity,
-  Text,
-  StyleSheet,
   Animated,
   Easing,
   Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { router } from "expo-router";
-import { ArrowLeft, ChevronLeft } from "lucide-react-native";
 import { getArticleTextSize } from "../functions/Functions";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { Refresh } from "@/app/assets/AllSVGs";
-import { TagHeaderProps } from "@/app/types/tag";
 
 /**
  * Tag Header with back button, title and refresh control
@@ -120,8 +120,7 @@ const styles = StyleSheet.create({
   relatedTitle: {
     flex: 1,
     textAlign: "center",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
     textTransform: "uppercase",
     paddingHorizontal: 22,
   },

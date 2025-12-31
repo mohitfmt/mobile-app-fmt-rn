@@ -1,39 +1,30 @@
-import React, {
-  useState,
-  useEffect,
-  useContext,
-  useCallback,
-  useRef,
-} from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-  Alert,
-  Easing,
-  Platform,
-  Animated,
-  useWindowDimensions,
-} from "react-native";
-import { ArrowLeft, ChevronLeft } from "lucide-react-native";
-import { router, useLocalSearchParams } from "expo-router";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import SmallVideoCard from "../cards/SmallVideoCard";
-import VideoCard from "../cards/VideoCard";
-import TabletVideoCard from "../cards/TabletVideoCard";
-import { getArticleTextSize } from "../functions/Functions";
-import BannerAD from "../ads/Banner";
-import ActivityIndicator, {
-  LoadingIndicator,
-} from "../functions/ActivityIndicator";
+import { Refresh } from "@/app/assets/AllSVGs";
+import { cacheData, getCachedData, hasCachedData } from "@/app/lib/cacheUtils";
+import { formatTimeAgoMalaysia } from "@/app/lib/utils";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { useLandingData } from "@/app/providers/LandingProvider";
-import { formatTimeAgo, formatTimeAgoMalaysia } from "@/app/lib/utils";
-import { Refresh } from "@/app/assets/AllSVGs";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { router, useLocalSearchParams } from "expo-router";
+import { ArrowLeft, ChevronLeft } from "lucide-react-native";
+import React, { useCallback, useContext, useEffect, useState } from "react";
+import {
+  Alert,
+  Animated,
+  Easing,
+  FlatList,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { cacheData, getCachedData, hasCachedData } from "@/app/lib/cacheUtils";
+import BannerAD from "../ads/Banner";
+import SmallVideoCard from "../cards/SmallVideoCard";
+import TabletVideoCard from "../cards/TabletVideoCard";
+import { LoadingIndicator } from "../functions/ActivityIndicator";
+import { getArticleTextSize } from "../functions/Functions";
 
 // VideoCardItem component (assuming it's not imported from elsewhere)
 const VideoCardItem = React.memo(
@@ -356,8 +347,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     textTransform: "uppercase",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
   },
   loadingText: { marginTop: 8, fontSize: 14 },
   backButton: {

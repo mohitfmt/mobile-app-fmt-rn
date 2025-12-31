@@ -7,25 +7,24 @@
  * @author FMT Developers
  */
 
-import React, { useContext } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  Share,
-  StyleSheet,
-  Alert,
-  Linking,
-  Platform,
-} from "react-native";
-import { Play } from "lucide-react-native";
 import { ShareIcon } from "@/app/assets/AllSVGs"; // Use ShareIcon instead of Share2
-import { getArticleTextSize } from "../functions/Functions";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { stripHtml } from "@/app/lib/utils";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { SmallVideoCardProps } from "@/app/types/cards";
-import { stripHtml } from "@/app/lib/utils";
-import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { Play } from "lucide-react-native";
+import React, { useContext } from "react";
+import {
+  Alert,
+  Linking,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { getArticleTextSize } from "../functions/Functions";
 
 export default function SmallVideoCard({
   thumbnail,
@@ -95,9 +94,7 @@ export default function SmallVideoCard({
               styles.title,
               {
                 color: theme.textColor,
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : undefined,
+                fontWeight: "700",
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -186,8 +183,7 @@ const styles = StyleSheet.create({
   description: {
     color: "#9e9e9e",
     lineHeight: 18,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
   footerRow: {
     flexDirection: "row",

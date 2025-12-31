@@ -5,24 +5,24 @@
  * It includes offline image caching, fade-in animations, and network connectivity detection.
  */
 
-import React, { useContext, useState, useEffect } from "react";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import { RelatedArticleProps } from "@/app/types/article";
+import React, { useContext, useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  Platform,
+  Share,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Share,
-  Platform,
-  Alert,
+  View,
 } from "react-native";
-import { getArticleTextSize } from "../functions/Functions";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { RelatedArticleProps } from "@/app/types/article";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { ShareIcon } from "../../assets/AllSVGs.js";
-import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { getArticleTextSize } from "../functions/Functions";
 
 const RelatedArticle = ({
   id,
@@ -97,9 +97,7 @@ const RelatedArticle = ({
               styles.heading,
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : undefined,
+                fontWeight: "700",
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -182,14 +180,12 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#9e9e9e",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
   info: {
     color: "#9e9e9e",
     lineHeight: 18,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
   iconButton: {
     padding: 8,

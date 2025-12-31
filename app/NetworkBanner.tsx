@@ -18,18 +18,17 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { useEffect, useState, useRef, useContext } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import {
-  View,
+  Animated,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Animated,
   TouchableWithoutFeedback,
-  Platform,
+  View,
 } from "react-native";
-import { GlobalSettingsContext } from "./providers/GlobalSettingsProvider";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { GlobalSettingsContext } from "./providers/GlobalSettingsProvider";
 
 // Define props interface with proper typing
 interface ConnectionErrorNotificationProps {
@@ -188,16 +187,14 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "white",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
   button: {
     // No background needed as it's just text
   },
   buttonText: {
     color: "white",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
 });
 

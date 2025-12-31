@@ -13,8 +13,8 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { createContext, useState, useEffect, ReactNode } from "react";
 import { storage } from "@/app/lib/storage";
+import React, { createContext, ReactNode, useEffect, useState } from "react";
 
 interface GlobalSettingsContextType {
   textSize: string;
@@ -41,12 +41,12 @@ export const GlobalSettingsProvider: React.FC<{ children: ReactNode }> = ({
   useEffect(() => {
     const loadSettings = async () => {
       try {
-        const savedSize = storage.getString("textSize");
-        const savedStandfirst = storage.getString("standfirstEnabled");
+        const savedSize = await storage.getString("textSize");
+        const savedStandfirst = await storage.getString("standfirstEnabled");
         if (savedSize) {
           setTextSizeState(savedSize);
         }
-        if (savedStandfirst !== null) {
+        if (savedStandfirst) {
           setStandfirstEnabledState(savedStandfirst === "true");
         }
       } catch (error) {
@@ -60,7 +60,7 @@ export const GlobalSettingsProvider: React.FC<{ children: ReactNode }> = ({
   // Updates the text size preference and saves it to mmkv
   const setTextSize = async (size: string) => {
     try {
-      storage.set("textSize", size);
+      await storage.set("textSize", size);
       setTextSizeState(size);
     } catch (error) {
       console.error("Failed to save text size to storage:", error);
@@ -70,7 +70,7 @@ export const GlobalSettingsProvider: React.FC<{ children: ReactNode }> = ({
   // Updates the standfirst preference and saves it to mmkv
   const setStandfirstEnabled = async (enabled: boolean) => {
     try {
-      storage.set("standfirstEnabled", enabled.toString());
+      await storage.set("standfirstEnabled", enabled.toString());
       setStandfirstEnabledState(enabled);
     } catch (error) {
       console.error("Failed to save standfirst setting to storage:", error);

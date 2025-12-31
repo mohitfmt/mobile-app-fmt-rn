@@ -12,26 +12,26 @@
  * @author FMT Developers
  */
 
+import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import { SmallNewsCardProps } from "@/app/types/cards";
+import { useRouter } from "expo-router";
 import React, { useContext } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  Share,
-  StyleSheet,
   Alert,
   Platform,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
-import { getArticleTextSize } from "../functions/Functions";
 import { useBookmarks } from "../../providers/BookmarkContext";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { SmallNewsCardProps } from "@/app/types/cards";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
-import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
-import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { getArticleTextSize } from "../functions/Functions";
 
 /**
  * SmallNewsCard component
@@ -145,9 +145,7 @@ export default function SmallNewsCard({
               styles.heading,
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : undefined,
+                fontWeight: "700",
                 fontSize: getArticleTextSize(16, textSize),
               },
             ]}
@@ -256,14 +254,12 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#9e9e9e",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
   info: {
     color: "#9e9e9e",
     lineHeight: 18,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
   iconRow: {
     flexDirection: "row",

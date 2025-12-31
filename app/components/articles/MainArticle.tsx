@@ -12,27 +12,9 @@
  * - Provides navigation to previous and next articles.
  */
 
-import React, { useContext, useEffect, useState } from "react";
-import {
-  Dimensions,
-  Platform,
-  Text,
-  TouchableOpacity,
-  useWindowDimensions,
-} from "react-native";
-import { View } from "react-native";
-import { ScrollView } from "react-native";
-import {
-  getArticleTextSize,
-  getPreferredCategory,
-} from "../functions/Functions";
-import DividerContainer from "../functions/DividerContainer";
-import BannerAD from "../ads/Banner";
-import RelatedArticle from "./RelatedArticle";
-import { router, useRouter } from "expo-router";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { ArticleType, TagProps } from "@/app/types/article";
+import articleStyles from "@/app/css/articleCss";
+import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
+import HTMLContentParser from "@/app/lib/htmlParser";
 import {
   capitalizeFirstLetter,
   formatMalaysianDateTimeS,
@@ -40,16 +22,33 @@ import {
   formatTimeAgoMalaysia,
   htmlToPlainText,
 } from "@/app/lib/utils";
-import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
-import HTMLContentParser from "@/app/lib/htmlParser";
-import articleStyles from "@/app/css/articleCss";
-import Tag from "./TagBox";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import TabletRelatedArticle from "./TabletRelatedArticle";
+import { ArticleType } from "@/app/types/article";
+import { router } from "expo-router";
+import React, { useContext, useEffect, useRef, useState } from "react";
+import {
+  Platform,
+  ScrollView,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import BannerAD from "../ads/Banner";
+import DividerContainer from "../functions/DividerContainer";
+import {
+  getArticleTextSize,
+  getPreferredCategory,
+} from "../functions/Functions";
+import RelatedArticle from "./RelatedArticle";
+import TabletRelatedArticle from "./TabletRelatedArticle";
+import Tag from "./TagBox";
 
 // Main article content component
 const ArticleContent = React.memo(
@@ -73,7 +72,7 @@ const ArticleContent = React.memo(
     const { width: Tabwidth } = useWindowDimensions(); // ✅ This updates when orientation changes
     const isTablet = Tabwidth >= 600;
     const insets = useSafeAreaInsets();
-
+    const isNavigatingRef = useRef<boolean>(false);
     // Fetch related posts not available in article data
     useEffect(() => {
       const fetchAndSetRelatedPosts = async () => {
@@ -159,9 +158,7 @@ const ArticleContent = React.memo(
               paddingBottom: 5,
               paddingTop: 5,
               fontSize: getArticleTextSize(30.0, textSize),
-              fontFamily:
-                Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-              fontWeight: Platform.OS === "android" ? "700" : undefined,
+              fontWeight: "700",
               paddingHorizontal: 18,
             }}
           >
@@ -182,6 +179,7 @@ const ArticleContent = React.memo(
                     color: theme.textColor,
                     paddingVertical: 10,
                     fontSize: getArticleTextSize(19.0, textSize),
+                    lineHeight: getArticleTextSize(19.0, textSize) * 1.4,
                   },
                 ]}
               >
@@ -292,11 +290,7 @@ const ArticleContent = React.memo(
                   <Text
                     className=" text-sm mb-2 text-left"
                     style={{
-                      fontFamily:
-                        Platform.OS === "android"
-                          ? undefined
-                          : "SF-Pro-Display-Light",
-                      fontWeight: Platform.OS === "android" ? "300" : undefined,
+                      fontWeight: "300",
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
@@ -309,13 +303,8 @@ const ArticleContent = React.memo(
                       className="text-base"
                       style={{
                         color: theme.textColor,
-                        fontFamily:
-                          Platform.OS === "android"
-                            ? undefined
-                            : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
-                        fontWeight:
-                          Platform.OS === "android" ? "700" : undefined,
+                        fontWeight: "700",
                       }}
                       numberOfLines={4}
                     >
@@ -343,14 +332,10 @@ const ArticleContent = React.memo(
                   <Text
                     className="text-sm mb-2 text-right"
                     style={{
-                      fontFamily:
-                        Platform.OS === "android"
-                          ? undefined
-                          : "SF-Pro-Display-Light",
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
-                      fontWeight: Platform.OS === "android" ? "300" : undefined,
+                      fontWeight: "300",
                     }}
                   >
                     Next article
@@ -360,13 +345,8 @@ const ArticleContent = React.memo(
                       className="text-base text-right"
                       style={{
                         color: theme.textColor,
-                        fontFamily:
-                          Platform.OS === "android"
-                            ? undefined
-                            : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
-                        fontWeight:
-                          Platform.OS === "android" ? "700" : undefined,
+                        fontWeight: "700",
                       }}
                       numberOfLines={4}
                     >
@@ -431,7 +411,10 @@ const ArticleContent = React.memo(
                   )}
                   uri={related?.node?.uri || related.permalink || related.uri}
                   onPress={() => {
+                    if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
                     markAsVisited(related?.id || related?.node?.id);
+                    isNavigatingRef.current = true;
                     router.push({
                       pathname: `/components/articles/NetworkArticle`,
                       params: {
@@ -439,6 +422,9 @@ const ArticleContent = React.memo(
                         date: related?.node?.dateGmt || related.date,
                       },
                     });
+                    setTimeout(() => {
+                      isNavigatingRef.current = false;
+                    }, 500);
                   }}
                 />
               );
@@ -461,7 +447,10 @@ const ArticleContent = React.memo(
                   time={formatTimeAgoMalaysia(related?.date)}
                   uri={related?.node?.uri || related.permalink || related.uri}
                   onPress={() => {
+                    if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
                     markAsVisited(related?.id || related?.node?.id);
+                    isNavigatingRef.current = true;
                     router.push({
                       pathname: `/components/articles/NetworkArticle`,
                       params: {
@@ -469,6 +458,9 @@ const ArticleContent = React.memo(
                         date: related?.date,
                       },
                     });
+                    setTimeout(() => {
+                      isNavigatingRef.current = false;
+                    }, 500);
                   }}
                 />
               );

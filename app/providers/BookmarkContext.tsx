@@ -13,9 +13,9 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { createContext, useContext, useState, useEffect } from "react";
 import { storage } from "@/app/lib/storage";
 import { BookmarkContextType } from "@/app/types/bookmark";
+import React, { createContext, useContext, useEffect, useState } from "react";
 
 export const BookmarkContext = createContext<BookmarkContextType | undefined>(
   undefined
@@ -34,7 +34,7 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
    */
   const loadBookmarks = async () => {
     try {
-      const stored = storage.getString("bookmarkedIds");
+      const stored = await storage.getString("bookmarkedIds");
       if (stored) {
         setBookmarkedArticles(JSON.parse(stored));
       }
@@ -54,9 +54,9 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
       if (!bookmarkedArticles.includes(safeId)) {
         const updated = [...bookmarkedArticles, safeId];
         setBookmarkedArticles(updated);
-        storage.set("bookmarkedIds", JSON.stringify(updated));
+        await storage.set("bookmarkedIds", JSON.stringify(updated));
 
-        storage.set(
+        await storage.set(
           `article_${safeId}`,
           JSON.stringify({
             ...articleData,
@@ -79,8 +79,8 @@ export function BookmarkProvider({ children }: { children: React.ReactNode }) {
         (bookmarkId) => bookmarkId !== id
       );
       setBookmarkedArticles(updated);
-      storage.set("bookmarkedIds", JSON.stringify(updated));
-      storage.remove(`article_${id}`);
+      await storage.set("bookmarkedIds", JSON.stringify(updated));
+      await storage.remove(`article_${id}`);
     } catch (error) {
       console.error(" Error removing bookmark:", error);
     }

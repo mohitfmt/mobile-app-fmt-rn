@@ -15,26 +15,26 @@
  * @author FMT Developers
  */
 
+import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { NewsCardProps } from "@/app/types/cards";
+import { useRouter } from "expo-router";
 import React, { useContext } from "react";
 import {
-  View,
+  Alert,
+  Platform,
+  Share,
+  StyleSheet,
   Text,
   TouchableOpacity,
   useWindowDimensions,
-  Share,
-  Alert,
-  StyleSheet,
-  Platform,
+  View,
 } from "react-native";
-import { useRouter } from "expo-router";
 import { useBookmarks } from "../../providers/BookmarkContext";
 import { getArticleTextSize } from "../functions/Functions";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { NewsCardProps } from "@/app/types/cards";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
-import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
-import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
 
 /**
  * NewsCard component
@@ -237,14 +237,12 @@ const styles = StyleSheet.create({
   },
   textContainer: {},
   title: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-    fontWeight: Platform.OS === "android" ? "700" : undefined,
+    fontWeight: "700",
     paddingTop: 6,
   },
   excerpt: {
     lineHeight: 18,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
     paddingTop: 10,
   },
   footer: {
@@ -255,8 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   timeText: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
   },
   actionButtons: {
     flexDirection: "row",

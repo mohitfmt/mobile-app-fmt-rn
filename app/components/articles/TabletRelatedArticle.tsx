@@ -15,23 +15,16 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { useContext, useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Share,
-  Platform,
-} from "react-native";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
-import { getArticleTextSize } from "../functions/Functions";
 import { ShareIcon } from "@/app/assets/AllSVGs";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
-import { RelatedArticleProps } from "@/app/types/article";
 import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import { RelatedArticleProps } from "@/app/types/article";
+import React, { useContext, useEffect, useState } from "react";
+import { Share, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { getArticleTextSize } from "../functions/Functions";
 
 // TabletRelatedArticle: Main component for displaying a related article card on tablets.
 // - Uses theme, global settings, and visited articles context
@@ -103,13 +96,10 @@ const TabletRelatedArticle = ({
               {
                 color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: 20,
-                fontFamily:
-                  Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-                fontWeight: Platform.OS === "android" ? "700" : undefined,
+                fontWeight: "700",
               },
             ]}
           >
-            {" "}
             {htmlToPlainText(title)}{" "}
           </Text>
 
@@ -121,15 +111,10 @@ const TabletRelatedArticle = ({
                 {
                   fontSize: 15,
                   color: "#6b6b6b",
-                  fontFamily:
-                    Platform.OS === "android"
-                      ? undefined
-                      : "SF-Pro-Display-Medium",
-                  fontWeight: Platform.OS === "android" ? "500" : undefined,
+                  fontWeight: "500",
                 },
               ]}
             >
-              {" "}
               {htmlToPlainText(subtitle)}{" "}
             </Text>
           )}
@@ -179,6 +164,7 @@ const styles = StyleSheet.create({
   },
   textWrapper: {
     flex: 1,
+    paddingLeft: 12,
   },
   title: {
     lineHeight: 26,
@@ -195,9 +181,7 @@ const styles = StyleSheet.create({
   },
   timeText: {
     color: "#999",
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
   timeAuthorWrapper: {
     flexDirection: "row",

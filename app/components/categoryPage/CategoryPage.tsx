@@ -15,45 +15,43 @@
 //
 // -----------------------------------------------------------------------------
 
+import { Refresh } from "@/app/assets/AllSVGs";
+import { cacheData, getCachedData, hasCachedData } from "@/app/lib/cacheUtils";
+import { formatTimeAgo, formatTimeAgoMalaysia } from "@/app/lib/utils";
+import { DataContext } from "@/app/providers/DataProvider";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { useLandingData } from "@/app/providers/LandingProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import { ArticleType } from "@/app/types/article";
+import { FlashList } from "@shopify/flash-list";
+import { router, useLocalSearchParams } from "expo-router";
+import { ArrowLeft, ChevronLeft } from "lucide-react-native";
 import React, {
-  useState,
-  useEffect,
-  useContext,
   useCallback,
+  useContext,
+  useEffect,
   useRef,
+  useState,
 } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
   Animated,
   Easing,
   Platform,
-  InteractionManager,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { ArrowLeft, ChevronLeft } from "lucide-react-native";
-import { router, useLocalSearchParams, useFocusEffect } from "expo-router";
-import { getArticleTextSize } from "../functions/Functions";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import SmallNewsCard from "../cards/SmallNewsCard";
-import NewsCard from "../cards/NewsCard"; // Import NewsCard for NewsCardItem
-import SmallVideoCard from "../cards/SmallVideoCard";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { LoadingIndicator } from "../functions/ActivityIndicator";
-import { formatTimeAgo, formatTimeAgoMalaysia } from "@/app/lib/utils";
-import { useLandingData } from "@/app/providers/LandingProvider";
-import { DataContext } from "@/app/providers/DataProvider";
-import { Refresh } from "@/app/assets/AllSVGs";
-import BannerAD from "../ads/Banner";
-import { FlashList } from "@shopify/flash-list";
-import type { FlashList as FlashListType } from "@shopify/flash-list";
-import { ArticleType } from "@/app/types/article";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import BannerAD from "../ads/Banner";
+import NewsCard from "../cards/NewsCard"; // Import NewsCard for NewsCardItem
+import SmallNewsCard from "../cards/SmallNewsCard";
+import SmallVideoCard from "../cards/SmallVideoCard";
 import TabletNewsCard from "../cards/TabletNewsCard";
-import { cacheData, getCachedData, hasCachedData } from "@/app/lib/cacheUtils";
+import { LoadingIndicator } from "../functions/ActivityIndicator";
+import { getArticleTextSize } from "../functions/Functions";
 
 // Define NewsCardItem
 const NewsCardItem = ({
@@ -150,6 +148,8 @@ const CategoryPosts = () => {
   ); // Track visible items
   const rotation = useState(new Animated.Value(0))[0];
   const { width } = useWindowDimensions();
+  const isNavigatingRef = useRef<boolean>(false);
+
   const isTablet = width >= 600;
 
   const startRotationSequence = useCallback(() => {
@@ -312,6 +312,8 @@ const CategoryPosts = () => {
 
   const handlePress = useCallback(
     (item: any, index: number) => {
+      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
       if (item.id) {
         // ('Calling markAsVisited for article ID:', item.id);
         markAsVisited(item.id);
@@ -333,6 +335,7 @@ const CategoryPosts = () => {
       }
 
       if (articleIndex !== -1) {
+        isNavigatingRef.current = true;
         setTimeout(() => {
           router.push({
             pathname: "/components/mainCategory/SwipableArticle",
@@ -342,11 +345,21 @@ const CategoryPosts = () => {
             },
           });
         }, 100);
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 500);
       } else {
         console.error("Could not find article index:", item.id || item.uri);
       }
     },
-    [router, params.CategoryName, setMainData, processedData, markAsVisited]
+    [
+      router,
+      params.CategoryName,
+      setMainData,
+      processedData,
+      markAsVisited,
+      isNavigatingRef,
+    ]
   );
 
   const getNonAdIndex = useCallback(
@@ -622,8 +635,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     textTransform: "uppercase",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
   },
   emptyContainer: {
     flex: 1,

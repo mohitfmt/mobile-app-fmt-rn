@@ -38,6 +38,7 @@
     "plugins": [
       "./plugins/withNotificationColorPlugin",
       "./plugins/withAndroidxMedia",
+      "./plugins/withTextEpsilonFix",
       "expo-router",
       "expo-font",
       "@react-native-firebase/app",

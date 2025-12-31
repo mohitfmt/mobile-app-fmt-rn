@@ -15,27 +15,27 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { useContext, useEffect, useState, useMemo } from "react";
-import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
-  ScrollView,
-  TouchableOpacity,
-  TextStyle,
-  Platform,
-  Linking,
-} from "react-native";
-import { Parser } from "htmlparser2";
-import { decode } from "html-entities";
-import { truncateHtml } from "./utils";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { getArticleTextSize } from "@/app/components/functions/Functions";
 import BannerAD from "@/app/components/ads/Banner";
-import CloudflareImageComponent from "./CloudflareImageComponent";
+import { getArticleTextSize } from "@/app/components/functions/Functions";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { decode } from "html-entities";
+import { Parser } from "htmlparser2";
+import React, { useContext, useEffect, useMemo, useState } from "react";
+import {
+  Dimensions,
+  Linking,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextStyle,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import YoutubePlayer from "react-native-youtube-iframe";
+import CloudflareImageComponent from "./CloudflareImageComponent";
+import { truncateHtml } from "./utils";
 // Type Definitions: AdUnitKey, ParsedNode, HTMLContentParserProps for type safety and clarity.
 type AdUnitKey = "home" | "article1" | "article2" | "article3" | "ros";
 
@@ -94,18 +94,22 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           currentNode = newNode;
         },
         ontext(text) {
-          if (text.trim()) {
-            const textNode: ParsedNode = {
-              type: "text",
-              data: text.trim(),
-              parent: currentNode,
-            };
-            if (currentNode) {
-              currentNode.children = currentNode.children || [];
-              currentNode.children.push(textNode);
-            } else {
-              nodes.push(textNode);
-            }
+          // Ignore pure layout whitespace (newlines, indentation, tag gaps)
+          if (!text || !text.replace(/\s/g, "").length) {
+            return;
+          }
+
+          const textNode: ParsedNode = {
+            type: "text",
+            data: text, // preserve original spacing
+            parent: currentNode,
+          };
+
+          if (currentNode) {
+            currentNode.children = currentNode.children || [];
+            currentNode.children.push(textNode);
+          } else {
+            nodes.push(textNode);
           }
         },
         onclosetag() {
@@ -298,12 +302,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     if (node.type === "text") {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
 
-      if (text === "“") {
-        text = " " + text; // Add space before opening quote
-      } else if (text === "”") {
-        text = text + " "; // Add space after closing quote
-      }
-
       return (
         <Text
           {...androidTextProps}
@@ -342,11 +340,8 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             alignSelf: "flex-start",
             fontStyle: "italic",
             fontSize: 19,
-            ...(Platform.OS === "ios" && {
-              fontFamily: "SF-Pro-Display-MediumItalic",
-            }),
+            fontWeight: "bold", // Use "bold" keyword, not "500"
             ...(Platform.OS === "android" && {
-              fontWeight: "bold", // Use "bold" keyword, not "500"
               lineHeight: 28,
             }),
           }}
@@ -369,9 +364,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             textAlign: "left",
             alignSelf: "flex-start",
             fontStyle: "italic",
-            ...(Platform.OS === "ios" && {
-              fontFamily: "SF-Pro-Display-RegularItalic",
-            }),
             ...(Platform.OS === "android" && {
               lineHeight: 28, // Explicit for italic
             }),
@@ -393,9 +385,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
-            fontFamily:
-              Platform.OS === "android" ? undefined : "SF-Pro-Display-Semibold",
-            fontWeight: Platform.OS === "android" ? "600" : undefined,
+            fontWeight: "600",
             fontSize: getArticleTextSize(19.0, ""),
             color: theme.textColor,
           }}
@@ -485,11 +475,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
         <Text
           style={{
             color: theme.textColor,
-            fontFamily:
-              Platform.OS === "android"
-                ? undefined
-                : "SF-Pro-Display-RegularItalic",
-            fontWeight: Platform.OS === "android" ? "400" : undefined,
+            fontWeight: "400",
             fontStyle: "italic",
           }}
         >
@@ -524,12 +510,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
   ): React.ReactNode => {
     if (node.type === "text" && !node.name) {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
-
-      if (text === "“") {
-        text = " " + text;
-      } else if (text === "”") {
-        text = text + " ";
-      }
 
       return text ? (
         <Text
@@ -666,6 +646,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
                       style={[
                         styles.paragraph,
                         {
+                          lineHeight: getArticleTextSize(19.0, textSize) * 1.4,
                           fontSize: getArticleTextSize(19.0, textSize),
                           color: theme.textColor,
                           flexShrink: 1,
@@ -728,6 +709,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
               style={[
                 styles.paragraph,
                 {
+                  lineHeight: getArticleTextSize(19.0, textSize) * 1.4,
                   fontSize: getArticleTextSize(19.0, textSize),
                   color: theme.textColor,
                   flexShrink: 1,
@@ -938,24 +920,13 @@ const styles = StyleSheet.create({
     marginTop: 3,
     textAlign: "center",
     fontStyle: "italic",
-    ...(Platform.OS === "ios" && {
-      fontFamily: "SF-Pro-Display-RegularItalic",
-    }),
     ...(Platform.OS === "android" && {
       lineHeight: 22, // Explicit for captions
     }),
   },
   paragraph: {
-    lineHeight: Platform.select({
-      ios: 24,
-      android: 28, // Increased line height for Android
-    }),
     marginVertical: 8,
-    fontFamily: Platform.select({
-      ios: "SF-Pro-Display-Regular",
-      android: undefined, // Use system font on Android
-    }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
     textAlign: "left",
     width: "95%",
     alignSelf: "flex-start",
@@ -975,10 +946,6 @@ const styles = StyleSheet.create({
   },
   italicText: {
     fontStyle: "italic",
-    fontFamily: Platform.select({
-      ios: "SF-Pro-Display-RegularItalic",
-      android: undefined,
-    }),
     ...(Platform.OS === "android" && {
       lineHeight: 28, // Explicit for italic
     }),
@@ -987,10 +954,6 @@ const styles = StyleSheet.create({
     fontWeight: Platform.select({
       ios: "bold",
       android: "700",
-    }),
-    fontFamily: Platform.select({
-      ios: "SF-Pro-Display-Bold",
-      android: undefined,
     }),
     lineHeight: 24,
     flexShrink: 1,
@@ -1021,9 +984,7 @@ const styles = StyleSheet.create({
   bullet: {
     fontSize: 19,
     lineHeight: 24,
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
     width: 32,
     textAlign: "left",
   },
@@ -1035,11 +996,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     flexShrink: 1,
     flexWrap: "wrap",
-    fontFamily: Platform.select({
-      ios: "SF-Pro-Display-Regular",
-      android: undefined,
-    }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
     width: "90%", // or flex: 1
   },
   blockquote: {
@@ -1052,22 +1009,14 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   embeddedTitle: {
-    fontFamily: Platform.select({
-      ios: "SF-Pro-Display-Regular",
-      android: undefined,
-    }),
     color: "#c62828",
     textDecorationLine: "underline",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
   linkText: {
     textDecorationLine: "underline",
     color: "#ff0000",
-    fontFamily: Platform.select({
-      ios: "SF-Pro-Display-Regular",
-      android: undefined,
-    }),
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
   textContainer: {
     width: "100%",

@@ -15,35 +15,35 @@
 //
 // -----------------------------------------------------------------------------
 
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { CategoryAnimations, SidebarProps } from "@/app/types/sidebar";
+import { useRouter } from "expo-router";
+import { ChevronDown } from "lucide-react-native";
 import React, {
-  useState,
-  useEffect,
-  useContext,
-  useRef,
   useCallback,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
 } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
-  ScrollView,
   Animated,
   Dimensions,
-  StyleSheet,
   Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
   useWindowDimensions,
+  View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useDispatch } from "react-redux";
 import { AppDispatch } from "../../store";
 import { setSelectedCategory } from "../../store/categorySlice";
-import { ChevronDown } from "lucide-react-native";
-import BottomActions from "./BottomActions";
-import { useRouter } from "expo-router";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { getArticleTextSize } from "../functions/Functions";
-import { CategoryAnimations, SidebarProps } from "@/app/types/sidebar";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import BottomActions from "./BottomActions";
 
 const { width } = Dimensions.get("window");
 
@@ -337,8 +337,7 @@ const styles = StyleSheet.create({
   expandedCategoryHeader: {},
   categoryText: {
     textTransform: "uppercase",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
     paddingVertical: 8,
   },
   selectedText: {
@@ -348,8 +347,7 @@ const styles = StyleSheet.create({
   subcategoryText: {
     color: "#333",
     textTransform: "uppercase",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
     paddingVertical: 18,
   },
 });

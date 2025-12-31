@@ -17,12 +17,12 @@
 import { StickyNotificationProps } from "@/app/types/settings";
 import React, { useEffect, useRef } from "react";
 import {
-  View,
-  Text,
-  StyleSheet,
-  Dimensions,
   Animated,
+  Dimensions,
   Platform,
+  StyleSheet,
+  Text,
+  View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
@@ -125,9 +125,7 @@ const styles = StyleSheet.create({
     color: "white",
     fontSize: 16,
     flex: 1,
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
   closeButton: {
     marginLeft: 16,

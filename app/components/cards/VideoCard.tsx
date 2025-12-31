@@ -7,35 +7,25 @@
  * @author FMT Developers
  */
 
-import React, {
-  useContext,
-  memo,
-  useState,
-  useRef,
-  useEffect,
-  useLayoutEffect,
-} from "react";
-import {
-  View,
-  Text,
-  Animated,
-  TouchableOpacity,
-  Share,
-  Alert,
-  StyleSheet,
-  useWindowDimensions,
-  Linking,
-  Image,
-  Platform,
-} from "react-native";
-import { Play } from "lucide-react-native";
 import { ShareIcon } from "@/app/assets/AllSVGs"; // Use ShareIcon instead of Share2
-import { getArticleTextSize } from "../functions/Functions";
+import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { VideoCardProps } from "@/app/types/cards";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
-import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
+import { Play } from "lucide-react-native";
+import React, { memo, useContext } from "react";
+import {
+  Alert,
+  Linking,
+  Share,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
+import { getArticleTextSize } from "../functions/Functions";
 
 function VideoCard({
   title,
@@ -183,13 +173,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   title: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-    fontWeight: Platform.OS === "android" ? "700" : undefined,
+    fontWeight: "700",
   },
   excerpt: {
     lineHeight: 18,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : undefined,
+    fontWeight: "500",
     paddingTop: 10,
     color: "#9e9e9e",
   },

@@ -16,36 +16,36 @@
  *
  */
 
-import React, { useState, useEffect, useContext } from "react";
+import { storage } from "@/app/lib/storage";
+import { router } from "expo-router";
+import { ChevronRight, X } from "lucide-react-native";
+import React, { useContext, useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  ScrollView,
-  Switch,
-  TouchableOpacity,
-  StyleSheet,
-  Platform,
   Alert,
   Linking,
+  Platform,
+  ScrollView,
   Share,
+  StyleSheet,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { storage } from "@/app/lib/storage";
-import { ChevronRight, X } from "lucide-react-native";
-import { router } from "expo-router";
 // @ts-ignore: missing declaration file for module '@/app/assets/AllSVGs'
 import { ChevronDown } from "@/app/assets/AllSVGs";
-import StickyNotification from "./StickyNotification";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { triggerInAppReview } from "@/app/lib/reviewApp";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { getArticleTextSize } from "../functions/Functions";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { AboutItem, NotificationSetting } from "@/app/types/settings";
 import messaging from "@react-native-firebase/messaging";
-import { Clipboard } from "react-native";
 import * as Application from "expo-application";
-import uuid from "react-native-uuid";
-import SelectionModal from "./SelectionModal";
-import { triggerInAppReview } from "@/app/lib/reviewApp";
+import { Clipboard } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import uuid from "react-native-uuid";
+import { getArticleTextSize } from "../functions/Functions";
+import SelectionModal from "./SelectionModal";
+import StickyNotification from "./StickyNotification";
 
 // Theme display/storage mappings
 const themeDisplayMap = new Map<"system" | "light" | "dark", string>([
@@ -212,7 +212,7 @@ const SettingsPage: React.FC = () => {
   const handleThemeChange = async (newThemeLabel: string) => {
     const themeValue = themeStorageMap.get(newThemeLabel) || "system";
     try {
-      storage.set("apptheme", themeValue);
+      await storage.set("apptheme", themeValue);
       setGeneralSettings((prev) => ({ ...prev, appTheme: newThemeLabel }));
       toggleTheme(themeValue);
       setShowThemeModal(false);
@@ -226,7 +226,7 @@ const SettingsPage: React.FC = () => {
    */
   const handleTextSizeChange = async (newSize: string) => {
     try {
-      storage.set("textsize", newSize);
+      await storage.set("textsize", newSize);
       setTextSize(newSize);
       setShowTextSizeModal(false);
     } catch (error) {
@@ -273,11 +273,11 @@ const SettingsPage: React.FC = () => {
     >
   ) => {
     try {
-      const isFirstTime = storage.getString("notificationsInitialized");
-      if (isFirstTime !== null) return;
+      const isFirstTime = await storage.getString("notificationsInitialized");
+      if (isFirstTime) return;
 
       // Mark as initialized early to avoid race conditions
-      storage.set("notificationsInitialized", "true");
+      await storage.set("notificationsInitialized", "true");
 
       // Only enable Headlines notification (id: '1'), keep others disabled
       const defaultSettings = notificationSettings.map((setting) => ({
@@ -304,8 +304,9 @@ const SettingsPage: React.FC = () => {
 
       // Save all settings to mmkv (Headlines: true, others: false)
       Promise.all(
-        defaultSettings.map((setting) =>
-          storage.set(setting.key, setting.enabled.toString())
+        defaultSettings.map(
+          async (setting) =>
+            await storage.set(setting.key, setting.enabled.toString())
         )
       ).catch((error) => {
         console.error(
@@ -329,7 +330,7 @@ const SettingsPage: React.FC = () => {
         // Load existing notification settings from mmkv first
         const updatedSettings = await Promise.all(
           notificationSettings.map(async (setting) => {
-            const storedValue = storage.getString(setting.key);
+            const storedValue = await storage.getString(setting.key);
             return { ...setting, enabled: storedValue === "true" };
           })
         );
@@ -348,8 +349,8 @@ const SettingsPage: React.FC = () => {
               error
             );
             await Promise.all(
-              enabledSettings.map((setting) =>
-                storage.set(setting.key, "false")
+              enabledSettings.map(
+                async (setting) => await storage.set(setting.key, "false")
               )
             );
             setNotificationSettings((prev) =>
@@ -362,13 +363,13 @@ const SettingsPage: React.FC = () => {
         await initializeFirstTimeNotifications(setNotificationSettings);
 
         // Load standfirst setting
-        const standfirstSetting = storage.getString("standfirstenabled");
-        if (standfirstSetting !== null) {
+        const standfirstSetting = await storage.getString("standfirstenabled");
+        if (standfirstSetting) {
           setStandfirstEnabled(standfirstSetting === "true");
         }
 
         // Load theme setting
-        const storedTheme = storage.getString("apptheme") as
+        const storedTheme = (await storage.getString("apptheme")) as
           | "system"
           | "light"
           | "dark"
@@ -379,7 +380,7 @@ const SettingsPage: React.FC = () => {
         toggleTheme(themeKey);
 
         // Load text size setting
-        const storedTextSize = storage.getString("textsize");
+        const storedTextSize = await storage.getString("textsize");
         if (storedTextSize) {
           setTextSize(storedTextSize);
         }
@@ -390,10 +391,10 @@ const SettingsPage: React.FC = () => {
 
     const fetchDeviceInfo = async () => {
       const UUID_KEY = "deviceuuid";
-      let uuidStr = storage.getString(UUID_KEY);
+      let uuidStr = await storage.getString(UUID_KEY);
       if (!uuidStr) {
         uuidStr = uuid.v4().toString().replace(/-/g, "");
-        storage.set(UUID_KEY, uuidStr);
+        await storage.set(UUID_KEY, uuidStr);
       }
       const version = `v${Application.nativeApplicationVersion || "2.2.0"}`;
       setDeviceInfo({ uuid: uuidStr, version });
@@ -438,7 +439,7 @@ const SettingsPage: React.FC = () => {
         }
 
         // Save setting to mmkv
-        storage.set(setting.key, newEnabled.toString());
+        await storage.set(setting.key, newEnabled.toString());
       } catch (error) {
         console.error("Error toggling notification:", error);
         // Roll back UI on error
@@ -462,7 +463,7 @@ const SettingsPage: React.FC = () => {
    */
   const saveStandfirstSetting = async (value: boolean) => {
     try {
-      storage.set("standfirstenabled", value.toString());
+      await storage.set("standfirstenabled", value.toString());
       setStandfirstEnabled(value);
     } catch (error) {
       console.error("Error saving standfirst setting:", error);
@@ -474,7 +475,7 @@ const SettingsPage: React.FC = () => {
 
   const clearSearchHistory = async () => {
     try {
-      storage.set("searchHistory", JSON.stringify([]));
+      await storage.set("searchHistory", JSON.stringify([]));
       setNotificationMessage("Search history cleared");
     } catch (error) {
       setNotificationMessage("Failed to clear search history");
@@ -483,8 +484,8 @@ const SettingsPage: React.FC = () => {
 
   const clearCacheData = async () => {
     try {
-      storage.set("cachedImages", JSON.stringify([]));
-      storage.set("visitedArticles", JSON.stringify([]));
+      await storage.set("cachedImages", JSON.stringify([]));
+      await storage.set("visitedArticles", JSON.stringify([]));
 
       setNotificationMessage("Cache data cleared");
     } catch (error) {
@@ -905,14 +906,11 @@ const styles = StyleSheet.create({
   relatedTitle: {
     flex: 1,
     textAlign: "center",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
   },
   section: {},
   sectionHeader: {
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
     paddingTop: 18,
     paddingBottom: 5,
   },
@@ -926,9 +924,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
   settingValue: {
     color: "#888",
@@ -950,16 +946,12 @@ const styles = StyleSheet.create({
   },
   copyright: {
     textAlign: "center",
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
   deviceId: {
     color: "#888",
     marginTop: 5,
-    fontFamily:
-      Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
   divider: {
     height: 0.2,

@@ -15,6 +15,22 @@
 //
 // -----------------------------------------------------------------------------
 
+import { PlayIcon } from "@/app/assets/AllSVGs";
+import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
+import { formatTimeAgoMalaysia } from "@/app/lib/utils";
+import { DataContext } from "@/app/providers/DataProvider";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
+import {
+  landingFeeds,
+  useLandingData,
+  youtubeFeeds,
+} from "@/app/providers/LandingProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
+import { ArticleType } from "@/app/types/article";
+import { FlashList } from "@shopify/flash-list";
+import axios, { AxiosError } from "axios";
+import { useRouter } from "expo-router";
 import React, {
   useCallback,
   useContext,
@@ -24,38 +40,24 @@ import React, {
   useState,
 } from "react";
 import {
-  View,
+  Platform,
+  RefreshControl,
+  StyleSheet,
   Text,
   TouchableOpacity,
-  StyleSheet,
-  Platform,
   useWindowDimensions,
+  View,
 } from "react-native";
-import { storage } from "@/app/lib/storage";
-import { useRouter } from "expo-router";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { useLandingData } from "@/app/providers/LandingProvider";
-import { formatTimeAgoMalaysia } from "@/app/lib/utils";
-import { getArticleTextSize } from "../functions/Functions";
+import Animated from "react-native-reanimated";
+import BannerAD from "../ads/Banner";
 import NewsCard from "../cards/NewsCard";
 import SmallNewsCard from "../cards/SmallNewsCard";
-import VideoCard from "../cards/VideoCard";
 import SmallVideoCard from "../cards/SmallVideoCard";
-import BannerAD from "../ads/Banner";
-import { PlayIcon } from "@/app/assets/AllSVGs";
-import { ArticleType } from "@/app/types/article";
-import Animated from "react-native-reanimated";
-import { FlashList } from "@shopify/flash-list";
-import { DataContext } from "@/app/providers/DataProvider";
-import { LoadingIndicator } from "../functions/ActivityIndicator";
-import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import TabletNewsCard from "../cards/TabletNewsCard";
 import TabletVideoCard from "../cards/TabletVideoCard";
-import axios, { AxiosError } from "axios";
-import { landingFeeds, youtubeFeeds } from "@/app/providers/LandingProvider";
-import { RefreshControl } from "react-native";
-import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
+import VideoCard from "../cards/VideoCard";
+import { LoadingIndicator } from "../functions/ActivityIndicator";
+import { getArticleTextSize } from "../functions/Functions";
 
 // Type Definitions (from LandingDataProvider)
 interface Feed {
@@ -401,6 +403,8 @@ const HomeLandingSection = ({
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const lastAutoRefreshRef = useRef<number>(Date.now());
+  const isNavigatingRef = useRef<boolean>(false);
+
   const categoryKey = useMemo(() => {
     switch (categoryName.toLowerCase()) {
       case "home":
@@ -564,7 +568,6 @@ const HomeLandingSection = ({
       }
 
       const result = await fetchCategoryWithRetry(feed);
-      console.log(result, "resultsss3");
       if (result) {
         const { key, data } = result;
         const filteredData = filterValidArticles(data);
@@ -614,6 +617,8 @@ const HomeLandingSection = ({
 
   const handlePress = useCallback(
     (visibleIndex: number) => {
+      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+
       const selectedItem = visibleData[visibleIndex];
       if (!selectedItem) return;
 
@@ -627,6 +632,8 @@ const HomeLandingSection = ({
       const isYouTubeLink = selectedItem.permalink?.includes?.("youtube.com");
 
       if (isMetaType || isVideoType || isYouTubeLink) return;
+
+      isNavigatingRef.current = true;
 
       if (selectedItem.id) {
         markAsVisited(selectedItem.id);
@@ -648,6 +655,10 @@ const HomeLandingSection = ({
           },
         });
       }
+
+      setTimeout(() => {
+        isNavigatingRef.current = false;
+      }, 500);
     },
     [
       router,
@@ -852,8 +863,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 108 },
   titleContainer: { paddingLeft: 18, paddingVertical: 8 },
   categoryTitle: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
     fontSize: 22,
   },
   readMoreButton: {
@@ -870,8 +880,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     color: "#c62828",
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-    fontWeight: Platform.OS === "android" ? "700" : undefined,
+    fontWeight: "700",
   },
   playIcon: { paddingLeft: 4, justifyContent: "center" },
   listLoader: { position: "absolute", top: 10, right: 10, zIndex: 10 },

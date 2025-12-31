@@ -1,23 +1,23 @@
-import React, { useEffect, useState, useContext } from "react";
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  StyleSheet,
-  ScrollView,
-  Platform,
-  TouchableOpacity,
-} from "react-native";
-import { router } from "expo-router";
-import { getArticleTextSize } from "../functions/Functions";
-import BannerAD from "../ads/Banner";
-import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import VideoCard from "../cards/VideoCard";
-import SmallVideoCard from "../cards/SmallVideoCard";
 import { PlayIcon } from "@/app/assets/AllSVGs";
 import { formatTimeAgoMalaysia } from "@/app/lib/utils";
+import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { useLandingData } from "@/app/providers/LandingProvider";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { router } from "expo-router";
+import React, { useContext } from "react";
+import {
+  ActivityIndicator,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import BannerAD from "../ads/Banner";
+import SmallVideoCard from "../cards/SmallVideoCard";
+import VideoCard from "../cards/VideoCard";
+import { getArticleTextSize } from "../functions/Functions";
 
 const VideoPage = () => {
   const { theme } = useContext(ThemeContext);
@@ -197,8 +197,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   categoryTitle: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
     marginBottom: 12,
     marginTop: 12,
   },

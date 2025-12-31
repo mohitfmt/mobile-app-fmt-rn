@@ -13,8 +13,7 @@
  * @author FMT Developers
  */
 
-import { Platform } from "react-native";
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 const articleStyles = StyleSheet.create({
   // Header Section Styles
@@ -99,8 +98,7 @@ const articleStyles = StyleSheet.create({
   categoryText: {
     color: "white",
     alignSelf: "flex-start",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
+    fontWeight: "400",
     paddingHorizontal: 9,
     paddingVertical: 6,
     borderRadius: 2,
@@ -113,23 +111,20 @@ const articleStyles = StyleSheet.create({
   },
   excerpt: {
     ...(Platform.OS === "ios" && {
-      fontFamily: "SF-Pro-Display-RegularItalic",
       fontStyle: "italic",
+      paddingLeft: 2,
     }),
     ...(Platform.OS === "android" && {
-      fontFamily: "SF-Pro-Display-RegularItalic",
       fontStyle: "italic",
       lineHeight: 28, //  lineHeight for italic text
     }),
   },
   author: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-    fontWeight: Platform.OS === "android" ? "700" : undefined,
+    fontWeight: "700",
   },
   date: {
     paddingTop: 5,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Light",
-    fontWeight: Platform.OS === "android" ? "300" : undefined,
+    fontWeight: "300",
   },
   featuredImageContainer: {
     paddingTop: 18,
@@ -143,14 +138,12 @@ const articleStyles = StyleSheet.create({
     fontSize: 14,
     marginTop: 8,
     paddingHorizontal: 16,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
     fontStyle: "italic",
   },
   articleContent: {
     fontSize: 18,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
     lineHeight: 24, // Improves readability
   },
 
@@ -161,8 +154,7 @@ const articleStyles = StyleSheet.create({
   tagsSectionTitle: {
     color: "#808080",
     paddingTop: 10,
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Light",
-    fontWeight: Platform.OS === "android" ? "300" : undefined,
+    fontWeight: "300",
   },
   tagsWrapper: {
     flexDirection: "row",
@@ -177,14 +169,12 @@ const articleStyles = StyleSheet.create({
     marginBottom: 5,
   },
   tagText: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : undefined,
+    fontWeight: "400",
   },
 
   // Related Articles Section
   relatedTitle: {
-    fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : undefined,
+    fontWeight: "900",
   },
   relatedArticleContainer: {
     marginVertical: 16,
