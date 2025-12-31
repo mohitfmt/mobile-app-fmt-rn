@@ -1040,8 +1040,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 108 },
   titleContainer: { paddingLeft: 18, paddingVertical: 8 },
   categoryTitle: {
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : "900",
+    fontWeight: "900",
     fontSize: 22,
   },
   readMoreButton: {
@@ -1058,8 +1057,7 @@ const styles = StyleSheet.create({
   },
   readMoreText: {
     color: "#c62828",
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-    fontWeight: Platform.OS === "android" ? "700" : "700",
+    fontWeight: "700",
   },
   playIcon: { paddingLeft: 4, justifyContent: "center" },
   listLoader: { position: "absolute", top: 10, right: 10, zIndex: 10 },

@@ -16,7 +16,7 @@ import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { AdUnitKey, BannerADProps } from "@/app/types/ads";
 import React, { useContext, useMemo, useState } from "react";
-import { Platform, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import { BannerAd, BannerAdSize } from "react-native-google-mobile-ads";
 import { getArticleTextSize } from "../functions/Functions";
 
@@ -94,9 +94,7 @@ const styles = StyleSheet.create({
   },
   adText: {
     marginBottom: 5,
-    // fontFamily:
-    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   separator: {
     height: 10,

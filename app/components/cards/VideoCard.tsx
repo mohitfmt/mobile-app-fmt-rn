@@ -18,7 +18,6 @@ import { Play } from "lucide-react-native";
 import React, { memo, useContext } from "react";
 import {
   Alert,
-  Platform,
   Share,
   StyleSheet,
   Text,
@@ -189,13 +188,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
   },
   title: {
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Bold",
-    fontWeight: Platform.OS === "android" ? "700" : "700",
+    fontWeight: "700",
   },
   excerpt: {
     lineHeight: 18,
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Medium",
-    fontWeight: Platform.OS === "android" ? "500" : "500",
+    fontWeight: "500",
     paddingTop: 10,
     color: "#9e9e9e",
   },

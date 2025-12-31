@@ -672,8 +672,7 @@ const styles = StyleSheet.create({
     flex: 1,
     textAlign: "center",
     textTransform: "uppercase",
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : "900",
+    fontWeight: "900",
   },
   emptyContainer: {
     flex: 1,

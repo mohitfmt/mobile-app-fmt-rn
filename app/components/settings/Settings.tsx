@@ -906,14 +906,11 @@ const styles = StyleSheet.create({
   relatedTitle: {
     flex: 1,
     textAlign: "center",
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : "900",
+    fontWeight: "900",
   },
   section: {},
   sectionHeader: {
-    // fontFamily:
-    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
     paddingTop: 18,
     paddingBottom: 5,
   },
@@ -927,9 +924,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   settingTitle: {
-    // fontFamily:
-    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   settingValue: {
     color: "#888",
@@ -951,16 +946,12 @@ const styles = StyleSheet.create({
   },
   copyright: {
     textAlign: "center",
-    // fontFamily:
-    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   deviceId: {
     color: "#888",
     marginTop: 5,
-    // fontFamily:
-    //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   divider: {
     height: 0.2,

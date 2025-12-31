@@ -16,13 +16,7 @@ import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useRouter } from "expo-router";
 import React, { useContext } from "react";
-import {
-  Platform,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { getArticleTextSize } from "../functions/Functions";
 
 // TagProps: Props for the Tag component (expects a label string).
@@ -81,8 +75,7 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
   tagText: {
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Text-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
 });
 

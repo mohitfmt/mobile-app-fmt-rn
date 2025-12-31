@@ -36,7 +36,6 @@ import React, {
 import {
   Animated,
   Easing,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -490,8 +489,7 @@ const styles = StyleSheet.create({
   relatedTitle: {
     flex: 1,
     textAlign: "center",
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : "900",
+    fontWeight: "900",
     textTransform: "uppercase",
   },
   contentWrapper: {

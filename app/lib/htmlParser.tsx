@@ -301,11 +301,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     // Handle plain text
     if (node.type === "text") {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
-      // if (text === "“" || text === "‘") {
-      //   text = " " + text; // Add space before opening quote
-      // } else if (text === "”") {
-      //   text = text + " "; // Add space after closing quote
-      // }
 
       return (
         <Text
@@ -345,9 +340,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             alignSelf: "flex-start",
             fontStyle: "italic",
             fontSize: 19,
-            // ...(Platform.OS === "ios" && {
-            //   fontFamily: "SF-Pro-Display-MediumItalic",
-            // }),
             fontWeight: "bold", // Use "bold" keyword, not "500"
             ...(Platform.OS === "android" && {
               lineHeight: 28,
@@ -372,9 +364,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             textAlign: "left",
             alignSelf: "flex-start",
             fontStyle: "italic",
-            // ...(Platform.OS === "ios" && {
-            //   fontFamily: "SF-Pro-Display-RegularItalic",
-            // }),
             ...(Platform.OS === "android" && {
               lineHeight: 28, // Explicit for italic
             }),
@@ -396,9 +385,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           style={{
             textAlign: "left",
             alignSelf: "flex-start",
-            // fontFamily:
-            // Platform.OS === "android" ? undefined : "SF-Pro-Display-Semibold",
-            fontWeight: Platform.OS === "android" ? "600" : "600",
+            fontWeight: "600",
             fontSize: getArticleTextSize(19.0, ""),
             color: theme.textColor,
           }}
@@ -488,11 +475,7 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
         <Text
           style={{
             color: theme.textColor,
-            // fontFamily:
-            //   Platform.OS === "android"
-            //     ? undefined
-            //     : "SF-Pro-Display-RegularItalic",
-            fontWeight: Platform.OS === "android" ? "400" : "400",
+            fontWeight: "400",
             fontStyle: "italic",
           }}
         >
@@ -527,11 +510,6 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
   ): React.ReactNode => {
     if (node.type === "text" && !node.name) {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
-      // if (text === "“" || text === "‘") {
-      //   text = " " + text; // Add space before opening quote
-      // } else if (text === "”") {
-      //   text = text + " "; // Add space after closing quote
-      // }
 
       return text ? (
         <Text
@@ -942,21 +920,13 @@ const styles = StyleSheet.create({
     marginTop: 3,
     textAlign: "center",
     fontStyle: "italic",
-    ...(Platform.OS === "ios" &&
-      {
-        // fontFamily: "SF-Pro-Display-RegularItalic",
-      }),
     ...(Platform.OS === "android" && {
       lineHeight: 22, // Explicit for captions
     }),
   },
   paragraph: {
     marginVertical: 8,
-    fontFamily: Platform.select({
-      // ios: "SF-Pro-Display-Regular",
-      android: undefined, // Use system font on Android
-    }),
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
     textAlign: "left",
     width: "95%",
     alignSelf: "flex-start",
@@ -976,10 +946,6 @@ const styles = StyleSheet.create({
   },
   italicText: {
     fontStyle: "italic",
-    fontFamily: Platform.select({
-      // ios: "SF-Pro-Display-RegularItalic",
-      android: undefined,
-    }),
     ...(Platform.OS === "android" && {
       lineHeight: 28, // Explicit for italic
     }),
@@ -988,10 +954,6 @@ const styles = StyleSheet.create({
     fontWeight: Platform.select({
       ios: "bold",
       android: "700",
-    }),
-    fontFamily: Platform.select({
-      // ios: "SF-Pro-Display-Bold",
-      android: undefined,
     }),
     lineHeight: 24,
     flexShrink: 1,
@@ -1022,9 +984,7 @@ const styles = StyleSheet.create({
   bullet: {
     fontSize: 19,
     lineHeight: 24,
-    // fontFamily:
-    // Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
     width: 32,
     textAlign: "left",
   },
@@ -1036,11 +996,7 @@ const styles = StyleSheet.create({
     lineHeight: 24,
     flexShrink: 1,
     flexWrap: "wrap",
-    fontFamily: Platform.select({
-      // ios: "SF-Pro-Display-Regular",
-      android: undefined,
-    }),
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
     width: "90%", // or flex: 1
   },
   blockquote: {
@@ -1053,22 +1009,14 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   embeddedTitle: {
-    fontFamily: Platform.select({
-      // ios: "SF-Pro-Display-Regular",
-      android: undefined,
-    }),
     color: "#c62828",
     textDecorationLine: "underline",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   linkText: {
     textDecorationLine: "underline",
     color: "#ff0000",
-    fontFamily: Platform.select({
-      // ios: "SF-Pro-Display-Regular",
-      android: undefined,
-    }),
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   textContainer: {
     width: "100%",

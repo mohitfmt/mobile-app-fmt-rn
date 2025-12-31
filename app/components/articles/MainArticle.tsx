@@ -159,9 +159,7 @@ const ArticleContent = React.memo(
               paddingBottom: 5,
               paddingTop: 5,
               fontSize: getArticleTextSize(30.0, textSize),
-              // fontFamily:
-              //   Platform.OS === "android" ? undefined : "SF-Pro-Display-Bold",
-              fontWeight: Platform.OS === "android" ? "700" : "700",
+              fontWeight: "700",
               paddingHorizontal: 18,
             }}
           >
@@ -293,11 +291,7 @@ const ArticleContent = React.memo(
                   <Text
                     className=" text-sm mb-2 text-left"
                     style={{
-                      // fontFamily:
-                      //   Platform.OS === "android"
-                      //     ? undefined
-                      //     : "SF-Pro-Display-Light",
-                      fontWeight: Platform.OS === "android" ? "300" : "300",
+                      fontWeight: "300",
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
@@ -310,12 +304,8 @@ const ArticleContent = React.memo(
                       className="text-base"
                       style={{
                         color: theme.textColor,
-                        // fontFamily:
-                        //   Platform.OS === "android"
-                        //     ? undefined
-                        //     : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
-                        fontWeight: Platform.OS === "android" ? "700" : "700",
+                        fontWeight: "700",
                       }}
                       numberOfLines={4}
                     >
@@ -343,14 +333,10 @@ const ArticleContent = React.memo(
                   <Text
                     className="text-sm mb-2 text-right"
                     style={{
-                      // fontFamily:
-                      //   Platform.OS === "android"
-                      //     ? undefined
-                      //     : "SF-Pro-Display-Light",
                       color: "#808080", // equivalent to Colors.grey
                       fontSize: getArticleTextSize(14.0, textSize),
                       paddingTop: 8,
-                      fontWeight: Platform.OS === "android" ? "300" : "300",
+                      fontWeight: "300",
                     }}
                   >
                     Next article
@@ -360,12 +346,8 @@ const ArticleContent = React.memo(
                       className="text-base text-right"
                       style={{
                         color: theme.textColor,
-                        // fontFamily:
-                        //   Platform.OS === "android"
-                        //     ? undefined
-                        //     : "SF-Pro-Display-Bold",
                         fontSize: getArticleTextSize(16.0, textSize),
-                        fontWeight: Platform.OS === "android" ? "700" : "700",
+                        fontWeight: "700",
                       }}
                       numberOfLines={4}
                     >

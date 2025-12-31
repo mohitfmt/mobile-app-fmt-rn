@@ -191,8 +191,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   relatedTitle: {
-    // fontFamily: Platform.OS === "android" ? undefined : "SF-Pro-Display-Black",
-    fontWeight: Platform.OS === "android" ? "900" : "900",
+    fontWeight: "900",
     textAlign: "center",
     flex: 1,
   },
@@ -206,9 +205,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
-    // fontFamily:
-    // Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
   refreshButton: {
     paddingVertical: 12,
@@ -218,9 +215,7 @@ const styles = StyleSheet.create({
   refreshButtonText: {
     color: "#fff",
     fontSize: 15,
-    // fontFamily:
-    // Platform.OS === "android" ? undefined : "SF-Pro-Display-Regular",
-    fontWeight: Platform.OS === "android" ? "400" : "400",
+    fontWeight: "400",
   },
 });
 
