@@ -184,6 +184,7 @@ const Home = () => {
           categories={categoriesList}
           handleTabPress={(index: number) => {
             const key = routes[index]?.key;
+            // Triggers tab navigation in response to a sidebar category selection
             customTabRef.current?.handleTabPress(index, key);
           }}
         />
