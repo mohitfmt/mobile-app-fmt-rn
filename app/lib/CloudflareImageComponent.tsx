@@ -11,25 +11,13 @@
  * - Memory pressure handling
  * - Accessibility support
  */
-import React, {
-  useEffect,
-  useState,
-  useRef,
-  useCallback,
-  useMemo,
-} from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Image,
+  ActivityIndicator,
   Animated,
+  Image,
   StyleSheet,
   View,
-  ActivityIndicator,
-  Platform,
-  PixelRatio,
-  Dimensions,
-  InteractionManager,
-  AppState,
-  NativeAppEventEmitter,
 } from "react-native";
 
 // Types
@@ -50,179 +38,180 @@ interface CloudflareImageProps {
 }
 
 // Constants
-const DEVICE_PIXEL_RATIO = PixelRatio.get();
+// const DEVICE_PIXEL_RATIO = PixelRatio.get();
 
-// Prefetch queue management
-const inFlightPrefetches = new Set<string>();
-const prefetchQueue: string[] = [];
-let prefetchTimer: NodeJS.Timeout | null = null;
+// // Prefetch queue management
+// const inFlightPrefetches = new Set<string>();
+// const prefetchQueue: string[] = [];
+// let prefetchTimer: NodeJS.Timeout | null = null;
 
-// Utility functions
-const isHttpUrl = (url?: string): boolean => {
-  return !!url && /^https?:\/\//i.test(url);
-};
+// // Utility functions
+// const isHttpUrl = (url?: string): boolean => {
+//   return !!url && /^https?:\/\//i.test(url);
+// };
 
-const choosePresetWidth = (width: number): number => {
-  if (width <= 150) return 150;
-  if (width <= 300) return 300;
-  if (width <= 600) return 600;
-  if (width <= 900) return 900;
-  if (width <= 1200) return 1200;
-  return 1600;
-};
+// const choosePresetWidth = (width: number): number => {
+//   if (width <= 150) return 150;
+//   if (width <= 300) return 300;
+//   if (width <= 600) return 600;
+//   if (width <= 900) return 900;
+//   if (width <= 1200) return 1200;
+//   return 1600;
+// };
 
-const isGif = (url: URL): boolean => {
-  return /\.gif(\?|$)/i.test(url.pathname);
-};
+// const isGif = (url: URL): boolean => {
+//   return /\.gif(\?|$)/i.test(url.pathname);
+// };
 
-const isInFmtZone = (hostname: string): boolean => {
-  return (
-    /(?:^|\.)freemalaysiatoday\.com$/i.test(hostname) ||
-    /(?:^|\.)media\.freemalaysiatoday\.com$/i.test(hostname)
-  );
-};
+// const isInFmtZone = (hostname: string): boolean => {
+//   return (
+//     /(?:^|\.)freemalaysiatoday\.com$/i.test(hostname) ||
+//     /(?:^|\.)media\.freemalaysiatoday\.com$/i.test(hostname)
+//   );
+// };
 
 // Safe Cloudflare URL builder with proper encoding
-export const buildCloudflareUrl = (
-  originalUrl: string,
-  layoutWidth: number,
-  options?: {
-    quality?: number;
-    fit?: "scale-down" | "contain" | "cover";
-    sharpen?: number;
-    dpr?: number;
-    anim?: boolean;
-    version?: string;
-  }
-): string => {
-  if (!isHttpUrl(originalUrl)) return originalUrl;
+// export const buildCloudflareUrl = (
+//   originalUrl: string,
+//   layoutWidth: number,
+//   options?: {
+//     quality?: number;
+//     fit?: "scale-down" | "contain" | "cover";
+//     sharpen?: number;
+//     dpr?: number;
+//     anim?: boolean;
+//     version?: string;
+//   }
+// ): string => {
+//   if (!isHttpUrl(originalUrl)) return originalUrl;
 
-  let src: URL;
-  try {
-    src = new URL(originalUrl);
-  } catch {
-    return originalUrl;
-  }
+//   let src: URL;
+//   try {
+//     src = new URL(originalUrl);
+//   } catch {
+//     return originalUrl;
+//   }
 
-  // Don't transform external hosts
-  if (!isInFmtZone(src.hostname)) return originalUrl;
+//   // Don't transform external hosts
+//   if (!isInFmtZone(src.hostname)) return originalUrl;
 
-  // Check if already transformed
-  if (src.pathname.includes("/cdn-cgi/image/")) return originalUrl;
+//   // Check if already transformed
+//   if (src.pathname.includes("/cdn-cgi/image/")) return originalUrl;
 
-  const dpr = Math.min(options?.dpr ?? DEVICE_PIXEL_RATIO, 3);
-  const presetWidth = choosePresetWidth(layoutWidth);
+//   const dpr = Math.min(options?.dpr ?? DEVICE_PIXEL_RATIO, 3);
+//   const presetWidth = choosePresetWidth(layoutWidth);
 
-  // Quality based on size with min/max bounds
-  const defaultQuality =
-    layoutWidth <= 150
-      ? 70
-      : layoutWidth <= 300
-      ? 75
-      : layoutWidth <= 600
-      ? 80
-      : layoutWidth <= 900
-      ? 85
-      : 90;
-  const quality = Math.max(
-    40,
-    Math.min(options?.quality ?? defaultQuality, 95)
-  );
+//   // Quality based on size with min/max bounds
+//   const defaultQuality =
+//     layoutWidth <= 150
+//       ? 70
+//       : layoutWidth <= 300
+//       ? 75
+//       : layoutWidth <= 600
+//       ? 80
+//       : layoutWidth <= 900
+//       ? 85
+//       : 90;
+//   const quality = Math.max(
+//     40,
+//     Math.min(options?.quality ?? defaultQuality, 95)
+//   );
 
-  // Preserve GIF animation
-  const animated = options?.anim ?? isGif(src);
+//   // Preserve GIF animation
+//   const animated = options?.anim ?? isGif(src);
 
-  const params = [
-    `width=${presetWidth}`,
-    `quality=${quality}`,
-    `fit=${options?.fit ?? "scale-down"}`,
-    `dpr=${dpr}`,
-    `metadata=none`,
-    `sharpen=${options?.sharpen ?? 1}`,
-    animated ? `format=auto,anim=true` : `format=auto`,
-    `onerror=redirect`,
-  ].join(",");
+//   const params = [
+//     `width=${presetWidth}`,
+//     `quality=${quality}`,
+//     `fit=${options?.fit ?? "scale-down"}`,
+//     `dpr=${dpr}`,
+//     `metadata=none`,
+//     `sharpen=${options?.sharpen ?? 1}`,
+//     animated ? `format=auto,anim=true` : `format=auto`,
+//     `onerror=redirect`,
+//   ].join(",");
 
-  // Add version for cache busting if provided
-  if (options?.version) {
-    src.searchParams.set("v", options.version);
-  }
+//   // Add version for cache busting if provided
+//   if (options?.version) {
+//     src.searchParams.set("v", options.version);
+//   }
 
-  const cdnBase = `${src.protocol}//${src.host}/cdn-cgi/image`;
-  // Properly encode the full URL
-  const encodedTail = encodeURI(src.toString());
+//   const cdnBase = `${src.protocol}//${src.host}/cdn-cgi/image`;
+//   // Properly encode the full URL
+//   const encodedTail = encodeURI(src.toString());
 
-  return `${cdnBase}/${params}/${encodedTail}`;
-};
+//   console.log("cdn", `${cdnBase}/${params}/${encodedTail}`);
+//   return `${cdnBase}/${params}/${encodedTail}`;
+// };
 
-// Exponential backoff with jitter
-const calculateBackoff = (attempt: number): number => {
-  const base = Math.min(1200, 200 * Math.pow(2, attempt));
-  const jitter = Math.random() * 120;
-  return base + jitter;
-};
+// // Exponential backoff with jitter
+// const calculateBackoff = (attempt: number): number => {
+//   const base = Math.min(1200, 200 * Math.pow(2, attempt));
+//   const jitter = Math.random() * 120;
+//   return base + jitter;
+// };
 
-// Flush prefetch queue with concurrency control
-const flushPrefetchQueue = async (concurrency: number = 2) => {
-  while (inFlightPrefetches.size < concurrency && prefetchQueue.length > 0) {
-    const url = prefetchQueue.shift()!;
-    if (inFlightPrefetches.has(url)) continue;
+// // Flush prefetch queue with concurrency control
+// const flushPrefetchQueue = async (concurrency: number = 2) => {
+//   while (inFlightPrefetches.size < concurrency && prefetchQueue.length > 0) {
+//     const url = prefetchQueue.shift()!;
+//     if (inFlightPrefetches.has(url)) continue;
 
-    inFlightPrefetches.add(url);
-    try {
-      await Image.prefetch(url);
-    } catch (error) {
-      console.log("Prefetch failed:", url);
-    } finally {
-      inFlightPrefetches.delete(url);
-    }
-  }
-};
+//     inFlightPrefetches.add(url);
+//     try {
+//       await Image.prefetch(url);
+//     } catch (error) {
+//       console.log("Prefetch failed:", url);
+//     } finally {
+//       inFlightPrefetches.delete(url);
+//     }
+//   }
+// };
 
-// Queue prefetch with deduplication
-export const queuePrefetch = (
-  urls: string[],
-  width: number,
-  priority: boolean = false
-) => {
-  urls.forEach((url) => {
-    if (!isHttpUrl(url)) return;
+// // Queue prefetch with deduplication
+// export const queuePrefetch = (
+//   urls: string[],
+//   width: number,
+//   priority: boolean = false
+// ) => {
+//   urls.forEach((url) => {
+//     if (!isHttpUrl(url)) return;
 
-    const transformedUrl = buildCloudflareUrl(url, width, {
-      dpr: priority ? 3 : 2,
-    });
+//     const transformedUrl = buildCloudflareUrl(url, width, {
+//       dpr: priority ? 3 : 2,
+//     });
 
-    if (
-      !inFlightPrefetches.has(transformedUrl) &&
-      !prefetchQueue.includes(transformedUrl)
-    ) {
-      if (priority) {
-        prefetchQueue.unshift(transformedUrl); // Priority items go to front
-      } else {
-        prefetchQueue.push(transformedUrl);
-      }
-    }
-  });
+//     if (
+//       !inFlightPrefetches.has(transformedUrl) &&
+//       !prefetchQueue.includes(transformedUrl)
+//     ) {
+//       if (priority) {
+//         prefetchQueue.unshift(transformedUrl); // Priority items go to front
+//       } else {
+//         prefetchQueue.push(transformedUrl);
+//       }
+//     }
+//   });
 
-  // Clear existing timer and set new one
-  if (prefetchTimer) clearTimeout(prefetchTimer);
+//   // Clear existing timer and set new one
+//   if (prefetchTimer) clearTimeout(prefetchTimer);
 
-  // Start prefetch after a short delay (immediate for priority)
-  const delay = priority ? 0 : 350;
-  prefetchTimer = setTimeout(() => {
-    flushPrefetchQueue(priority ? 3 : 2);
-  }, delay);
-};
+//   // Start prefetch after a short delay (immediate for priority)
+//   const delay = priority ? 0 : 350;
+//   prefetchTimer = setTimeout(() => {
+//     flushPrefetchQueue(priority ? 3 : 2);
+//   }, delay);
+// };
 
-// Clear prefetch queue on memory pressure
-const clearPrefetchQueue = () => {
-  prefetchQueue.length = 0;
-  inFlightPrefetches.clear();
-  if (prefetchTimer) {
-    clearTimeout(prefetchTimer);
-    prefetchTimer = null;
-  }
-};
+// // Clear prefetch queue on memory pressure
+// const clearPrefetchQueue = () => {
+//   prefetchQueue.length = 0;
+//   inFlightPrefetches.clear();
+//   if (prefetchTimer) {
+//     clearTimeout(prefetchTimer);
+//     prefetchTimer = null;
+//   }
+// };
 
 // Main component
 const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
@@ -278,75 +267,75 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
   }, [src, width, height]);
 
   // Handle memory pressure
-  useEffect(() => {
-    const handleAppStateChange = (nextAppState: string) => {
-      if (nextAppState !== "active") {
-        clearPrefetchQueue();
-      }
-    };
+  // useEffect(() => {
+  //   const handleAppStateChange = (nextAppState: string) => {
+  //     if (nextAppState !== "active") {
+  //       clearPrefetchQueue();
+  //     }
+  //   };
 
-    const subscription = AppState.addEventListener(
-      "change",
-      handleAppStateChange
-    );
-    return () => {
-      subscription.remove();
-    };
-  }, []);
+  //   const subscription = AppState.addEventListener(
+  //     "change",
+  //     handleAppStateChange
+  //   );
+  //   return () => {
+  //     subscription.remove();
+  //   };
+  // }, []);
 
   // Calculate DPR and fit based on props
-  const dpr = Math.min(DEVICE_PIXEL_RATIO, priority ? 3 : 2);
-  const fit =
-    resizeMode === "contain"
-      ? "contain"
-      : resizeMode === "cover"
-      ? "cover"
-      : "scale-down";
+  // const dpr = Math.min(DEVICE_PIXEL_RATIO, priority ? 3 : 2);
+  // const fit =
+  //   resizeMode === "contain"
+  //     ? "contain"
+  //     : resizeMode === "cover"
+  //     ? "cover"
+  //     : "scale-down";
 
-  // Build image URL with retry logic
-  const imageUrl = useMemo(() => {
-    if (!src) return null;
+  // // Build image URL with retry logic
+  // const imageUrl = useMemo(() => {
+  //   if (!src) return null;
 
-    // On retry 3+, use raw source as fallback
-    if (retryCount >= 3) return src;
+  //   // On retry 3+, use raw source as fallback
+  //   if (retryCount >= 3) return src;
 
-    // Progressive quality degradation on retry
-    const retryQuality =
-      retryCount > 0
-        ? Math.max(50, (quality ?? 80) - 10 * retryCount)
-        : quality;
+  //   // Progressive quality degradation on retry
+  //   const retryQuality =
+  //     retryCount > 0
+  //       ? Math.max(50, (quality ?? 80) - 10 * retryCount)
+  //       : quality;
 
-    return buildCloudflareUrl(src, width, {
-      dpr,
-      quality: retryQuality,
-      fit,
-      version,
-    });
-  }, [src, width, dpr, quality, fit, retryCount, version]);
+  //   return buildCloudflareUrl(src, width, {
+  //     dpr,
+  //     quality: retryQuality,
+  //     fit,
+  //     version,
+  //   });
+  // }, [src, width, dpr, quality, fit, retryCount, version]);
 
   // Prefetch next images after current loads
-  useEffect(() => {
-    if (!isLoading && prefetchNext.length > 0) {
-      // Use InteractionManager to defer prefetch
-      interactionHandle.current = InteractionManager.runAfterInteractions(
-        () => {
-          if (isMounted.current) {
-            queuePrefetch(
-              prefetchNext.slice(0, priority ? 3 : 2),
-              width,
-              priority
-            );
-          }
-        }
-      );
+  // useEffect(() => {
+  //   if (!isLoading && prefetchNext.length > 0) {
+  //     // Use InteractionManager to defer prefetch
+  //     interactionHandle.current = InteractionManager.runAfterInteractions(
+  //       () => {
+  //         if (isMounted.current) {
+  //           queuePrefetch(
+  //             prefetchNext.slice(0, priority ? 3 : 2),
+  //             width,
+  //             priority
+  //           );
+  //         }
+  //       }
+  //     );
 
-      return () => {
-        if (interactionHandle.current) {
-          interactionHandle.current.cancel();
-        }
-      };
-    }
-  }, [isLoading, prefetchNext, width, priority]);
+  //     return () => {
+  //       if (interactionHandle.current) {
+  //         interactionHandle.current.cancel();
+  //       }
+  //     };
+  //   }
+  // }, [isLoading, prefetchNext, width, priority]);
 
   // Handle successful load with request ID check
   const handleImageLoad = useCallback(() => {
@@ -377,17 +366,18 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
       console.warn("Image failed to load:", src, "Retry:", retryCount);
       setIsLoading(false);
 
-      if (retryCount < 2) {
-        // Exponential backoff retry
-        const backoffTime = calculateBackoff(retryCount);
+      // if (retryCount < 2) {
+      //   // Exponential backoff retry
+      //   const backoffTime = calculateBackoff(retryCount);
 
-        retryTimeoutRef.current = setTimeout(() => {
-          if (!isMounted.current || currentRequestId !== requestId.current)
-            return;
-          setRetryCount((r) => r + 1);
-          setIsLoading(true);
-        }, backoffTime);
-      } else if (retryCount === 2) {
+      //   retryTimeoutRef.current = setTimeout(() => {
+      //     if (!isMounted.current || currentRequestId !== requestId.current)
+      //       return;
+      //     setRetryCount((r) => r + 1);
+      //     setIsLoading(true);
+      //   }, backoffTime);
+      // } else
+      if (retryCount === 2) {
         // Final attempt with raw source
         Image.prefetch(src)
           .then(() => {
@@ -446,7 +436,7 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
       )}
 
       {/* Main image */}
-      {imageUrl && !hasError && (
+      {src && !hasError && (
         <Animated.View
           style={[
             styles.imageContainer,
@@ -455,7 +445,7 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
           ]}
         >
           <Image
-            source={{ uri: imageUrl }}
+            source={{ uri: src }}
             style={{ width, height }}
             resizeMode={resizeMode}
             onLoad={handleImageLoad}
@@ -496,4 +486,4 @@ const styles = StyleSheet.create({
 export default React.memo(CloudflareImageComponent);
 
 // Export utilities
-export { clearPrefetchQueue };
+// export { clearPrefetchQueue };
