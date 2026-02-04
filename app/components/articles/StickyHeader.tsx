@@ -15,35 +15,38 @@
 //
 // -----------------------------------------------------------------------------
 
-import React, { useCallback, useContext } from "react";
-import {
-  View,
-  TouchableOpacity,
-  Image,
-  Platform,
-  Share,
-  Alert,
-  Dimensions,
-  useWindowDimensions,
-} from "react-native";
-import { ArrowLeft, ChevronLeft } from "lucide-react-native";
-import { useRouter } from "expo-router";
-import { ThemeContext } from "@/app/providers/ThemeProvider";
-import { useBookmarks } from "@/app/providers/BookmarkContext";
 import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
 import articleStyles from "@/app/css/articleCss";
 import { stripHtml } from "@/app/lib/utils";
+import { useBookmarks } from "@/app/providers/BookmarkContext";
+import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useRouter } from "expo-router";
+import { ArrowLeft, ChevronLeft } from "lucide-react-native";
+import React, { useCallback, useContext } from "react";
+import {
+  Alert,
+  Image,
+  Platform,
+  Share,
+  TouchableOpacity,
+  useWindowDimensions,
+  View,
+} from "react-native";
 
 // StickyHeaderProps: Props for the StickyHeader component (expects an article object).
 interface StickyHeaderProps {
   article: any;
+  showBookmark?: boolean;
 }
 
 // StickyHeader: Main component for the sticky article header.
 // - Uses theme, bookmarks, and navigation context
 // - Handles bookmark and share actions
 // - Renders back button, logo, and action icons
-const StickyHeader: React.FC<StickyHeaderProps> = ({ article }) => {
+const StickyHeader: React.FC<StickyHeaderProps> = ({
+  article,
+  showBookmark = true,
+}) => {
   const { theme } = useContext(ThemeContext);
   const router = useRouter();
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
@@ -128,19 +131,23 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({ article }) => {
         </View>
 
         <View className="flex-row">
-          <TouchableOpacity
-            className="ml-4 mr-3"
-            onPress={handleBookmarkPress}
-            activeOpacity={0.7}
-          >
-            <BookmarkIcon
-              size={24}
-              color="#c42b23"
-              fill={
-                article && isBookmarked(article.id) ? "#DC2626" : "transparent"
-              }
-            />
-          </TouchableOpacity>
+          {showBookmark && (
+            <TouchableOpacity
+              className="ml-4 mr-3"
+              onPress={handleBookmarkPress}
+              activeOpacity={0.7}
+            >
+              <BookmarkIcon
+                size={24}
+                color="#c42b23"
+                fill={
+                  article && isBookmarked(article.id)
+                    ? "#DC2626"
+                    : "transparent"
+                }
+              />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             className="ml-4"
             onPress={() => article && handleShare(article)}

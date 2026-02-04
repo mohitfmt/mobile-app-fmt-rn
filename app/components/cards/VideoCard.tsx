@@ -9,15 +9,16 @@
 
 import { ShareIcon } from "@/app/assets/AllSVGs"; // Use ShareIcon instead of Share2
 import CloudflareImageComponent from "@/app/lib/CloudflareImageComponent";
-import { htmlToPlainText, stripHtml } from "@/app/lib/utils";
+import { formatPostedTime, htmlToPlainText, stripHtml } from "@/app/lib/utils";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
+import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { VideoCardProps } from "@/app/types/cards";
+import { router } from "expo-router";
 import { Play } from "lucide-react-native";
 import React, { memo, useContext } from "react";
 import {
   Alert,
-  Linking,
   Share,
   StyleSheet,
   Text,
@@ -27,36 +28,58 @@ import {
 } from "react-native";
 import { getArticleTextSize } from "../functions/Functions";
 
-function VideoCard({
-  title,
-  permalink,
-  content,
-  date,
-  thumbnail,
-  type,
-}: VideoCardProps) {
+function VideoCard({ item, visited, onPress }: VideoCardProps) {
   const { width } = useWindowDimensions();
   const { theme } = useContext(ThemeContext);
-  const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext); // Added standfirstEnabled
+  const { textSize, standfirstEnabled } = useContext(GlobalSettingsContext);
+  const { markAsVisited } = useVisitedArticles();
 
   // Handles Sharing the Video Link
   const handleShare = async () => {
     try {
-      const mainHeading = stripHtml(title);
+      const mainHeading = stripHtml(item.title);
 
       await Share.share({
-        message: `${mainHeading}\n\n${permalink}`,
+        message: `${mainHeading}\n\n${item.permalink || item.uri}`,
       });
     } catch (error) {
       Alert.alert("Error", "Failed to share video");
     }
   };
 
-  // Opens Video Link in an External Browser
+  // Navigate to in-app video player
   const navigateToVideo = () => {
-    Linking.openURL(permalink).catch((err) =>
-      Alert.alert("Error", "Failed to open video")
-    );
+    if (onPress) {
+      onPress();
+      return;
+    }
+
+    // Mark as visited when navigating (in case onPress wasn't provided)
+    const idToMark = item.videoId || item.id;
+    if (idToMark) {
+      markAsVisited(idToMark);
+    }
+
+    router.push({
+      pathname: "/components/videos/VideoPlayer",
+      params: {
+        videoId: item.videoId,
+        title: item.title,
+        content: item.content || item.excerpt || "",
+        date: item.date,
+        permalink: item.permalink || item.uri,
+        viewCount: item.statistics?.viewCount || item.viewCount || "0",
+        durationSeconds: item.durationSeconds?.toString() || "0",
+        duration: item.duration || "0:00",
+        channelTitle: item.channelTitle || "FMT",
+        tags:
+          typeof item.tags === "string"
+            ? item.tags
+            : JSON.stringify(item.tags || []),
+        statistics: JSON.stringify(item.statistics || {}),
+        publishedAt: item.publishedAt || item.date || "",
+      },
+    });
   };
 
   return (
@@ -76,10 +99,10 @@ function VideoCard({
         {/* Video Thumbnail */}
         <View style={styles.imageContainer}>
           <CloudflareImageComponent
-            src={thumbnail}
+            src={item.thumbnail}
             width={width - 32}
             height={(width - 32) * 0.5625}
-            accessibilityLabel={title}
+            accessibilityLabel={item.title || "Video thumbnail"}
           />
           {/* Play Button Overlay */}
           <View style={styles.playButtonContainer}>
@@ -95,16 +118,16 @@ function VideoCard({
             style={[
               styles.title,
               {
-                color: theme.textColor,
+                color: visited ? "#9e9e9e" : theme.textColor,
                 fontSize: getArticleTextSize(18, textSize),
               },
             ]}
             numberOfLines={3}
           >
-            {htmlToPlainText(title)}
+            {htmlToPlainText(item.title)}
           </Text>
 
-          {standfirstEnabled && content && (
+          {standfirstEnabled && (item.content || item.excerpt) && (
             <Text
               numberOfLines={2}
               style={[
@@ -112,7 +135,7 @@ function VideoCard({
                 { fontSize: getArticleTextSize(14, textSize) },
               ]}
             >
-              {htmlToPlainText(content)}
+              {htmlToPlainText(item.content || item.excerpt || "")}
             </Text>
           )}
 
@@ -124,7 +147,7 @@ function VideoCard({
                 { fontSize: getArticleTextSize(14, textSize) },
               ]}
             >
-              {date}
+              {formatPostedTime(item.date)}
             </Text>
 
             <View style={styles.actionButtons}>

@@ -17,7 +17,7 @@
 
 import { PlayIcon } from "@/app/assets/AllSVGs";
 import { cacheData, getCachedData } from "@/app/lib/cacheUtils";
-import { formatTimeAgoMalaysia } from "@/app/lib/utils";
+import { fetchVideosData, formatTimeAgoMalaysia } from "@/app/lib/utils";
 import { DataContext } from "@/app/providers/DataProvider";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import {
@@ -67,7 +67,7 @@ interface Feed {
 }
 
 const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList as unknown as new (...args: any[]) => FlashList<ArticleType>
+  FlashList as unknown as new (...args: any[]) => any
 );
 
 const useDeviceType = () => {
@@ -141,6 +141,85 @@ const processYouTubeData = (items: any[]): any[] => {
 // Utility function to check if cached data exists
 const hasCachedData = (data: any[] | undefined): boolean => {
   return Array.isArray(data) && data.length > 0;
+};
+
+// Function to replace videos section in home-landing data with API videos
+const replaceVideosInHomeLanding = (
+  homeLandingData: any[],
+  videosData: any[]
+): any[] => {
+  if (!Array.isArray(homeLandingData) || !Array.isArray(videosData)) {
+    return homeLandingData;
+  }
+
+  // Find the index of CARD_TITLE "Videos"
+  const videosCardTitleIndex = homeLandingData.findIndex(
+    (item) =>
+      item.type === "CARD_TITLE" && item.title?.toLowerCase() === "videos"
+  );
+
+  if (videosCardTitleIndex === -1) {
+    // No videos section found, return original data
+    return homeLandingData;
+  }
+
+  // Find the index of MORE_ITEM "Videos" after the CARD_TITLE
+  let videosMoreItemIndex = -1;
+  for (let i = videosCardTitleIndex + 1; i < homeLandingData.length; i++) {
+    const item = homeLandingData[i];
+    if (item.type === "MORE_ITEM" && item.title?.toLowerCase() === "videos") {
+      videosMoreItemIndex = i;
+      break;
+    }
+  }
+
+  // Extract videos from API data (only video items, exclude CARD_TITLE, MORE_ITEM, AD_ITEM)
+  // For home-landing, only take the first 5 hero videos
+  const apiVideos = videosData
+    .filter(
+      (item) =>
+        item.type?.toLowerCase().includes("video") &&
+        item.type !== "CARD_TITLE" &&
+        item.type !== "MORE_ITEM" &&
+        item.type !== "AD_ITEM"
+    )
+    .slice(0, 5); // Only take first 5 hero videos for home-landing
+
+  // Build the new array
+  if (videosMoreItemIndex !== -1) {
+    // MORE_ITEM found: replace videos between CARD_TITLE and MORE_ITEM, then remove MORE_ITEM
+    return [
+      // Keep everything before and including the CARD_TITLE "Videos"
+      ...homeLandingData.slice(0, videosCardTitleIndex + 1),
+      // Add videos from API (replace the old videos)
+      ...apiVideos,
+      // Skip the MORE_ITEM "Videos" and continue with everything after it
+      ...homeLandingData.slice(videosMoreItemIndex + 1),
+    ];
+  } else {
+    // MORE_ITEM not found: find where videos end (first non-video item after CARD_TITLE)
+    let videosEndIndex = videosCardTitleIndex + 1;
+    for (let i = videosCardTitleIndex + 1; i < homeLandingData.length; i++) {
+      const item = homeLandingData[i];
+      const isVideo =
+        item.type?.toLowerCase().includes("video") ||
+        item.permalink?.includes("youtube.com");
+      if (!isVideo && item.type !== "AD_ITEM") {
+        videosEndIndex = i;
+        break;
+      }
+      videosEndIndex = i + 1;
+    }
+
+    return [
+      // Keep everything before and including the CARD_TITLE "Videos"
+      ...homeLandingData.slice(0, videosCardTitleIndex + 1),
+      // Add videos from API (replace the old videos)
+      ...apiVideos,
+      // Continue with everything after the videos section
+      ...homeLandingData.slice(videosEndIndex),
+    ];
+  }
 };
 
 // Loading Component
@@ -247,52 +326,26 @@ const VideoCardItem = React.memo(
     onPress: () => void;
   }) => {
     const { isVisited } = useVisitedArticles();
-    const visited = item.id ? isVisited(item.id) : false;
+    // For videos, check visited status using videoId for consistency
+    const visited = item.videoId
+      ? isVisited(item.videoId)
+      : item.id
+      ? isVisited(item.id)
+      : false;
     const { shouldUseTabletLayout } = useDeviceType();
 
     const videoContent = (
       <>
         {item.type === "video-featured" ? (
           shouldUseTabletLayout ? (
-            <TabletVideoCard
-              title={item.title}
-              permalink={item.permalink}
-              content={item.content}
-              date={formatTimeAgoMalaysia(item.date)}
-              thumbnail={item.thumbnail}
-              type="video-featured"
-              onPress={onPress}
-            />
+            <TabletVideoCard item={item} visited={visited} onPress={onPress} />
           ) : (
-            <VideoCard
-              title={item.title}
-              permalink={item.permalink}
-              content={item.content}
-              date={formatTimeAgoMalaysia(item.date)}
-              thumbnail={item.thumbnail}
-              type="video-featured"
-              visited={visited}
-            />
+            <VideoCard item={item} visited={visited} onPress={onPress} />
           )
         ) : shouldUseTabletLayout ? (
-          <TabletVideoCard
-            title={item.title}
-            permalink={item.permalink}
-            content={item.content}
-            date={formatTimeAgoMalaysia(item.date)}
-            thumbnail={item.thumbnail}
-            type="video-small"
-            onPress={onPress}
-          />
+          <TabletVideoCard item={item} visited={visited} onPress={onPress} />
         ) : (
-          <SmallVideoCard
-            title={item.title}
-            permalink={item.permalink}
-            content={item.content}
-            date={formatTimeAgoMalaysia(item.date)}
-            thumbnail={item.thumbnail}
-            visited={visited}
-          />
+          <SmallVideoCard item={item} visited={visited} onPress={onPress} />
         )}
       </>
     );
@@ -391,7 +444,7 @@ const HomeLandingSection = ({
     isLoading,
     queueCacheUpdate,
   } = useLandingData();
-  const flashListRef = useRef<FlashList<ArticleType>>(null);
+  const flashListRef = useRef<any>(null);
   const [expanded, setExpanded] = useState(false);
   const { setMainData } = useContext(DataContext);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
@@ -526,6 +579,56 @@ const HomeLandingSection = ({
     return null;
   };
 
+  // Helper: Update landing data and filtered data
+  const updateLandingData = useCallback((key: string, data: any[]) => {
+    const filteredData = filterValidArticles(data);
+    setLandingData((prev) => ({ ...prev, [key]: data }));
+    if (filteredData.length > 0) {
+      setFilteredLandingData((prev) => ({ ...prev, [key]: filteredData }));
+    }
+  }, []);
+
+  // Helper: Fallback to cached data
+  const fallbackToCache = useCallback(
+    async (key: string) => {
+      const cachedData = await getCachedData(key);
+      if (cachedData && hasCachedData(cachedData)) {
+        updateLandingData(key, cachedData);
+        return true;
+      }
+      return false;
+    },
+    [updateLandingData]
+  );
+
+  // Helper: Fetch videos data with cooldown and cache check
+  const fetchVideosWithCooldown = useCallback(
+    async (context: string): Promise<any[] | null> => {
+      const videosApiKey = "videos-api-data";
+      const lastVideosFetch = refreshCooldownMap[videosApiKey] || 0;
+      const now = Date.now();
+
+      // Check cache first - use it if cooldown hasn't passed
+      const cachedVideosData = await getCachedData(videosApiKey);
+      if (
+        cachedVideosData &&
+        hasCachedData(cachedVideosData) &&
+        now - lastVideosFetch < 60000
+      ) {
+        return cachedVideosData;
+      }
+
+      // Cache is empty or cooldown passed - fetch from API
+      const videosData = await fetchVideosData();
+      refreshCooldownMap[videosApiKey] = now;
+      if (videosData && videosData.length > 0) {
+        await cacheData(videosApiKey, videosData);
+      }
+      return videosData;
+    },
+    []
+  );
+
   const fetchIfNeeded = async () => {
     try {
       if (!sectionVisible || isCategoryLoading) return;
@@ -540,28 +643,81 @@ const HomeLandingSection = ({
 
       // If offline, try to load cached data
       if (!isOnline) {
-        const cachedData = await getCachedData(categoryKey);
-        if (cachedData && hasCachedData(cachedData)) {
-          setLandingData((prev) => ({ ...prev, [categoryKey]: cachedData }));
-          const filteredData = filterValidArticles(cachedData);
-          if (filteredData.length > 0) {
-            setFilteredLandingData((prev) => ({
-              ...prev,
-              [categoryKey]: filteredData,
-            }));
-          }
+        if (await fallbackToCache(categoryKey)) {
           setDataReady(true);
           return;
         }
         console.warn(`Offline and no cached data for ${categoryKey}`);
-        setDataReady(true); // Allow rendering to show OfflineFallback
+        setDataReady(true);
         return;
       }
+
       refreshCooldownMap[categoryKey] = now;
       setIsCategoryLoading(true);
+
+      // Find feed for category
       const feed = [...landingFeeds, ...youtubeFeeds].find(
         (item) => item.key === categoryKey
       );
+
+      // Special handling for videos tab - use fetchVideosData
+      if (categoryKey === "videos-landing") {
+        try {
+          const videosData = await fetchVideosWithCooldown("videos-landing");
+          if (videosData && videosData.length > 0) {
+            await cacheData(categoryKey, videosData);
+            queueCacheUpdate(categoryKey, videosData);
+            updateLandingData(categoryKey, videosData);
+          }
+        } catch (err) {
+          console.error(`Failed to fetch videos data:`, err);
+          await fallbackToCache(categoryKey);
+        }
+        return;
+      }
+
+      // Special handling for home-landing - fetch videos and replace videos section
+      if (categoryKey === "home-landing") {
+        try {
+          if (!feed) {
+            console.warn(
+              `No matching feed found for category "${categoryKey}"`
+            );
+            return;
+          }
+
+          const result = await fetchCategoryWithRetry(feed);
+          if (!result) {
+            return;
+          }
+
+          let processedData = result.data;
+
+          // Fetch videos data and replace videos section
+          try {
+            const videosData = await fetchVideosWithCooldown("home-landing");
+            if (videosData && videosData.length > 0) {
+              processedData = replaceVideosInHomeLanding(
+                result.data,
+                videosData
+              );
+            }
+          } catch (videoErr) {
+            console.error(`Failed to fetch videos for home-landing:`, videoErr);
+            // Continue with original home-landing data if videos fetch fails
+          }
+
+          await cacheData(categoryKey, processedData);
+          queueCacheUpdate(categoryKey, processedData);
+          updateLandingData(categoryKey, processedData);
+        } catch (err) {
+          console.error(`Failed to fetch home-landing data:`, err);
+          await fallbackToCache(categoryKey);
+        }
+        return;
+      }
+
+      // Regular handling for other tabs
       if (!feed) {
         console.warn(`No matching feed found for category "${categoryKey}"`);
         return;
@@ -569,12 +725,7 @@ const HomeLandingSection = ({
 
       const result = await fetchCategoryWithRetry(feed);
       if (result) {
-        const { key, data } = result;
-        const filteredData = filterValidArticles(data);
-        setLandingData((prev) => ({ ...prev, [key]: data }));
-        if (filteredData.length > 0) {
-          setFilteredLandingData((prev) => ({ ...prev, [key]: filteredData }));
-        }
+        updateLandingData(result.key, result.data);
       }
     } catch (err) {
       console.error(`Failed to fetch data for ${categoryKey}:`, err);
@@ -631,14 +782,56 @@ const HomeLandingSection = ({
       const isVideoType = selectedItem.type?.toLowerCase?.().includes("video");
       const isYouTubeLink = selectedItem.permalink?.includes?.("youtube.com");
 
-      if (isMetaType || isVideoType || isYouTubeLink) return;
+      if (isMetaType) return;
 
       isNavigatingRef.current = true;
 
       if (selectedItem.id) {
-        markAsVisited(selectedItem.id);
+        // For videos, use videoId for consistency with VideoPlayer
+        const idToMark =
+          isVideoType || isYouTubeLink
+            ? selectedItem.videoId || selectedItem.id
+            : selectedItem.id;
+        markAsVisited(idToMark);
       }
 
+      // Handle video items
+      if (isVideoType || isYouTubeLink) {
+        router.push({
+          pathname: "/components/videos/VideoPlayer",
+          params: {
+            videoId: selectedItem.videoId,
+            title: selectedItem.title,
+            content: selectedItem.content || selectedItem.excerpt || "",
+            date: formatTimeAgoMalaysia(selectedItem.date),
+            permalink: selectedItem.permalink || selectedItem.uri,
+            viewCount:
+              selectedItem.statistics?.viewCount ||
+              selectedItem.viewCount ||
+              "0",
+            durationSeconds: (
+              selectedItem.contentDetails?.durationSeconds ||
+              selectedItem.durationSeconds ||
+              "0"
+            ).toString(),
+            duration: selectedItem.duration || "0:00",
+            channelTitle: selectedItem.channelTitle || "FMT",
+            tags:
+              typeof selectedItem.tags === "string"
+                ? selectedItem.tags
+                : JSON.stringify(selectedItem.tags || []),
+            statistics: JSON.stringify(selectedItem.statistics || {}),
+            publishedAt: selectedItem.publishedAt || selectedItem.date || "",
+          },
+        });
+
+        setTimeout(() => {
+          isNavigatingRef.current = false;
+        }, 500);
+        return;
+      }
+
+      // Handle regular articles
       const targetSlug = selectedItem.slug || selectedItem.permalink;
       const articleIndex = validArticles.findIndex(
         (item) => item.slug === targetSlug || item.permalink === targetSlug
