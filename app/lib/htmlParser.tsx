@@ -445,9 +445,14 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     // Handle links: <a>...</a>
     if (node.name === "a") {
       const href = node.attribs?.href;
+      const aStyles: TextStyle[] = [];
+      if (node.attribs?.style?.includes("color: #ff0000")) {
+        aStyles.push({ color: "#ff0000" });
+      }
 
       return (
         <Text
+          style={[...aStyles, styles.linkText]}
           onPress={() => {
             if (href) {
               Linking.openURL(href).catch((err) =>
@@ -457,9 +462,13 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
           }}
         >
           {node.children?.map((child, index) => (
-            <React.Fragment key={index}>
-              {renderTextContent(child)}
-            </React.Fragment>
+            <Text key={index}>
+              {child.type === "text"
+                ? decode(child.data ?? "")
+                : child.children
+                    ?.map((c) => decode((c as ParsedNode).data ?? ""))
+                    .join("")}
+            </Text>
           ))}
         </Text>
       );
