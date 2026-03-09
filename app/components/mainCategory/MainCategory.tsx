@@ -67,7 +67,7 @@ interface Feed {
 }
 
 const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList as unknown as new (...args: any[]) => any
+  FlashList as unknown as new (...args: any[]) => any,
 );
 
 const useDeviceType = () => {
@@ -146,7 +146,7 @@ const hasCachedData = (data: any[] | undefined): boolean => {
 // Function to replace videos section in home-landing data with API videos
 const replaceVideosInHomeLanding = (
   homeLandingData: any[],
-  videosData: any[]
+  videosData: any[],
 ): any[] => {
   if (!Array.isArray(homeLandingData) || !Array.isArray(videosData)) {
     return homeLandingData;
@@ -155,7 +155,7 @@ const replaceVideosInHomeLanding = (
   // Find the index of CARD_TITLE "Videos"
   const videosCardTitleIndex = homeLandingData.findIndex(
     (item) =>
-      item.type === "CARD_TITLE" && item.title?.toLowerCase() === "videos"
+      item.type === "CARD_TITLE" && item.title?.toLowerCase() === "videos",
   );
 
   if (videosCardTitleIndex === -1) {
@@ -181,7 +181,7 @@ const replaceVideosInHomeLanding = (
         item.type?.toLowerCase().includes("video") &&
         item.type !== "CARD_TITLE" &&
         item.type !== "MORE_ITEM" &&
-        item.type !== "AD_ITEM"
+        item.type !== "AD_ITEM",
     )
     .slice(0, 5); // Only take first 5 hero videos for home-landing
 
@@ -272,7 +272,7 @@ const CardTitleSection = React.memo(
         {title.toUpperCase()}
       </Text>
     </View>
-  )
+  ),
 );
 
 const ReadMoreButton = React.memo(({ title }: { title: string }) => {
@@ -357,7 +357,7 @@ const VideoCardItem = React.memo(
     return (
       <TouchableOpacity onPress={onPress}>{videoContent}</TouchableOpacity>
     );
-  }
+  },
 );
 
 const NewsCardItem = React.memo(
@@ -419,7 +419,7 @@ const NewsCardItem = React.memo(
         />
       </TouchableOpacity>
     );
-  }
+  },
 );
 
 const AdSlotBanner = React.memo(() => <BannerAD unit="home" />);
@@ -448,7 +448,7 @@ const HomeLandingSection = ({
   const [expanded, setExpanded] = useState(false);
   const { setMainData } = useContext(DataContext);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
   const [dataReady, setDataReady] = useState(false);
   const { markAsVisited } = useVisitedArticles();
@@ -503,7 +503,7 @@ const HomeLandingSection = ({
         const isYouTube = item.permalink?.includes?.("youtube.com");
         return !isMeta && !isVideo && !isYouTube;
       }),
-    [fullArticles]
+    [fullArticles],
   );
 
   const visibleData = useMemo(() => {
@@ -512,7 +512,7 @@ const HomeLandingSection = ({
       return fullArticles;
     } else if (!expanded) {
       const firstAdIndex = fullArticles.findIndex(
-        (item) => item.type === "AD_ITEM"
+        (item) => item.type === "AD_ITEM",
       );
       const sliceIndex = firstAdIndex !== -1 ? firstAdIndex + 1 : 5;
       return fullArticles.slice(0, sliceIndex);
@@ -530,7 +530,7 @@ const HomeLandingSection = ({
 
   const fetchCategoryWithRetry = async (
     feed: Feed,
-    maxRetries = 2
+    maxRetries = 2,
   ): Promise<{ key: string; data: any[] } | null> => {
     const isYoutube = youtubeFeeds.some((f) => f.key === feed.key);
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
@@ -564,14 +564,14 @@ const HomeLandingSection = ({
           console.warn(
             `Failed to fetch ${feed.key} after ${
               maxRetries + 1
-            } attempts: ${errorMsg}`
+            } attempts: ${errorMsg}`,
           );
         } else {
           console.warn(
-            `Attempt ${attempt + 1} failed for ${feed.key}, retrying...`
+            `Attempt ${attempt + 1} failed for ${feed.key}, retrying...`,
           );
           await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, attempt) * 1000)
+            setTimeout(resolve, Math.pow(2, attempt) * 1000),
           );
         }
       }
@@ -598,7 +598,7 @@ const HomeLandingSection = ({
       }
       return false;
     },
-    [updateLandingData]
+    [updateLandingData],
   );
 
   // Helper: Fetch videos data with cooldown and cache check
@@ -626,7 +626,7 @@ const HomeLandingSection = ({
       }
       return videosData;
     },
-    []
+    [],
   );
 
   const fetchIfNeeded = async () => {
@@ -657,7 +657,7 @@ const HomeLandingSection = ({
 
       // Find feed for category
       const feed = [...landingFeeds, ...youtubeFeeds].find(
-        (item) => item.key === categoryKey
+        (item) => item.key === categoryKey,
       );
 
       // Special handling for videos tab - use fetchVideosData
@@ -681,7 +681,7 @@ const HomeLandingSection = ({
         try {
           if (!feed) {
             console.warn(
-              `No matching feed found for category "${categoryKey}"`
+              `No matching feed found for category "${categoryKey}"`,
             );
             return;
           }
@@ -699,7 +699,7 @@ const HomeLandingSection = ({
             if (videosData && videosData.length > 0) {
               processedData = replaceVideosInHomeLanding(
                 result.data,
-                videosData
+                videosData,
               );
             }
           } catch (videoErr) {
@@ -834,7 +834,7 @@ const HomeLandingSection = ({
       // Handle regular articles
       const targetSlug = selectedItem.slug || selectedItem.permalink;
       const articleIndex = validArticles.findIndex(
-        (item) => item.slug === targetSlug || item.permalink === targetSlug
+        (item) => item.slug === targetSlug || item.permalink === targetSlug,
       );
 
       setMainData(validArticles);
@@ -860,7 +860,7 @@ const HomeLandingSection = ({
       visibleData,
       setMainData,
       markAsVisited,
-    ]
+    ],
   );
 
   const handleViewableItemsChanged = useCallback(
@@ -877,7 +877,7 @@ const HomeLandingSection = ({
       });
       setVisibleItemIndices(newVisibleIndices);
     },
-    []
+    [],
   );
 
   const renderItem = useCallback(
@@ -925,6 +925,7 @@ const HomeLandingSection = ({
 
       return (
         <NewsCardItem
+          key={`${index}`}
           item={item}
           onPress={() => handlePress(index)}
           index={nonMetaIndex}
@@ -939,13 +940,13 @@ const HomeLandingSection = ({
       handlePress,
       articleIndexMap,
       visibleItemIndices,
-    ]
+    ],
   );
 
   const keyExtractor = useCallback(
     (item: ArticleType, index: number) =>
       `${item?.slug || item?.id || item?.title}-${index}`,
-    []
+    [],
   );
 
   const getItemType = useCallback((item: ArticleType) => item.type, []);
@@ -973,7 +974,7 @@ const HomeLandingSection = ({
           layout.size = shouldUseTabletLayout ? 180 : 140;
       }
     },
-    [shouldUseTabletLayout]
+    [shouldUseTabletLayout],
   );
 
   const handleRefresh = async () => {

@@ -145,7 +145,7 @@ const SearchList = ({ query }: { query: string }) => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [allLoaded, setAllLoaded] = useState(false);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
   const { theme } = useContext(ThemeContext);
   const { searchArticle, setSearchArticle, setMainData } =
@@ -204,7 +204,7 @@ const SearchList = ({ query }: { query: string }) => {
             if (node?.slug && node?.databaseId) {
               const relatedData = await getRelatedPostsWithTag(
                 node.tags,
-                node.databaseId
+                node.databaseId,
               );
               relatedPosts = relatedData?.post?.edges || [];
             }
@@ -291,7 +291,7 @@ const SearchList = ({ query }: { query: string }) => {
 
       // Filter out ads from articles for navigation
       const filteredArticles = processedData.filter(
-        (item) => item.type !== "AD_ITEM"
+        (item) => item.type !== "AD_ITEM",
       );
       setMainData(filteredArticles);
 
@@ -309,7 +309,7 @@ const SearchList = ({ query }: { query: string }) => {
         isNavigatingRef.current = false;
       }, 500);
     },
-    [processedData, markAsVisited, setMainData, router, isNavigatingRef]
+    [processedData, markAsVisited, setMainData, router, isNavigatingRef],
   );
 
   /**
@@ -329,7 +329,7 @@ const SearchList = ({ query }: { query: string }) => {
       });
       setVisibleItemIndices(newVisibleIndices);
     },
-    []
+    [],
   );
 
   /**
@@ -345,6 +345,7 @@ const SearchList = ({ query }: { query: string }) => {
 
       return (
         <NewsCardItem
+          key={`${index}`}
           item={item}
           onPress={() => handleArticlePress(item, item.displayIndex)}
           index={item.displayIndex}
@@ -352,7 +353,7 @@ const SearchList = ({ query }: { query: string }) => {
         />
       );
     },
-    [handleArticlePress, visibleItemIndices]
+    [handleArticlePress, visibleItemIndices],
   );
 
   useEffect(() => {

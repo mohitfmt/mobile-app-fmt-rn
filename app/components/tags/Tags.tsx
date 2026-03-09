@@ -139,7 +139,7 @@ const TagPosts = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const { markAsVisited, isVisited } = useVisitedArticles();
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
-    new Set()
+    new Set(),
   );
   const currentTag = params.tagName as string;
   const [processedData, setProcessedData] = useState<any[]>([]);
@@ -195,7 +195,7 @@ const TagPosts = () => {
 
             const relatedData = await getRelatedPostsWithTag(
               post.tags,
-              post.databaseId
+              post.databaseId,
             );
             const relatedPosts =
               relatedData?.post?.edges?.map((edge: any) => edge.node) || [];
@@ -208,7 +208,7 @@ const TagPosts = () => {
             console.error(`Error fetching related for ${post.slug}`, error);
             return { ...post, relatedPosts: [] };
           }
-        })
+        }),
       );
 
       // Update cache
@@ -327,7 +327,7 @@ const TagPosts = () => {
       isNavigatingRef.current = true;
       setTagPosts(
         currentTag,
-        processedData.filter((item) => item.type !== "AD_ITEM")
+        processedData.filter((item) => item.type !== "AD_ITEM"),
       );
 
       setTimeout(() => {
@@ -352,7 +352,7 @@ const TagPosts = () => {
       processPosts,
       router,
       isNavigatingRef,
-    ]
+    ],
   );
 
   const handleViewableItemsChanged = useCallback(
@@ -369,7 +369,7 @@ const TagPosts = () => {
       });
       setVisibleItemIndices(newVisibleIndices);
     },
-    []
+    [],
   );
 
   const renderItem = useCallback(
@@ -383,6 +383,7 @@ const TagPosts = () => {
 
       return (
         <NewsCardItem
+          key={`${index}`}
           item={{ ...item, tagName: currentTag, permalink: item.uri }}
           onPress={() => handlePress(item, item.displayIndex)}
           index={item.displayIndex}
@@ -390,7 +391,7 @@ const TagPosts = () => {
         />
       );
     },
-    [currentTag, handlePress, visibleItemIndices, isVisited]
+    [currentTag, handlePress, visibleItemIndices, isVisited],
   );
 
   const rotationInterpolate = rotation.interpolate({

@@ -116,7 +116,7 @@ const articleStyles = StyleSheet.create({
     }),
     ...(Platform.OS === "android" && {
       fontStyle: "italic",
-      lineHeight: 28, //  lineHeight for italic text
+      // lineHeight: 28, //  lineHeight for italic text
     }),
   },
   author: {
