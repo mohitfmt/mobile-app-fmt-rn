@@ -941,13 +941,34 @@ const HomeLandingSection = ({
     ],
   );
 
-  const keyExtractor = useCallback(
-    (item: ArticleType, index: number) =>
-      String(
-        item?.id || item?.slug || item?.permalink || `${item?.type}-${index}`,
-      ),
-    [],
-  );
+  const keyExtractor = useCallback((item: ArticleType, index: number) => {
+    const itemType = item?.type || "item";
+    const isMetaItem =
+      itemType === "CARD_TITLE" ||
+      itemType === "MORE_ITEM" ||
+      itemType === "AD_ITEM" ||
+      itemType === "LOADING_ITEM";
+
+    // Meta rows can repeat titles ("Videos", etc.), so include index to avoid key collisions.
+    if (isMetaItem) {
+      return `${itemType}-${item?.title || "meta"}-${index}`;
+    }
+
+    const stableId =
+      item?.id ||
+      item?.slug ||
+      item?.permalink ||
+      (item as any)?.videoId ||
+      (item as any)?.uri;
+    const versionPart =
+      (item as any)?.modified ||
+      (item as any)?.modified_gmt ||
+      (item as any)?.date ||
+      "";
+    const mediaPart = (item as any)?.thumbnail || "";
+    if (stableId) return `${stableId}-${versionPart}-${mediaPart}`;
+    return `${itemType}-${index}`;
+  }, []);
 
   const getItemType = useCallback((item: ArticleType) => item.type, []);
 
