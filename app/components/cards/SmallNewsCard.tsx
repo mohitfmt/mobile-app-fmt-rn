@@ -20,7 +20,7 @@ import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { SmallNewsCardProps } from "@/app/types/cards";
 import { useRouter } from "expo-router";
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import {
   Alert,
   Platform,
@@ -58,6 +58,14 @@ export default function SmallNewsCard({
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
   const { markAsVisited } = useVisitedArticles();
+  const imageVersion = useMemo(() => {
+    const versionParts = [
+      id,
+      posts?.modified || posts?.modified_gmt || posts?.date,
+      imageUri,
+    ].filter(Boolean);
+    return versionParts.join("-");
+  }, [id, posts, imageUri]);
 
   // Navigate to full article and mark as visited
   const handlePress = () => {
@@ -130,10 +138,12 @@ export default function SmallNewsCard({
       <View style={styles.row}>
         <View style={styles.imageContainer}>
           <CloudflareImageComponent
+            key={imageVersion || imageUri}
             src={imageUri}
             width={100}
             height={75}
             priority={index < 3}
+            version={imageVersion}
             accessibilityLabel={heading}
           />
         </View>

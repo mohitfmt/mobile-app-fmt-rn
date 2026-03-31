@@ -886,7 +886,6 @@ const HomeLandingSection = ({
 
       const type = item.type || "default";
       const isItemVisible = visibleItemIndices.has(index);
-
       if (type === "CARD_TITLE") {
         return (
           <CardTitleSection
@@ -925,7 +924,6 @@ const HomeLandingSection = ({
 
       return (
         <NewsCardItem
-          key={`${index}`}
           item={item}
           onPress={() => handlePress(index)}
           index={nonMetaIndex}
@@ -945,7 +943,9 @@ const HomeLandingSection = ({
 
   const keyExtractor = useCallback(
     (item: ArticleType, index: number) =>
-      `${item?.slug || item?.id || item?.title}-${index}`,
+      String(
+        item?.id || item?.slug || item?.permalink || `${item?.type}-${index}`,
+      ),
     [],
   );
 
@@ -1047,7 +1047,7 @@ const HomeLandingSection = ({
           shouldUseTabletLayout ? { paddingHorizontal: 0 } : undefined
         }
         disableAutoLayout={shouldUseTabletLayout}
-        ListFooterComponent={() => <View style={{ height: 150 }} />}
+        ListFooterComponent={() => <View style={{ height: 60 }} />}
       />
     </View>
   );
