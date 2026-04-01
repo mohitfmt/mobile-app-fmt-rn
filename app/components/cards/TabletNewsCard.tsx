@@ -53,14 +53,14 @@ const TabletNewsCard = ({
   const router = useRouter();
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
 
-  const imageVersion = useMemo(() => {
-    const versionParts = [
-      id,
-      posts?.modified || posts?.modified_gmt || posts?.date,
-      imageUri,
-    ].filter(Boolean);
-    return versionParts.join("-");
-  }, [id, posts, imageUri]);
+  // const imageVersion = useMemo(() => {
+  //   const versionParts = [
+  //     id,
+  //     posts?.modified || posts?.modified_gmt || posts?.date,
+  //     imageUri,
+  //   ].filter(Boolean);
+  //   return versionParts.join("-");
+  // }, [id, posts, imageUri]);
 
   const handlePress = () => {
     if (onPress) {
@@ -112,12 +112,12 @@ const TabletNewsCard = ({
         {/* Image with placeholder and fade-in */}
         <View style={styles.imageWrapper}>
           <CloudflareImageComponent
-            key={imageVersion || imageUri}
+            key={imageUri}
             src={imageUri}
             width={width}
             height={width * 0.5625}
             priority={index === 0} // First image is priority
-            version={imageVersion}
+            // version={imageVersion}
             accessibilityLabel={heading}
           />
         </View>

@@ -64,14 +64,14 @@ function NewsCard({
   const imageWidth = width * 0.9 + (Platform.OS === "ios" ? 6 : 0);
   const imageHeight = imageWidth * (10 / 16);
 
-  const imageVersion = useMemo(() => {
-    const versionParts = [
-      id,
-      posts?.modified || posts?.modified_gmt || posts?.date,
-      imageUri,
-    ].filter(Boolean);
-    return versionParts.join("-");
-  }, [id, posts, imageUri]);
+  // const imageVersion = useMemo(() => {
+  //   const versionParts = [
+  //     id,
+  //     posts?.modified || posts?.modified_gmt || posts?.date,
+  //     imageUri,
+  //   ].filter(Boolean);
+  //   return versionParts.join("-");
+  // }, [id, posts, imageUri]);
 
   // Handles adding/removing bookmarks
   const handleBookmarkPress = async () => {
@@ -120,12 +120,12 @@ function NewsCard({
     <View style={styles.contentContainer}>
       <View style={styles.imageContainer}>
         <CloudflareImageComponent
-          key={imageVersion || imageUri}
+          key={imageUri}
           src={imageUri}
           width={imageWidth}
           height={imageHeight}
           priority={index === 0 || main}
-          version={imageVersion}
+          // version={imageVersion}
           accessibilityLabel={heading}
         />
       </View>
