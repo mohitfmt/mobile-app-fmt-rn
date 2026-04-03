@@ -456,7 +456,7 @@ const HomeLandingSection = ({
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const lastAutoRefreshRef = useRef<number>(Date.now());
-  const isNavigatingRef = useRef<boolean>(false);
+  const lastNavigationAtRef = useRef<number>(0);
 
   const categoryKey = useMemo(() => {
     switch (categoryName.toLowerCase()) {
@@ -768,7 +768,8 @@ const HomeLandingSection = ({
 
   const handlePress = useCallback(
     (visibleIndex: number) => {
-      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+      const now = Date.now();
+      if (now - lastNavigationAtRef.current < 800) return;
 
       const selectedItem = visibleData[visibleIndex];
       if (!selectedItem) return;
@@ -784,7 +785,7 @@ const HomeLandingSection = ({
 
       if (isMetaType) return;
 
-      isNavigatingRef.current = true;
+      lastNavigationAtRef.current = now;
 
       if (selectedItem.id) {
         // For videos, use videoId for consistency with VideoPlayer
@@ -825,9 +826,6 @@ const HomeLandingSection = ({
           },
         });
 
-        setTimeout(() => {
-          isNavigatingRef.current = false;
-        }, 500);
         return;
       }
 
@@ -848,10 +846,6 @@ const HomeLandingSection = ({
           },
         });
       }
-
-      setTimeout(() => {
-        isNavigatingRef.current = false;
-      }, 500);
     },
     [
       router,

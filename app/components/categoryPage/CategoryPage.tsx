@@ -148,7 +148,7 @@ const CategoryPosts = () => {
   ); // Track visible items
   const rotation = useState(new Animated.Value(0))[0];
   const { width } = useWindowDimensions();
-  const isNavigatingRef = useRef<boolean>(false);
+  const lastNavigationAtRef = useRef<number>(0);
 
   const isTablet = width >= 600;
 
@@ -312,7 +312,8 @@ const CategoryPosts = () => {
 
   const handlePress = useCallback(
     (item: any, index: number) => {
-      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+      const now = Date.now();
+      if (now - lastNavigationAtRef.current < 800) return;
 
       if (item.id) {
         // ('Calling markAsVisited for article ID:', item.id);
@@ -335,19 +336,14 @@ const CategoryPosts = () => {
       }
 
       if (articleIndex !== -1) {
-        isNavigatingRef.current = true;
-        setTimeout(() => {
-          router.push({
-            pathname: "/components/mainCategory/SwipableArticle",
-            params: {
-              articleIndex: articleIndex.toString(),
-              categoryName: params.CategoryName,
-            },
-          });
-        }, 100);
-        setTimeout(() => {
-          isNavigatingRef.current = false;
-        }, 500);
+        lastNavigationAtRef.current = now;
+        router.push({
+          pathname: "/components/mainCategory/SwipableArticle",
+          params: {
+            articleIndex: articleIndex.toString(),
+            categoryName: params.CategoryName,
+          },
+        });
       } else {
         console.error("Could not find article index:", item.id || item.uri);
       }
@@ -358,7 +354,6 @@ const CategoryPosts = () => {
       setMainData,
       processedData,
       markAsVisited,
-      isNavigatingRef,
     ],
   );
 

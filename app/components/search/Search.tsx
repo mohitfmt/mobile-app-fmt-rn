@@ -152,7 +152,7 @@ const SearchList = ({ query }: { query: string }) => {
     useContext(DataContext);
   const { textSize } = useContext(GlobalSettingsContext);
   const { isVisited, markAsVisited } = useVisitedArticles();
-  const isNavigatingRef = useRef<boolean>(false);
+  const lastNavigationAtRef = useRef<number>(0);
   /**
    * Processes posts to insert ads after every 5 posts.
    * Same logic as TagPosts component.
@@ -280,7 +280,8 @@ const SearchList = ({ query }: { query: string }) => {
    */
   const handleArticlePress = useCallback(
     (item: ArticleType, index: number) => {
-      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+      const now = Date.now();
+      if (now - lastNavigationAtRef.current < 800) return;
 
       if (item.id) {
         markAsVisited(item.id);
@@ -295,21 +296,16 @@ const SearchList = ({ query }: { query: string }) => {
       );
       setMainData(filteredArticles);
 
-      isNavigatingRef.current = true;
-      setTimeout(() => {
-        router.push({
-          pathname: "/components/mainCategory/SwipableArticle",
-          params: {
-            articleIndex: index.toString(),
-            categoryName: "search",
-          },
-        });
-      }, 100);
-      setTimeout(() => {
-        isNavigatingRef.current = false;
-      }, 500);
+      lastNavigationAtRef.current = now;
+      router.push({
+        pathname: "/components/mainCategory/SwipableArticle",
+        params: {
+          articleIndex: index.toString(),
+          categoryName: "search",
+        },
+      });
     },
-    [processedData, markAsVisited, setMainData, router, isNavigatingRef],
+    [processedData, markAsVisited, setMainData, router],
   );
 
   /**

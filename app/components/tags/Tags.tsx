@@ -144,7 +144,7 @@ const TagPosts = () => {
   const currentTag = params.tagName as string;
   const [processedData, setProcessedData] = useState<any[]>([]);
   const insets = useSafeAreaInsets();
-  const isNavigatingRef = useRef<boolean>(false);
+  const lastNavigationAtRef = useRef<number>(0);
   /**
    * Processes posts to insert ads after every 5 posts.
    */
@@ -314,7 +314,8 @@ const TagPosts = () => {
 
   const handlePress = useCallback(
     (item: any, index: number) => {
-      if (isNavigatingRef.current) return; // 🔒 block multiple taps
+      const now = Date.now();
+      if (now - lastNavigationAtRef.current < 800) return;
 
       if (item.id) {
         // console.log('Calling markAsVisited for article ID:', item.id);
@@ -324,25 +325,20 @@ const TagPosts = () => {
       }
 
       const processedData = processPosts(tagCache[currentTag] || []);
-      isNavigatingRef.current = true;
+      lastNavigationAtRef.current = now;
       setTagPosts(
         currentTag,
         processedData.filter((item) => item.type !== "AD_ITEM"),
       );
 
-      setTimeout(() => {
-        router.push({
-          pathname: "/components/articles/Article",
-          params: {
-            index: index,
-            category: "tag",
-            tagName: currentTag,
-          },
-        });
-      }, 100);
-      setTimeout(() => {
-        isNavigatingRef.current = false;
-      }, 500);
+      router.push({
+        pathname: "/components/articles/Article",
+        params: {
+          index: index,
+          category: "tag",
+          tagName: currentTag,
+        },
+      });
     },
     [
       currentTag,
@@ -351,7 +347,6 @@ const TagPosts = () => {
       tagCache,
       processPosts,
       router,
-      isNavigatingRef,
     ],
   );
 
