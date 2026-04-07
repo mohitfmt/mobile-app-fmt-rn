@@ -319,11 +319,13 @@ const VideoCardItem = React.memo(
   ({
     item,
     isVisible,
-    onPress,
+    onItemPress,
+    visibleIndex,
   }: {
     item: any;
     isVisible: boolean;
-    onPress: () => void;
+    onItemPress: (visibleIndex: number) => void;
+    visibleIndex: number;
   }) => {
     const { isVisited } = useVisitedArticles();
     // For videos, check visited status using videoId for consistency
@@ -334,18 +336,38 @@ const VideoCardItem = React.memo(
       : false;
     const { shouldUseTabletLayout } = useDeviceType();
 
+    const handleCardPress = useCallback(() => {
+      onItemPress(visibleIndex);
+    }, [onItemPress, visibleIndex]);
+
     const videoContent = (
       <>
         {item.type === "video-featured" ? (
           shouldUseTabletLayout ? (
-            <TabletVideoCard item={item} visited={visited} onPress={onPress} />
+            <TabletVideoCard
+              item={item}
+              visited={visited}
+              onPress={handleCardPress}
+            />
           ) : (
-            <VideoCard item={item} visited={visited} onPress={onPress} />
+            <VideoCard
+              item={item}
+              visited={visited}
+              onPress={handleCardPress}
+            />
           )
         ) : shouldUseTabletLayout ? (
-          <TabletVideoCard item={item} visited={visited} onPress={onPress} />
+          <TabletVideoCard
+            item={item}
+            visited={visited}
+            onPress={handleCardPress}
+          />
         ) : (
-          <SmallVideoCard item={item} visited={visited} onPress={onPress} />
+          <SmallVideoCard
+            item={item}
+            visited={visited}
+            onPress={handleCardPress}
+          />
         )}
       </>
     );
@@ -355,7 +377,9 @@ const VideoCardItem = React.memo(
     }
 
     return (
-      <TouchableOpacity onPress={onPress}>{videoContent}</TouchableOpacity>
+      <TouchableOpacity onPress={handleCardPress}>
+        {videoContent}
+      </TouchableOpacity>
     );
   },
 );
@@ -363,18 +387,24 @@ const VideoCardItem = React.memo(
 const NewsCardItem = React.memo(
   ({
     item,
-    onPress,
+    onItemPress,
+    visibleIndex,
     index,
     isVisible,
   }: {
     item: any;
-    onPress: () => void;
+    onItemPress: (visibleIndex: number) => void;
+    visibleIndex: number;
     index: number;
     isVisible: boolean;
   }) => {
     const { isVisited } = useVisitedArticles();
     const visited = item.id ? isVisited(item.id) : false;
     const { shouldUseTabletLayout } = useDeviceType();
+
+    const handleCardPress = useCallback(() => {
+      onItemPress(visibleIndex);
+    }, [onItemPress, visibleIndex]);
 
     if (shouldUseTabletLayout) {
       return (
@@ -392,7 +422,7 @@ const NewsCardItem = React.memo(
             uri={item.permalink}
             main={true}
             visited={visited}
-            onPress={onPress}
+            onPress={handleCardPress}
           />
         </View>
       );
@@ -401,7 +431,7 @@ const NewsCardItem = React.memo(
     const CardComponent = item.type === "featured" ? NewsCard : SmallNewsCard;
 
     return (
-      <TouchableOpacity onPress={onPress}>
+      <TouchableOpacity onPress={handleCardPress}>
         <CardComponent
           id={item.id}
           imageUri={item.thumbnail}
@@ -785,8 +815,6 @@ const HomeLandingSection = ({
 
       if (isMetaType) return;
 
-      lastNavigationAtRef.current = now;
-
       if (selectedItem.id) {
         // For videos, use videoId for consistency with VideoPlayer
         const idToMark =
@@ -798,6 +826,7 @@ const HomeLandingSection = ({
 
       // Handle video items
       if (isVideoType || isYouTubeLink) {
+        lastNavigationAtRef.current = now;
         router.push({
           pathname: "/components/videos/VideoPlayer",
           params: {
@@ -838,6 +867,7 @@ const HomeLandingSection = ({
       setMainData(validArticles);
 
       if (articleIndex !== -1) {
+        lastNavigationAtRef.current = now;
         router.push({
           pathname: "/components/mainCategory/SwipableArticle",
           params: {
@@ -909,7 +939,8 @@ const HomeLandingSection = ({
           <VideoCardItem
             item={item}
             isVisible={isItemVisible}
-            onPress={() => handlePress(index)}
+            visibleIndex={index}
+            onItemPress={handlePress}
           />
         );
       }
@@ -919,7 +950,8 @@ const HomeLandingSection = ({
       return (
         <NewsCardItem
           item={item}
-          onPress={() => handlePress(index)}
+          visibleIndex={index}
+          onItemPress={handlePress}
           index={nonMetaIndex}
           isVisible={isItemVisible}
         />

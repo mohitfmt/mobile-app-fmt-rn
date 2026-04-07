@@ -93,7 +93,7 @@ export const buildCloudflareUrl = (
     dpr?: number;
     anim?: boolean;
     version?: string;
-  }
+  },
 ): string => {
   if (!isHttpUrl(originalUrl)) return originalUrl;
 
@@ -126,7 +126,7 @@ export const buildCloudflareUrl = (
       : 90;
   const quality = Math.max(
     40,
-    Math.min(options?.quality ?? defaultQuality, 95)
+    Math.min(options?.quality ?? defaultQuality, 95),
   );
 
   // Preserve GIF animation
@@ -183,7 +183,7 @@ const flushPrefetchQueue = async (concurrency: number = 2) => {
 export const queuePrefetch = (
   urls: string[],
   width: number,
-  priority: boolean = false
+  priority: boolean = false,
 ) => {
   urls.forEach((url) => {
     if (!isHttpUrl(url)) return;
@@ -287,7 +287,7 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
 
     const subscription = AppState.addEventListener(
       "change",
-      handleAppStateChange
+      handleAppStateChange,
     );
     return () => {
       subscription.remove();
@@ -334,10 +334,10 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
             queuePrefetch(
               prefetchNext.slice(0, priority ? 3 : 2),
               width,
-              priority
+              priority,
             );
           }
-        }
+        },
       );
 
       return () => {
@@ -407,7 +407,7 @@ const CloudflareImageComponent: React.FC<CloudflareImageProps> = ({
         onError?.(error);
       }
     },
-    [src, retryCount, onError]
+    [src, retryCount, onError],
   );
 
   return (
