@@ -29,6 +29,7 @@ import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { ArticleType } from "@/app/types/article";
 import { FlashList } from "@shopify/flash-list";
+import analytics from "@react-native-firebase/analytics";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "expo-router";
 import React, {
@@ -67,7 +68,7 @@ interface Feed {
 }
 
 const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList as unknown as new (...args: any[]) => any,
+  FlashList as unknown as new (...args: any[]) => FlashList<ArticleType>,
 );
 
 const useDeviceType = () => {
@@ -454,6 +455,8 @@ const NewsCardItem = React.memo(
 
 const AdSlotBanner = React.memo(() => <BannerAD unit="home" />);
 const refreshCooldownMap: Record<string, number> = {};
+const NAVIGATION_LOCK_TIMEOUT_MS = 2000;
+const NAVIGATION_RELEASE_DELAY_MS = 500;
 
 const HomeLandingSection = ({
   categoryName,
@@ -486,7 +489,11 @@ const HomeLandingSection = ({
   const [isCategoryLoading, setIsCategoryLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const lastAutoRefreshRef = useRef<number>(Date.now());
-  const lastNavigationAtRef = useRef<number>(0);
+  const isNavigatingRef = useRef<boolean>(false);
+  const navigationUnlockTimeoutRef = useRef<ReturnType<
+    typeof setTimeout
+  > | null>(null);
+  const navigationAttemptRef = useRef<number>(0);
 
   const categoryKey = useMemo(() => {
     switch (categoryName.toLowerCase()) {
@@ -796,13 +803,76 @@ const HomeLandingSection = ({
     return map;
   }, [visibleData]);
 
+  const trackPressIssue = useCallback(
+    (
+      reason:
+        | "blocked_locked"
+        | "item_missing"
+        | "meta_item"
+        | "push_error"
+        | "article_not_found"
+        | "lock_watchdog_release",
+      payload: {
+        visibleIndex: number;
+        itemType?: string;
+        attempt?: number;
+      },
+    ) => {
+      const params = {
+        reason,
+        category: categoryKey.slice(0, 35),
+        visible_index: payload.visibleIndex,
+        item_type: (payload.itemType || "unknown").slice(0, 35),
+        attempt: payload.attempt || 0,
+      };
+      console.log("[MainCategory][PressIssue]", params);
+      void analytics().logEvent("main_category_press_issue", params);
+    },
+    [categoryKey],
+  );
+
+  const clearNavigationUnlockTimeout = useCallback(() => {
+    if (!navigationUnlockTimeoutRef.current) return;
+    clearTimeout(navigationUnlockTimeoutRef.current);
+    navigationUnlockTimeoutRef.current = null;
+  }, []);
+
+  const releaseNavigationLock = useCallback(() => {
+    isNavigatingRef.current = false;
+    clearNavigationUnlockTimeout();
+  }, [clearNavigationUnlockTimeout]);
+
+  const scheduleNavigationRelease = useCallback(
+    (delayMs: number) => {
+      clearNavigationUnlockTimeout();
+      navigationUnlockTimeoutRef.current = setTimeout(() => {
+        releaseNavigationLock();
+      }, delayMs);
+    },
+    [clearNavigationUnlockTimeout, releaseNavigationLock],
+  );
+
+  useEffect(() => {
+    return () => {
+      clearNavigationUnlockTimeout();
+      isNavigatingRef.current = false;
+    };
+  }, [clearNavigationUnlockTimeout]);
+
   const handlePress = useCallback(
     (visibleIndex: number) => {
-      const now = Date.now();
-      if (now - lastNavigationAtRef.current < 800) return;
+      if (isNavigatingRef.current) {
+        console.log("blocked_locked");
+        trackPressIssue("blocked_locked", { visibleIndex });
+        return; // 🔒 block multiple taps
+      }
 
       const selectedItem = visibleData[visibleIndex];
-      if (!selectedItem) return;
+      if (!selectedItem) {
+        console.log("item_missing");
+        trackPressIssue("item_missing", { visibleIndex });
+        return;
+      }
 
       const isMetaType = [
         "AD_ITEM",
@@ -813,7 +883,20 @@ const HomeLandingSection = ({
       const isVideoType = selectedItem.type?.toLowerCase?.().includes("video");
       const isYouTubeLink = selectedItem.permalink?.includes?.("youtube.com");
 
-      if (isMetaType) return;
+      if (isMetaType) {
+        console.log("meta_item");
+        trackPressIssue("meta_item", {
+          visibleIndex,
+          itemType: selectedItem.type,
+        });
+        return;
+      }
+
+      navigationAttemptRef.current += 1;
+      const attempt = navigationAttemptRef.current;
+
+      isNavigatingRef.current = true;
+      scheduleNavigationRelease(NAVIGATION_LOCK_TIMEOUT_MS);
 
       if (selectedItem.id) {
         // For videos, use videoId for consistency with VideoPlayer
@@ -826,35 +909,45 @@ const HomeLandingSection = ({
 
       // Handle video items
       if (isVideoType || isYouTubeLink) {
-        lastNavigationAtRef.current = now;
-        router.push({
-          pathname: "/components/videos/VideoPlayer",
-          params: {
-            videoId: selectedItem.videoId,
-            title: selectedItem.title,
-            content: selectedItem.content || selectedItem.excerpt || "",
-            date: formatTimeAgoMalaysia(selectedItem.date),
-            permalink: selectedItem.permalink || selectedItem.uri,
-            viewCount:
-              selectedItem.statistics?.viewCount ||
-              selectedItem.viewCount ||
-              "0",
-            durationSeconds: (
-              selectedItem.contentDetails?.durationSeconds ||
-              selectedItem.durationSeconds ||
-              "0"
-            ).toString(),
-            duration: selectedItem.duration || "0:00",
-            channelTitle: selectedItem.channelTitle || "FMT",
-            tags:
-              typeof selectedItem.tags === "string"
-                ? selectedItem.tags
-                : JSON.stringify(selectedItem.tags || []),
-            statistics: JSON.stringify(selectedItem.statistics || {}),
-            publishedAt: selectedItem.publishedAt || selectedItem.date || "",
-          },
-        });
-
+        try {
+          router.push({
+            pathname: "/components/videos/VideoPlayer",
+            params: {
+              videoId: selectedItem.videoId,
+              title: selectedItem.title,
+              content: selectedItem.content || selectedItem.excerpt || "",
+              date: formatTimeAgoMalaysia(selectedItem.date),
+              permalink: selectedItem.permalink || selectedItem.uri,
+              viewCount:
+                selectedItem.statistics?.viewCount ||
+                selectedItem.viewCount ||
+                "0",
+              durationSeconds: (
+                selectedItem.contentDetails?.durationSeconds ||
+                selectedItem.durationSeconds ||
+                "0"
+              ).toString(),
+              duration: selectedItem.duration || "0:00",
+              channelTitle: selectedItem.channelTitle || "FMT",
+              tags:
+                typeof selectedItem.tags === "string"
+                  ? selectedItem.tags
+                  : JSON.stringify(selectedItem.tags || []),
+              statistics: JSON.stringify(selectedItem.statistics || {}),
+              publishedAt: selectedItem.publishedAt || selectedItem.date || "",
+            },
+          });
+          scheduleNavigationRelease(NAVIGATION_RELEASE_DELAY_MS);
+        } catch (error) {
+          console.log("push_error");
+          trackPressIssue("push_error", {
+            visibleIndex,
+            itemType: selectedItem.type,
+            attempt,
+          });
+          console.log("[MainCategory] Video navigation failed:", error);
+          releaseNavigationLock();
+        }
         return;
       }
 
@@ -866,8 +959,18 @@ const HomeLandingSection = ({
 
       setMainData(validArticles);
 
-      if (articleIndex !== -1) {
-        lastNavigationAtRef.current = now;
+      if (articleIndex === -1) {
+        console.log("article_not_found");
+        trackPressIssue("article_not_found", {
+          visibleIndex,
+          itemType: selectedItem.type,
+          attempt,
+        });
+        releaseNavigationLock();
+        return;
+      }
+
+      try {
         router.push({
           pathname: "/components/mainCategory/SwipableArticle",
           params: {
@@ -875,6 +978,16 @@ const HomeLandingSection = ({
             categoryName: categoryKey,
           },
         });
+        scheduleNavigationRelease(NAVIGATION_RELEASE_DELAY_MS);
+      } catch (error) {
+        console.log("push_error1");
+        trackPressIssue("push_error", {
+          visibleIndex,
+          itemType: selectedItem.type,
+          attempt,
+        });
+        console.log("[MainCategory] Article navigation failed:", error);
+        releaseNavigationLock();
       }
     },
     [
@@ -884,6 +997,9 @@ const HomeLandingSection = ({
       visibleData,
       setMainData,
       markAsVisited,
+      trackPressIssue,
+      scheduleNavigationRelease,
+      releaseNavigationLock,
     ],
   );
 
@@ -1071,8 +1187,7 @@ const HomeLandingSection = ({
         estimatedItemSize={shouldUseTabletLayout ? 180 : 140}
         getItemType={getItemType}
         overrideItemLayout={overrideItemLayout}
-        scrollEventThrottle={16}
-        drawDistance={500}
+        drawDistance={400}
         onEndReachedThreshold={0.5}
         refreshControl={
           <RefreshControl
@@ -1083,8 +1198,9 @@ const HomeLandingSection = ({
           />
         }
         viewabilityConfig={{
-          itemVisiblePercentThreshold: 50,
+          itemVisiblePercentThreshold: 60,
           waitForInteraction: false,
+          minimumViewTime: 120,
         }}
         onViewableItemsChanged={handleViewableItemsChanged}
         onScroll={onScroll}
