@@ -144,7 +144,7 @@ const CategoryPosts = () => {
   const flashListRef = useRef<FlashListType<ArticleType>>(null);
   const [showBottomBorder, setShowBottomBorder] = useState(false);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
-    new Set()
+    new Set(),
   ); // Track visible items
   const rotation = useState(new Animated.Value(0))[0];
   const { width } = useWindowDimensions();
@@ -202,7 +202,7 @@ const CategoryPosts = () => {
 
       return processedData;
     },
-    []
+    [],
   );
 
   const getCategoryKey = useCallback((displayName: string): string => {
@@ -265,7 +265,7 @@ const CategoryPosts = () => {
         setProcessedData(processed);
 
         const swipableArticles = processed.filter(
-          (item) => item.type !== "AD_ITEM"
+          (item) => item.type !== "AD_ITEM",
         );
         setMainData(swipableArticles);
 
@@ -285,7 +285,7 @@ const CategoryPosts = () => {
       processArticles,
       getCategoryKey,
       setMainData,
-    ]
+    ],
   );
 
   useEffect(() => {
@@ -330,7 +330,7 @@ const CategoryPosts = () => {
         processedData[articleIndex]?.uri !== item.uri
       ) {
         articleIndex = processedData.findIndex(
-          (article: any) => article.id === item.id || article.uri === item.uri
+          (article: any) => article.id === item.id || article.uri === item.uri,
         );
       }
 
@@ -359,7 +359,7 @@ const CategoryPosts = () => {
       processedData,
       markAsVisited,
       isNavigatingRef,
-    ]
+    ],
   );
 
   const getNonAdIndex = useCallback(
@@ -370,7 +370,7 @@ const CategoryPosts = () => {
           .filter((item) => item.type !== "AD_ITEM").length - 1
       );
     },
-    [processedData]
+    [processedData],
   );
 
   const handleViewableItemsChanged = useCallback(
@@ -387,7 +387,7 @@ const CategoryPosts = () => {
       });
       setVisibleItemIndices(newVisibleIndices);
     },
-    []
+    [],
   );
 
   const renderItem = useCallback(
@@ -428,6 +428,7 @@ const CategoryPosts = () => {
 
         return (
           <NewsCardItem
+            key={`${index}`}
             item={item}
             onPress={() => handlePress(item, nonAdIndex)}
             index={nonAdIndex}
@@ -447,7 +448,7 @@ const CategoryPosts = () => {
       getNonAdIndex,
       visibleItemIndices,
       isVisited,
-    ]
+    ],
   );
 
   if ((loading || globalLoading) && !backgroundLoading) {

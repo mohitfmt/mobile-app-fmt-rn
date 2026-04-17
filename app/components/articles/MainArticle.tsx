@@ -89,7 +89,7 @@ const ArticleContent = React.memo(
 
             const relatedData = await getRelatedPostsWithTag(
               item.tags,
-              item.databaseId
+              item.databaseId,
             );
 
             if (
@@ -107,7 +107,7 @@ const ArticleContent = React.memo(
         } catch (error) {
           console.error(
             ` Error fetching related posts for ${item.slug}:`,
-            error
+            error,
           );
         }
       };
@@ -147,7 +147,7 @@ const ArticleContent = React.memo(
                 item["featuredCategory"] ||
                   item["featured-category"] ||
                   getPreferredCategory(item.categories)?.node?.name ||
-                  "News"
+                  "News",
               )}
             </Text>
           </View>
@@ -179,7 +179,7 @@ const ArticleContent = React.memo(
                     color: theme.textColor,
                     paddingVertical: 10,
                     fontSize: getArticleTextSize(19.0, textSize),
-                    lineHeight: getArticleTextSize(19.0, textSize) * 1.4,
+                    lineHeight: getArticleTextSize(20.0, textSize) * 1.4,
                   },
                 ]}
               >
@@ -269,7 +269,7 @@ const ArticleContent = React.memo(
                       label={tagNode?.name || tagNode?.title || "Unknown"}
                     />
                   );
-                }
+                },
               )}
             </View>
           </View>
@@ -407,7 +407,7 @@ const ArticleContent = React.memo(
                   title={related?.node?.title || related.title}
                   subtitle={related?.node?.excerpt || related.excerpt}
                   time={formatTimeAgo(
-                    related?.node?.dateGmt || related.dateGmt || related.date
+                    related?.node?.dateGmt || related.dateGmt || related.date,
                   )}
                   uri={related?.node?.uri || related.permalink || related.uri}
                   onPress={() => {
@@ -468,7 +468,7 @@ const ArticleContent = React.memo(
         </SafeAreaView>
       </ScrollView>
     );
-  }
+  },
 );
 
 export default ArticleContent;

@@ -30,17 +30,27 @@ import axios from "axios";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
-import React, { useContext, useEffect } from "react";
+import React, { useCallback, useContext, useEffect, useState } from "react";
 import {
+  Image,
   Linking,
+  Modal,
   PermissionsAndroid,
   Platform,
+  StyleSheet,
   Text,
   TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { Provider } from "react-redux";
 import "./global.css";
+import {
+  ForceUpdateStatus,
+  getForceUpdateStatus,
+  openStoreForForceUpdate,
+} from "./lib/forceUpdate";
 import ConnectionErrorNotification from "./NetworkBanner";
 import { BookmarkProvider } from "./providers/BookmarkContext";
 import { DataProvider } from "./providers/DataProvider";
@@ -97,7 +107,7 @@ export const getFcmToken = async (): Promise<string | null> => {
         if (!apnsToken) {
           // console.log("Retrying to get APNs token...");
           return new Promise((resolve) =>
-            setTimeout(() => resolve(getFcmToken()), 3000)
+            setTimeout(() => resolve(getFcmToken()), 3000),
           );
         }
       } else {
@@ -137,7 +147,7 @@ const displayForegroundNotification = async (
   body: string,
   date: string,
   slug: string,
-  imageUrl?: string
+  imageUrl?: string,
 ) => {
   try {
     const channelId = await createNotificationChannel();
@@ -216,7 +226,7 @@ const requestAndroidNotificationPermission = async (): Promise<boolean> => {
           buttonNeutral: "Ask Me Later",
           buttonNegative: "Cancel",
           buttonPositive: "OK",
-        }
+        },
       );
       return permission === PermissionsAndroid.RESULTS.GRANTED;
     } catch (error) {
@@ -310,7 +320,7 @@ const initializeNotifications = async () => {
           notification.body || "You have a new message",
           (data?.date as string) || "",
           (data?.slug as string) || "",
-          (data?.imageUrl as string) || ""
+          (data?.imageUrl as string) || "",
         );
       }
 
@@ -440,8 +450,38 @@ export default function RootLayout() {
 }
 
 function AppNavigator() {
-  const { isOnline, setIsOnline } = useContext(ThemeContext);
+  const { isOnline, setIsOnline, theme } = useContext(ThemeContext);
   const { refreshLandingPages } = useLandingData();
+  const [forceUpdateStatus, setForceUpdateStatus] =
+    useState<ForceUpdateStatus | null>(null);
+  const [isCheckingForceUpdate, setIsCheckingForceUpdate] = useState(true);
+
+  useEffect(() => {
+    let isMounted = true;
+    async function checkForceUpdate() {
+      try {
+        const status = await getForceUpdateStatus();
+        if (!isMounted) return;
+        setForceUpdateStatus(status);
+      } catch (error) {
+        console.error("Force update check failed", error);
+      } finally {
+        if (!isMounted) return;
+        setIsCheckingForceUpdate(false);
+      }
+    }
+
+    checkForceUpdate();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleForceUpdatePress = useCallback(async () => {
+    if (!forceUpdateStatus?.storeUrl) return;
+    await openStoreForForceUpdate(forceUpdateStatus.storeUrl);
+  }, [forceUpdateStatus?.storeUrl]);
 
   const handleTryAgain = async () => {
     try {
@@ -454,6 +494,9 @@ function AppNavigator() {
       console.log("Reconnection failed", errorMessage);
     }
   };
+
+  const shouldShowForceUpdateModal =
+    !isCheckingForceUpdate && !!forceUpdateStatus?.shouldForceUpdate;
 
   return (
     <>
@@ -492,6 +535,10 @@ function AppNavigator() {
           options={{ headerShown: false }}
         />
         <Stack.Screen
+          name="components/videos/VideoPlayer"
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
           name="components/mainCategory/SwipableArticle"
           options={{ headerShown: false }}
         />
@@ -500,6 +547,138 @@ function AppNavigator() {
         onTryAgain={handleTryAgain}
         visible={!isOnline}
       />
+      {forceUpdateStatus && (
+        <Modal
+          animationType="fade"
+          transparent
+          visible={shouldShowForceUpdateModal}
+          onRequestClose={() => {}}
+          statusBarTranslucent
+        >
+          <View style={styles.forceUpdateBackdrop}>
+            <View
+              style={[
+                styles.forceUpdateCard,
+                {
+                  backgroundColor:
+                    theme.backgroundColor === "#000000" ? "#111111" : "#ffffff",
+                },
+              ]}
+            >
+              <Image
+                source={require("./assets/images/icon_FMT.png")}
+                style={styles.forceUpdateLogo}
+              />
+              <Text
+                style={[styles.forceUpdateTitle, { color: theme.textColor }]}
+              >
+                {forceUpdateStatus?.title}
+              </Text>
+              <Text
+                style={[styles.forceUpdateMessage, { color: theme.textColor }]}
+              >
+                {forceUpdateStatus?.message}
+              </Text>
+              <Text
+                style={[
+                  styles.forceUpdateVersionText,
+                  {
+                    color:
+                      theme.backgroundColor === "#000000"
+                        ? "#9ca3af"
+                        : "#6b7280",
+                  },
+                ]}
+              >
+                Current: {forceUpdateStatus?.currentVersion}
+              </Text>
+              <Text
+                style={[
+                  styles.forceUpdateVersionText,
+                  {
+                    color:
+                      theme.backgroundColor === "#000000"
+                        ? "#9ca3af"
+                        : "#6b7280",
+                  },
+                ]}
+              >
+                Required: {forceUpdateStatus?.minimumVersion}
+              </Text>
+              <TouchableOpacity
+                style={styles.forceUpdateButton}
+                onPress={handleForceUpdatePress}
+                activeOpacity={0.8}
+              >
+                <Text style={styles.forceUpdateButtonText}>
+                  {forceUpdateStatus?.ctaLabel}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </>
   );
 }
+
+const styles = StyleSheet.create({
+  forceUpdateBackdrop: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    backgroundColor: "rgba(0, 0, 0, 0.45)",
+  },
+  forceUpdateCard: {
+    width: "100%",
+    maxWidth: 420,
+    borderRadius: 14,
+    padding: 20,
+    backgroundColor: "#ffffff",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.12,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  forceUpdateLogo: {
+    width: 100,
+    height: 40,
+    alignSelf: "center",
+    marginBottom: 14,
+  },
+  forceUpdateTitle: {
+    fontSize: 18,
+    fontFamily: "SF-Pro-Display-Bold",
+    textAlign: "center",
+    marginBottom: 12,
+  },
+  forceUpdateMessage: {
+    fontSize: 14,
+    lineHeight: 22,
+    fontFamily: "SF-Pro-Text-Regular",
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  forceUpdateVersionText: {
+    fontSize: 12,
+    color: "#6b7280",
+    marginBottom: 4,
+    fontFamily: "SF-Pro-Text-Medium",
+    textAlign: "center",
+  },
+  forceUpdateButton: {
+    marginTop: 16,
+    borderRadius: 10,
+    backgroundColor: "#c62828",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 12,
+  },
+  forceUpdateButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontFamily: "SF-Pro-Display-Semibold",
+  },
+});

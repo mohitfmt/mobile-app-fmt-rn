@@ -289,7 +289,10 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     );
   };
 
-  const renderTextContent = (node: ParsedNode): React.ReactNode => {
+  const renderTextContent = (
+    node: ParsedNode,
+    inheritStyles = false
+  ): React.ReactNode => {
     const androidTextProps = Platform.select({
       android: {
         allowFontScaling: false,
@@ -301,6 +304,11 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     // Handle plain text
     if (node.type === "text") {
       let text = decode((node.data || "").replace(/,(?!\d)([^\s])/g, ", $1"));
+
+      // If inside styled parent (span/a), render as plain text to inherit styles
+      if (inheritStyles) {
+        return text;
+      }
 
       return (
         <Text
@@ -401,43 +409,27 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
 
     // Render spans with styles (e.g., color)
     if (node.name === "span") {
-      const spanStyles: TextStyle[] = [];
-      if (node.attribs?.style?.includes("color: #ff0000")) {
-        spanStyles.push({ color: "#ff0000" });
+      const spanStyles: TextStyle = {};
+
+      if (node.attribs?.style) {
+        const styleStr = node.attribs.style;
+        const colorMatch = styleStr.match(/color:\s*([^;]+)/i);
+        if (colorMatch) {
+          spanStyles.color = colorMatch[1].trim();
+        }
       }
 
       return (
-        <Text>
-          <Text> </Text>
-          <Text style={[...spanStyles, styles.linkText]}>
-            {node.children?.map((child, index) => {
-              if (child.name === "a") {
-                const aStyles: TextStyle[] = [];
-                if (child.attribs?.style?.includes("color: #ff0000")) {
-                  aStyles.push({ color: "#ff0000" });
-                }
-                return (
-                  <Text
-                    key={index}
-                    style={[...spanStyles, ...aStyles, styles.linkText]}
-                    onPress={() => {
-                      if (child.attribs?.href) {
-                        Linking.openURL(child.attribs.href).catch(
-                          console.error
-                        );
-                      }
-                    }}
-                  >
-                    {child.children?.map((innerChild, i) => (
-                      <Text key={i}>{innerChild.data}</Text>
-                    ))}
-                  </Text>
-                );
-              }
-              return <Text key={index}>{child.data}</Text>;
-            })}
-          </Text>
-          <Text> </Text>
+        <Text
+          style={Object.keys(spanStyles).length > 0 ? spanStyles : undefined}
+        >
+          {node.children?.map((child, index) => {
+            return (
+              <React.Fragment key={index}>
+                {renderTextContent(child, true)}
+              </React.Fragment>
+            );
+          })}
         </Text>
       );
     }
@@ -445,9 +437,24 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
     // Handle links: <a>...</a>
     if (node.name === "a") {
       const href = node.attribs?.href;
+      const aStyles: TextStyle = {};
+
+      if (node.attribs?.style) {
+        const styleStr = node.attribs.style;
+        const colorMatch = styleStr.match(/color:\s*([^;]+)/i);
+        if (colorMatch) {
+          aStyles.color = colorMatch[1].trim();
+        }
+      }
+
+      const finalStyles = {
+        ...styles.linkText,
+        ...aStyles,
+      };
 
       return (
         <Text
+          style={finalStyles}
           onPress={() => {
             if (href) {
               Linking.openURL(href).catch((err) =>
@@ -456,11 +463,13 @@ const HTMLContentParser: React.FC<HTMLContentParserProps> = ({
             }
           }}
         >
-          {node.children?.map((child, index) => (
-            <React.Fragment key={index}>
-              {renderTextContent(child)}
-            </React.Fragment>
-          ))}
+          {node.children?.map((child, index) => {
+            return (
+              <React.Fragment key={index}>
+                {renderTextContent(child, true)}
+              </React.Fragment>
+            );
+          })}
         </Text>
       );
     }

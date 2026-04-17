@@ -5,7 +5,7 @@ import { useBookmarks } from "@/app/providers/BookmarkContext";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useRouter } from "expo-router";
-import React, { useContext } from "react";
+import React, { useContext, useMemo } from "react";
 import {
   Share,
   StyleSheet,
@@ -52,6 +52,15 @@ const TabletNewsCard = ({
   const { textSize } = useContext(GlobalSettingsContext);
   const router = useRouter();
   const { isBookmarked, addBookmark, removeBookmark } = useBookmarks();
+
+  // const imageVersion = useMemo(() => {
+  //   const versionParts = [
+  //     id,
+  //     posts?.modified || posts?.modified_gmt || posts?.date,
+  //     imageUri,
+  //   ].filter(Boolean);
+  //   return versionParts.join("-");
+  // }, [id, posts, imageUri]);
 
   const handlePress = () => {
     if (onPress) {
@@ -103,10 +112,12 @@ const TabletNewsCard = ({
         {/* Image with placeholder and fade-in */}
         <View style={styles.imageWrapper}>
           <CloudflareImageComponent
+            key={imageUri}
             src={imageUri}
             width={width}
             height={width * 0.5625}
             priority={index === 0} // First image is priority
+            // version={imageVersion}
             accessibilityLabel={heading}
           />
         </View>
