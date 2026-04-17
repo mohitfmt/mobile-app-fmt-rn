@@ -449,13 +449,13 @@ const processYouTubeData = (items: any[]): any[] => {
 // getPriorityGroups: Returns feeds grouped by high/medium/low priority.
 const getPriorityGroups = () => {
   const highPriority = [...landingFeeds, ...youtubeFeeds].filter(
-    (f) => f.priority === "high"
+    (f) => f.priority === "high",
   );
   const mediumPriority = [...landingFeeds, ...youtubeFeeds].filter(
-    (f) => f.priority === "medium"
+    (f) => f.priority === "medium",
   );
   const lowPriority = [...landingFeeds, ...youtubeFeeds].filter(
-    (f) => f.priority === "low"
+    (f) => f.priority === "low",
   );
 
   return { highPriority, mediumPriority, lowPriority };
@@ -528,7 +528,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         const fileInfo = await FileSystem.getInfoAsync(CACHE_PATH);
         if (fileInfo.exists) {
           const cachedDataString = await FileSystem.readAsStringAsync(
-            CACHE_PATH
+            CACHE_PATH,
           );
           if (cachedDataString && cachedDataString.trim()) {
             const cachedData: CachedData = JSON.parse(cachedDataString);
@@ -555,7 +555,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
           new Set([
             ...landingFeeds.map((f) => f.key),
             ...youtubeFeeds.map((f) => f.key),
-          ])
+          ]),
         );
         const overlayResults = await Promise.all(
           allKeys.map(async (key) => {
@@ -565,7 +565,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
             } catch {
               return { key, data: undefined as any[] | undefined };
             }
-          })
+          }),
         );
         for (const { key, data } of overlayResults) {
           if (Array.isArray(data) && data.length > 0) {
@@ -576,7 +576,6 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
       } catch (overlayErr) {
         // Non-fatal: if MMKV overlay fails we still proceed with file cache
       }
-      console.log(parsed, "parsed");
       // Apply cached data
       if (hasValidCache && Object.keys(parsed).length > 0) {
         setLandingData(parsed);
@@ -595,7 +594,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         // Check if we have priority data
         const { highPriority } = getPriorityGroups();
         const hasPriorityData = highPriority.some(
-          (feed) => filtered[feed.key]?.length > 0
+          (feed) => filtered[feed.key]?.length > 0,
         );
 
         if (hasPriorityData) {
@@ -637,7 +636,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
     lastLandingRefreshRef.current = now;
 
     const landingPages = landingFeeds.filter((feed) =>
-      feed.key.endsWith("-landing")
+      feed.key.endsWith("-landing"),
     );
 
     // const results = await Promise.allSettled(
@@ -674,7 +673,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         const existingCache = await FileSystem.getInfoAsync(CACHE_PATH);
         if (existingCache.exists) {
           const cachedDataString = await FileSystem.readAsStringAsync(
-            CACHE_PATH
+            CACHE_PATH,
           );
           if (cachedDataString && cachedDataString.trim()) {
             const existingData = JSON.parse(cachedDataString);
@@ -734,12 +733,12 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         }, 2000);
       }
     },
-    [shouldUpdateCache, batchUpdateCache]
+    [shouldUpdateCache, batchUpdateCache],
   );
 
   const fetchCategoryWithRetry = async (
     feed: Feed,
-    maxRetries = 2
+    maxRetries = 2,
   ): Promise<{ key: string; data: any[] } | null> => {
     const isYoutube = youtubeFeeds.some((f) => f.key === feed.key);
 
@@ -782,7 +781,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
           // console.warn(`Attempt ${attempt + 1} failed for ${feed.key}, retrying...`);
           await new Promise((resolve) =>
-            setTimeout(resolve, Math.pow(2, attempt) * 1000)
+            setTimeout(resolve, Math.pow(2, attempt) * 1000),
           );
         }
       }
@@ -801,7 +800,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
       const normalizedKey = normalizeCategoryKey(categoryKey);
 
       const category = [...landingFeeds, ...youtubeFeeds].find(
-        (item) => item.key === normalizedKey
+        (item) => item.key === normalizedKey,
       );
 
       if (!category) {
@@ -827,7 +826,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     },
-    []
+    [],
   );
 
   const processResults = useCallback(
@@ -864,7 +863,7 @@ export const LandingDataProvider: React.FC<{ children: React.ReactNode }> = ({
 
       return hasData;
     },
-    [updateMainLandingData]
+    [updateMainLandingData],
   );
 
   // Cleanup timeout on unmount

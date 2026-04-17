@@ -454,6 +454,16 @@ const NewsCardItem = React.memo(
 );
 
 const AdSlotBanner = React.memo(() => <BannerAD unit="home" />);
+
+const VIEWABILITY_CONFIG = {
+  itemVisiblePercentThreshold: 60,
+  waitForInteraction: false,
+  minimumViewTime: 120,
+};
+
+const TABLET_CONTENT_STYLE = { paddingHorizontal: 0 };
+
+const ListFooter = React.memo(() => <View style={{ height: 60 }} />);
 const refreshCooldownMap: Record<string, number> = {};
 const NAVIGATION_LOCK_TIMEOUT_MS = 2000;
 const NAVIGATION_RELEASE_DELAY_MS = 500;
@@ -480,9 +490,7 @@ const HomeLandingSection = ({
   const flashListRef = useRef<any>(null);
   const [expanded, setExpanded] = useState(false);
   const { setMainData } = useContext(DataContext);
-  const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
-    new Set(),
-  );
+  const visibleItemIndicesRef = useRef<Set<number>>(new Set());
   const [dataReady, setDataReady] = useState(false);
   const { markAsVisited } = useVisitedArticles();
   const { shouldUseTabletLayout } = useDeviceType();
@@ -826,7 +834,7 @@ const HomeLandingSection = ({
         attempt: payload.attempt || 0,
       };
       console.log("[MainCategory][PressIssue]", params);
-      void analytics().logEvent("main_category_press_issue", params);
+      analytics().logEvent("main_category_press_issue", params);
     },
     [categoryKey],
   );
@@ -1009,13 +1017,11 @@ const HomeLandingSection = ({
     }: {
       viewableItems: Array<{ index: number | null; item: ArticleType }>;
     }) => {
-      const newVisibleIndices = new Set<number>();
+      const next = new Set<number>();
       viewableItems.forEach(({ index }) => {
-        if (index !== null) {
-          newVisibleIndices.add(index);
-        }
+        if (index !== null) next.add(index);
       });
-      setVisibleItemIndices(newVisibleIndices);
+      visibleItemIndicesRef.current = next;
     },
     [],
   );
@@ -1025,7 +1031,8 @@ const HomeLandingSection = ({
       if (!item) return null;
 
       const type = item.type || "default";
-      const isItemVisible = visibleItemIndices.has(index);
+      const isItemVisible = visibleItemIndicesRef.current.has(index);
+
       if (type === "CARD_TITLE") {
         return (
           <CardTitleSection
@@ -1073,14 +1080,7 @@ const HomeLandingSection = ({
         />
       );
     },
-    [
-      theme.textColor,
-      textSize,
-      categoryName,
-      handlePress,
-      articleIndexMap,
-      visibleItemIndices,
-    ],
+    [theme.textColor, textSize, categoryName, handlePress, articleIndexMap],
   );
 
   const keyExtractor = useCallback((item: ArticleType, index: number) => {
@@ -1091,7 +1091,6 @@ const HomeLandingSection = ({
       itemType === "AD_ITEM" ||
       itemType === "LOADING_ITEM";
 
-    // Meta rows can repeat titles ("Videos", etc.), so include index to avoid key collisions.
     if (isMetaItem) {
       return `${itemType}-${item?.title || "meta"}-${index}`;
     }
@@ -1102,13 +1101,7 @@ const HomeLandingSection = ({
       item?.permalink ||
       (item as any)?.videoId ||
       (item as any)?.uri;
-    const versionPart =
-      (item as any)?.modified ||
-      (item as any)?.modified_gmt ||
-      (item as any)?.date ||
-      "";
-    const mediaPart = (item as any)?.thumbnail || "";
-    if (stableId) return `${stableId}-${versionPart}-${mediaPart}`;
+    if (stableId) return String(stableId);
     return `${itemType}-${index}`;
   }, []);
 
@@ -1197,20 +1190,16 @@ const HomeLandingSection = ({
             colors={["#DC2626"]}
           />
         }
-        viewabilityConfig={{
-          itemVisiblePercentThreshold: 60,
-          waitForInteraction: false,
-          minimumViewTime: 120,
-        }}
+        viewabilityConfig={VIEWABILITY_CONFIG}
         onViewableItemsChanged={handleViewableItemsChanged}
         onScroll={onScroll}
         showsVerticalScrollIndicator={false}
         numColumns={1}
         contentContainerStyle={
-          shouldUseTabletLayout ? { paddingHorizontal: 0 } : undefined
+          shouldUseTabletLayout ? TABLET_CONTENT_STYLE : undefined
         }
         disableAutoLayout={shouldUseTabletLayout}
-        ListFooterComponent={() => <View style={{ height: 60 }} />}
+        ListFooterComponent={ListFooter}
       />
     </View>
   );

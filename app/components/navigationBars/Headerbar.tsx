@@ -119,7 +119,7 @@ export default function HeaderBar({
       logoTranslateY.value,
       [-48, 0],
       [0, 1],
-      "clamp"
+      "extend",
     ); // ← fade out as it moves up
     return {
       transform: [{ translateY }],
@@ -131,7 +131,7 @@ export default function HeaderBar({
     <Animated.View
       style={[
         { backgroundColor: theme.backgroundColor, marginTop: 4 },
-        Platform.OS === "ios" ? logoAnimatedStyle : null,
+        logoAnimatedStyle,
       ]}
     >
       <View
