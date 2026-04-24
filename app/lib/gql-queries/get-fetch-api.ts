@@ -16,7 +16,7 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL as string;
 
 export async function gqlFetchAPI(
   query = "",
-  { variables }: Record<string, any> = {}
+  { variables }: Record<string, any> = {},
 ) {
   try {
     const headers: Record<string, string> = {
