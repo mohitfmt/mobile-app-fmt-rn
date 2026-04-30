@@ -113,8 +113,41 @@ export const formatMalaysianDateTimeS = (inputDate: string | Date): string => {
 
 // Formats date string in "Asia/Kuala_Lumpur" timezone
 
-export const formatTimeAgoMalaysia = (date: string) => {
-  return moment.tz(date, "YYYY-MM-DD HH:mm:ss", "Asia/Kuala_Lumpur").fromNow();
+export const formatTimeAgoMalaysia = (
+  date: string | number | Date | null | undefined,
+) => {
+  if (date == null || date === "") return "";
+
+  const timezone = "Asia/Kuala_Lumpur";
+  const dateString = String(date).trim();
+
+  // Parse common incoming formats strictly first.
+  const strictParsed = moment.tz(
+    dateString,
+    [
+      "YYYY-MM-DD HH:mm:ss",
+      "YYYY-MM-DDTHH:mm:ss",
+      "YYYY-MM-DDTHH:mm:ss.SSS",
+      "YYYY-MM-DD",
+      "DD-MM-YYYY HH:mm:ss",
+      "DD/MM/YYYY HH:mm:ss",
+      "MM/DD/YYYY HH:mm:ss",
+    ],
+    true,
+    timezone,
+  );
+
+  if (strictParsed.isValid()) {
+    return strictParsed.fromNow();
+  }
+
+  // Then allow ISO strings, Date objects, or timestamps.
+  const flexibleParsed = moment(date);
+  if (flexibleParsed.isValid()) {
+    return flexibleParsed.tz(timezone).fromNow();
+  }
+
+  return "";
 };
 
 export const stripHtml = (html: string | null | undefined): string => {
