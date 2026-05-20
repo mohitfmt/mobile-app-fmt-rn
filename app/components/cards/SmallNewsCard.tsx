@@ -253,7 +253,6 @@ const styles = StyleSheet.create({
   },
   heading: {
     marginBottom: 12,
-    lineHeight: 20,
   },
   footerRow: {
     flexDirection: "row",
@@ -268,7 +267,6 @@ const styles = StyleSheet.create({
   },
   info: {
     color: "#9e9e9e",
-    lineHeight: 18,
     fontWeight: "500",
   },
   iconRow: {

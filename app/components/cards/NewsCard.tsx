@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
     paddingTop: 6,
   },
   excerpt: {
-    lineHeight: 18,
+    // lineHeight: 18,
     fontWeight: "500",
     paddingTop: 10,
   },

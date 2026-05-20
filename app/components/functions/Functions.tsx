@@ -14,6 +14,7 @@
 import { getPostWithSlugAndDate } from "@/app/lib/gql-queries/get-post-with-slug-and-date";
 import { getRelatedPostsWithTag } from "@/app/lib/gql-queries/get-related-post-with-tag";
 import { ArticleType } from "@/app/types/article";
+import { Platform, TextStyle } from "react-native";
 
 /**
  * Adjusts the article font size based on user preference.
@@ -31,6 +32,35 @@ export const getArticleTextSize = (fontSize: number, textSize: string) => {
     return fontSize;
   }
 };
+
+/** Android/Samsung-safe line height for standfirst (avoids italic glyph clipping). */
+export function getStandfirstTextStyle(
+  fontSize: number,
+  options?: { italic?: boolean },
+): TextStyle {
+  const multiplier =
+    Platform.OS === "android"
+      ? options?.italic
+        ? 1.65
+        : 1.55
+      : options?.italic
+        ? 1.5
+        : 1.45;
+
+  const style: TextStyle = {
+    lineHeight: Math.ceil(fontSize * multiplier),
+  };
+
+  if (Platform.OS === "android") {
+    return {
+      ...style,
+      includeFontPadding: false,
+      allowFontScaling: false,
+    } as TextStyle;
+  }
+
+  return style;
+}
 
 /**
  * Determines the preferred category for an article.
