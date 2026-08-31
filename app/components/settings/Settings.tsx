@@ -37,6 +37,13 @@ import { ChevronDown } from "@/app/assets/AllSVGs";
 import { triggerInAppReview } from "@/app/lib/reviewApp";
 import { GlobalSettingsContext } from "@/app/providers/GlobalSettingsProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
+import {
+  DEFAULT_NOTIFICATION_SETTINGS,
+  getFcmToken,
+  initializeNotificationsFlow,
+  notificationSubscription,
+  requestNotificationPermission,
+} from "@/app/services/notificationService";
 import { AboutItem, NotificationSetting } from "@/app/types/settings";
 import messaging from "@react-native-firebase/messaging";
 import * as Application from "expo-application";
@@ -46,6 +53,9 @@ import uuid from "react-native-uuid";
 import { getArticleTextSize } from "../functions/Functions";
 import SelectionModal from "./SelectionModal";
 import StickyNotification from "./StickyNotification";
+
+// Export getFcmToken for backwards compatibility
+export { getFcmToken };
 
 // Theme display/storage mappings
 const themeDisplayMap = new Map<"system" | "light" | "dark", string>([
@@ -60,49 +70,11 @@ const themeStorageMap = new Map<string, "system" | "light" | "dark">([
   ["Dark", "dark"],
 ]);
 
-export const getFcmToken = async () => {
-  try {
-    if (Platform.OS === "ios") {
-      await messaging().registerDeviceForRemoteMessages();
-
-      const apnsToken = await messaging().getAPNSToken();
-      // console.log('APNs Token:', apnsToken);
-
-      if (!apnsToken) {
-        // console.log('Retrying to get APNs token...');
-        return new Promise((resolve) =>
-          setTimeout(() => resolve(getFcmToken()), 3000)
-        );
-      }
-    }
-
-    const fcmToken = await messaging().getToken();
-    // console.log('FCM Token:', fcmToken);
-    return fcmToken;
-  } catch (error) {
-    console.error("Error getting FCM token:", error);
-    return null;
-  }
-};
-
 const initializeFCM = async () => {
   try {
-    // Request permission first
-    const authStatus = await messaging().requestPermission({
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: true,
-      sound: true,
-    });
+    const granted = await requestNotificationPermission();
 
-    const enabled =
-      authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
-      authStatus === messaging.AuthorizationStatus.PROVISIONAL;
-
-    if (!enabled) {
+    if (!granted) {
       Alert.alert(
         "Notifications Disabled",
         "Please enable notifications in Settings to receive updates.",
@@ -114,7 +86,6 @@ const initializeFCM = async () => {
       throw new Error("Push notification permission denied");
     }
 
-    // Get FCM token using getFcmToken
     const fcmToken = await getFcmToken();
     if (!fcmToken) {
       throw new Error("Failed to retrieve FCM token");
@@ -123,7 +94,7 @@ const initializeFCM = async () => {
     return fcmToken;
   } catch (error: any) {
     console.error("FCM initialization failed:", error);
-    if (error.message.includes("No APNS token specified")) {
+    if (error?.message?.includes("No APNS token specified")) {
       Alert.alert(
         "Notification Setup Failed",
         "Unable to set up notifications due to APNs configuration. Please check your settings.",
@@ -235,99 +206,15 @@ const SettingsPage: React.FC = () => {
   };
 
   /**
-   * Function to handle notification subscription similar to Flutter's notificationSubscription
-   */
-  const notificationSubscription = async (
-    topic: string,
-    subscribe: boolean
-  ) => {
-    try {
-      if (subscribe) {
-        await messaging().subscribeToTopic(topic);
-        // console.log(`Subscribed to topic: ${topic}`);
-      } else {
-        await messaging().unsubscribeFromTopic(topic);
-        // console.log(`Unsubscribed from topic: ${topic}`);
-      }
-    } catch (error) {
-      console.error(
-        `Error ${
-          subscribe ? "subscribing to" : "unsubscribing from"
-        } topic ${topic}:`,
-        error
-      );
-      throw error;
-    }
-  };
-
-  /**
-   * Initialize notification settings for first-time users
-   */
-  /**
-   * Initialize notification settings for first-time users
-   * Only enables "Headlines" notification by default, rest remain disabled
-   */
-  const initializeFirstTimeNotifications = async (
-    setNotificationSettings: React.Dispatch<
-      React.SetStateAction<NotificationSetting[]>
-    >
-  ) => {
-    try {
-      const isFirstTime = await storage.getString("notificationsInitialized");
-      if (isFirstTime) return;
-
-      // Mark as initialized early to avoid race conditions
-      await storage.set("notificationsInitialized", "true");
-
-      // Only enable Headlines notification (id: '1'), keep others disabled
-      const defaultSettings = notificationSettings.map((setting) => ({
-        ...setting,
-        enabled: setting.id === "1", // Only enable Headlines notification
-      }));
-
-      // Update state immediately
-      setNotificationSettings(defaultSettings);
-
-      // Get only the enabled settings (Headlines only)
-      const enabledSettings = defaultSettings.filter(
-        (setting) => setting.enabled
-      );
-
-      // Perform subscriptions only for enabled notifications (Headlines only)
-      Promise.all(
-        enabledSettings.map((setting) =>
-          notificationSubscription(setting.topic, true)
-        )
-      ).catch((error) => {
-        console.error("Error subscribing to topics in background:", error);
-      });
-
-      // Save all settings to mmkv (Headlines: true, others: false)
-      Promise.all(
-        defaultSettings.map(
-          async (setting) =>
-            await storage.set(setting.key, setting.enabled.toString())
-        )
-      ).catch((error) => {
-        console.error(
-          "Error saving notification settings in background:",
-          error
-        );
-      });
-
-      // console.log('[Init] Only Headlines notification enabled by default on first install');
-    } catch (error) {
-      console.error("Error initializing first-time notifications:", error);
-    }
-  };
-
-  /**
-   * Initializes push notifications & loads settings - adapted from Flutter logic
+   * Initializes push notifications & loads settings
    */
   useEffect(() => {
     const initializeSettings = async () => {
       try {
-        // Load existing notification settings from mmkv first
+        // Ensure notification setup / repair is completed
+        await initializeNotificationsFlow();
+
+        // Load existing notification settings from mmkv
         const updatedSettings = await Promise.all(
           notificationSettings.map(async (setting) => {
             const storedValue = await storage.getString(setting.key);
@@ -335,32 +222,6 @@ const SettingsPage: React.FC = () => {
           })
         );
         setNotificationSettings(updatedSettings);
-
-        // Initialize FCM if any notifications are enabled
-        let fcmInitialized = false;
-        const enabledSettings = updatedSettings.filter((s) => s.enabled);
-        if (enabledSettings.length > 0 && !fcmInitialized) {
-          try {
-            await initializeFCM();
-            fcmInitialized = true;
-          } catch (error) {
-            console.error(
-              "FCM initialization failed, disabling notifications:",
-              error
-            );
-            await Promise.all(
-              enabledSettings.map(
-                async (setting) => await storage.set(setting.key, "false")
-              )
-            );
-            setNotificationSettings((prev) =>
-              prev.map((s) => ({ ...s, enabled: false }))
-            );
-          }
-        }
-
-        // Check if this is first time setup
-        await initializeFirstTimeNotifications(setNotificationSettings);
 
         // Load standfirst setting
         const standfirstSetting = await storage.getString("standfirstenabled");
@@ -405,7 +266,7 @@ const SettingsPage: React.FC = () => {
   }, []);
 
   /**
-   * Handles Notification Toggle - adapted from Flutter's notification logic
+   * Handles Notification Toggle
    */
   const handleNotificationToggle = async (settingId: string) => {
     const setting = notificationSettings.find((s) => s.id === settingId);
@@ -413,49 +274,45 @@ const SettingsPage: React.FC = () => {
 
     const newEnabled = !setting.enabled;
 
-    // Update UI immediately
+    // Update UI immediately for responsiveness
     setNotificationSettings((prevSettings) =>
       prevSettings.map((s) =>
         s.id === settingId ? { ...s, enabled: newEnabled } : s
       )
     );
 
-    // Perform async operations in background
-    (async () => {
-      try {
-        if (newEnabled) {
-          // Initialize FCM first
-          await initializeFCM();
-          // Subscribe to topic
-          await notificationSubscription(setting.topic, true);
-        } else {
-          // For unsubscribing, ensure we have a valid FCM token
-          const fcmToken = await messaging().getToken();
-          if (!fcmToken) {
-            throw new Error("No FCM token available");
-          }
-          // Unsubscribe from topic
-          await notificationSubscription(setting.topic, false);
+    try {
+      if (newEnabled) {
+        // Ensure permission and FCM token exist
+        await initializeFCM();
+        const success = await notificationSubscription(setting.topic, true);
+        if (!success) {
+          throw new Error(`Failed to subscribe to ${setting.topic}`);
         }
-
-        // Save setting to mmkv
-        await storage.set(setting.key, newEnabled.toString());
-      } catch (error) {
-        console.error("Error toggling notification:", error);
-        // Roll back UI on error
-        setNotificationSettings((prevSettings) =>
-          prevSettings.map((s) =>
-            s.id === settingId ? { ...s, enabled: !newEnabled } : s
-          )
-        );
-        Alert.alert(
-          "Error",
-          `Failed to ${newEnabled ? "enable" : "disable"} ${
-            setting.title
-          } notifications`
-        );
+      } else {
+        const success = await notificationSubscription(setting.topic, false);
+        if (!success) {
+          throw new Error(`Failed to unsubscribe from ${setting.topic}`);
+        }
       }
-    })();
+
+      // Save setting to mmkv
+      await storage.set(setting.key, newEnabled.toString());
+    } catch (error) {
+      console.error("Error toggling notification:", error);
+      // Roll back UI on error
+      setNotificationSettings((prevSettings) =>
+        prevSettings.map((s) =>
+          s.id === settingId ? { ...s, enabled: !newEnabled } : s
+        )
+      );
+      Alert.alert(
+        "Error",
+        `Failed to ${newEnabled ? "enable" : "disable"} ${
+          setting.title
+        } notifications`
+      );
+    }
   };
 
   /**
