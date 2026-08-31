@@ -19,21 +19,21 @@ export const hasCachedData = (data: any[] | undefined): boolean => {
   return Array.isArray(data) && data.length > 0;
 };
 
-export const cacheData = async (key: string, data: any[]) => {
+export const cacheData = (key: string, data: any[]): void => {
   // cacheData: Stores the data array in MMKV storage under a cache key.
   // MMKV is synchronous, so no async/await needed.
   try {
-    await storage.set(`cache_${key}`, JSON.stringify(data));
+    storage.set(`cache_${key}`, JSON.stringify(data));
   } catch (error) {
     console.error(`Failed to cache data for ${key}:`, error);
   }
 };
 
-export const getCachedData = async (key: string): any[] | undefined => {
+export const getCachedData = (key: string): any[] | undefined => {
   // getCachedData: Retrieves and parses the cached data array from MMKV storage.
   // MMKV is synchronous, so no async/await needed.
   try {
-    const cached = await storage.getString(`cache_${key}`);
+    const cached = storage.getString(`cache_${key}`);
     return cached ? JSON.parse(cached) : undefined;
   } catch (error) {
     console.error(`Failed to retrieve cached data for ${key}:`, error);

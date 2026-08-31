@@ -24,7 +24,7 @@ import { useLandingData } from "@/app/providers/LandingProvider";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useVisitedArticles } from "@/app/providers/VisitedArticleProvider";
 import { ArticleType } from "@/app/types/article";
-import { FlashList } from "@shopify/flash-list";
+import { FlashList, type FlashListRef } from "@shopify/flash-list";
 import { router, useLocalSearchParams } from "expo-router";
 import { ArrowLeft, ChevronLeft } from "lucide-react-native";
 import React, {
@@ -141,7 +141,7 @@ const CategoryPosts = () => {
   } = useLandingData();
   const { setMainData } = useContext(DataContext);
   const { markAsVisited, isVisited } = useVisitedArticles();
-  const flashListRef = useRef<FlashListType<ArticleType>>(null);
+  const flashListRef = useRef<FlashListRef<ArticleType>>(null);
   const [showBottomBorder, setShowBottomBorder] = useState(false);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
     new Set(),
@@ -414,15 +414,17 @@ const CategoryPosts = () => {
 
         if (isVideo) {
           return (
-            <TouchableOpacity onPress={() => handlePress(item, nonAdIndex)}>
-              <SmallVideoCard
-                title={item.title}
-                permalink={item.permalink || ""}
-                content={item.content || item.excerpt || ""}
-                date={formatTimeAgo(item.date || item.dateGmt)}
-                thumbnail={item.thumbnail}
-              />
-            </TouchableOpacity>
+            <SmallVideoCard
+              item={{
+                videoId: item.id || "",
+                title: item.title,
+                permalink: item.permalink || "",
+                content: item.content || item.excerpt || "",
+                date: formatTimeAgo(item.date || item.dateGmt),
+                thumbnail: item.thumbnail,
+              }}
+              onPress={() => handlePress(item, nonAdIndex)}
+            />
           );
         }
 
@@ -577,7 +579,6 @@ const CategoryPosts = () => {
       <FlashList
         ref={flashListRef}
         data={processedData}
-        estimatedItemSize={140}
         keyExtractor={(item, index) =>
           item.type === "AD_ITEM"
             ? item.id

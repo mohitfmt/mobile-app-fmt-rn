@@ -420,7 +420,6 @@ const SearchList = ({ query }: { query: string }) => {
   return (
     <FlashList
       data={processedData}
-      estimatedItemSize={120}
       keyExtractor={(item, index) => item.id || `item-${index}`}
       renderItem={renderItem}
       onViewableItemsChanged={handleViewableItemsChanged}
@@ -576,7 +575,6 @@ const ArticleSearch = () => {
           <FlashList
             data={searchHistory}
             keyExtractor={(item, index) => index.toString()}
-            estimatedItemSize={120}
             renderItem={({ item }) => (
               <TouchableOpacity
                 onPress={() => handleHistorySelect(item)}

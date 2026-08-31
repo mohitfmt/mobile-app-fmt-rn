@@ -458,7 +458,6 @@ const TagPosts = () => {
       />
       <FlashList
         data={processPosts(tagCache[currentTag] || [])}
-        estimatedItemSize={120}
         keyExtractor={(item, index) => item.id || `item-${index}`}
         showsHorizontalScrollIndicator={false}
         showsVerticalScrollIndicator={false}
