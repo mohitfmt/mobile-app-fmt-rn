@@ -70,7 +70,7 @@ const themeStorageMap = new Map<string, "system" | "light" | "dark">([
   ["Dark", "dark"],
 ]);
 
-const initializeFCM = async () => {
+const initializeFCM = async (): Promise<string | null> => {
   try {
     const granted = await requestNotificationPermission();
 
@@ -83,25 +83,23 @@ const initializeFCM = async () => {
           { text: "Open Settings", onPress: () => Linking.openSettings() },
         ]
       );
-      throw new Error("Push notification permission denied");
+      return null;
     }
 
     const fcmToken = await getFcmToken();
     if (!fcmToken) {
-      throw new Error("Failed to retrieve FCM token");
+      Alert.alert(
+        "Notification Setup Failed",
+        "Unable to set up notifications. Please check your network connection or settings.",
+        [{ text: "OK" }]
+      );
+      return null;
     }
 
     return fcmToken;
   } catch (error: any) {
     console.error("FCM initialization failed:", error);
-    if (error?.message?.includes("No APNS token specified")) {
-      Alert.alert(
-        "Notification Setup Failed",
-        "Unable to set up notifications due to APNs configuration. Please check your settings.",
-        [{ text: "OK" }]
-      );
-    }
-    throw error;
+    return null;
   }
 };
 
@@ -284,7 +282,17 @@ const SettingsPage: React.FC = () => {
     try {
       if (newEnabled) {
         // Ensure permission and FCM token exist
-        await initializeFCM();
+        const token = await initializeFCM();
+        if (!token) {
+          // Revert toggle silently as initializeFCM already showed the prompt
+          setNotificationSettings((prevSettings) =>
+            prevSettings.map((s) =>
+              s.id === settingId ? { ...s, enabled: !newEnabled } : s
+            )
+          );
+          return;
+        }
+
         const success = await notificationSubscription(setting.topic, true);
         if (!success) {
           throw new Error(`Failed to subscribe to ${setting.topic}`);

@@ -25,6 +25,21 @@ export const NOTIFICATIONS_INITIALIZED_KEY = "notificationsInitialized";
 export const PRIMARY_TOPIC = "breakingNews";
 export const PRIMARY_TOPIC_KEY = "breakingNewsEnabled";
 
+// Debug logging flag - set to true if diagnostic logs are needed
+const DEBUG_LOGGING = false;
+
+const debugLog = (...args: any[]) => {
+  if (DEBUG_LOGGING) {
+    console.log(...args);
+  }
+};
+
+const debugWarn = (...args: any[]) => {
+  if (DEBUG_LOGGING) {
+    console.warn(...args);
+  }
+};
+
 export const DEFAULT_NOTIFICATION_SETTINGS: NotificationSetting[] = [
   {
     id: "1",
@@ -79,14 +94,16 @@ export const maskToken = (token: string | null | undefined): string => {
 
 // Helper: Format error for structured logging
 const logNotificationError = (operation: string, error: any) => {
-  console.error(`[Notifications] ERROR: ${operation}`);
-  console.error(`[Notifications] Error name: ${error?.name || "Error"}`);
-  if (error?.code) {
-    console.error(`[Notifications] Error code: ${error.code}`);
+  if (DEBUG_LOGGING) {
+    console.error(`[Notifications] ERROR: ${operation}`);
+    console.error(`[Notifications] Error name: ${error?.name || "Error"}`);
+    if (error?.code) {
+      console.error(`[Notifications] Error code: ${error.code}`);
+    }
+    console.error(
+      `[Notifications] Error message: ${error?.message || String(error)}`
+    );
   }
-  console.error(
-    `[Notifications] Error message: ${error?.message || String(error)}`
-  );
 };
 
 // Helper: Check if permission is granted
@@ -122,7 +139,7 @@ const getAuthStatusString = (
  */
 export const requestNotificationPermission = async (): Promise<boolean> => {
   try {
-    console.log("[Notifications] Requesting notification permission");
+    debugLog("[Notifications] Requesting notification permission");
 
     if (Platform.OS === "android") {
       if (Platform.Version >= 33) {
@@ -138,16 +155,16 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
           }
         );
         const isGranted = granted === PermissionsAndroid.RESULTS.GRANTED;
-        console.log(
+        debugLog(
           `[Notifications] Permission status: ${
             isGranted ? "AUTHORIZED" : "DENIED"
           }`
         );
-        console.log(`[Notifications] Permission granted: ${isGranted}`);
+        debugLog(`[Notifications] Permission granted: ${isGranted}`);
         return isGranted;
       }
-      console.log("[Notifications] Permission status: AUTHORIZED");
-      console.log("[Notifications] Permission granted: true");
+      debugLog("[Notifications] Permission status: AUTHORIZED");
+      debugLog("[Notifications] Permission granted: true");
       return true;
     }
 
@@ -161,8 +178,8 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
       const statusStr = getAuthStatusString(authStatus);
       const granted = isPermissionGranted(authStatus);
 
-      console.log(`[Notifications] Permission status: ${statusStr}`);
-      console.log(`[Notifications] Permission granted: ${granted}`);
+      debugLog(`[Notifications] Permission status: ${statusStr}`);
+      debugLog(`[Notifications] Permission granted: ${granted}`);
 
       return granted;
     }
@@ -210,24 +227,24 @@ export const getFcmToken = async (
 ): Promise<string | null> => {
   try {
     if (Platform.OS === "ios") {
-      console.log("[Notifications] Registering device for remote messages");
+      debugLog("[Notifications] Registering device for remote messages");
       await messaging().registerDeviceForRemoteMessages();
-      console.log("[Notifications] Remote message registration completed");
+      debugLog("[Notifications] Remote message registration completed");
 
       const isRegistered = messaging().isDeviceRegisteredForRemoteMessages;
-      console.log(
+      debugLog(
         `[Notifications] isDeviceRegisteredForRemoteMessages: ${isRegistered}`
       );
 
       const hasPermission = await checkNotificationPermission();
       if (!hasPermission) {
-        console.warn(
+        debugWarn(
           "[Notifications] iOS push permission not granted when requesting FCM token."
         );
         return null;
       }
 
-      console.log("[Notifications] Waiting for APNs token");
+      debugLog("[Notifications] Waiting for APNs token");
       let apnsToken: string | null = null;
       let attempt = 0;
 
@@ -236,15 +253,15 @@ export const getFcmToken = async (
         apnsToken = await messaging().getAPNSToken();
 
         if (apnsToken) {
-          console.log("[Notifications] APNs token available: true");
-          console.log(
+          debugLog("[Notifications] APNs token available: true");
+          debugLog(
             `[Notifications] APNs token length: ${apnsToken.length}`
           );
           break;
         }
 
         if (attempt < maxApnsRetries) {
-          console.log(
+          debugLog(
             `[Notifications] APNs token unavailable — retry ${attempt}/${maxApnsRetries}`
           );
           await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
@@ -252,25 +269,27 @@ export const getFcmToken = async (
       }
 
       if (!apnsToken) {
-        console.error(
-          `[Notifications] ERROR: APNs token unavailable after ${maxApnsRetries} attempts`
-        );
+        if (DEBUG_LOGGING) {
+          console.error(
+            `[Notifications] ERROR: APNs token unavailable after ${maxApnsRetries} attempts`
+          );
+        }
         return null;
       }
     }
 
-    console.log("[Notifications] Requesting FCM token");
+    debugLog("[Notifications] Requesting FCM token");
     const fcmToken = await messaging().getToken();
 
     if (fcmToken) {
-      console.log("[Notifications] FCM token obtained: true");
-      console.log(`[Notifications] FCM token length: ${fcmToken.length}`);
-      console.log(
+      debugLog("[Notifications] FCM token obtained: true");
+      debugLog(`[Notifications] FCM token length: ${fcmToken.length}`);
+      debugLog(
         `[Notifications] FCM token preview: ${maskToken(fcmToken)}`
       );
       return fcmToken;
     } else {
-      console.log("[Notifications] FCM token obtained: false");
+      debugLog("[Notifications] FCM token obtained: false");
       return null;
     }
   } catch (error) {
@@ -284,17 +303,19 @@ export const getFcmToken = async (
  */
 export const subscribeToTopic = async (topic: string): Promise<boolean> => {
   try {
-    console.log(`[Notifications] Attempting topic subscription: ${topic}`);
+    debugLog(`[Notifications] Attempting topic subscription: ${topic}`);
     await messaging().subscribeToTopic(topic);
-    console.log(`[Notifications] Topic subscription SUCCESS: ${topic}`);
+    debugLog(`[Notifications] Topic subscription SUCCESS: ${topic}`);
     return true;
   } catch (error: any) {
-    console.error(`[Notifications] Topic subscription FAILED: ${topic}`);
-    console.error(
-      `[Notifications] Topic subscription error: ${
-        error?.message || String(error)
-      }`
-    );
+    if (DEBUG_LOGGING) {
+      console.error(`[Notifications] Topic subscription FAILED: ${topic}`);
+      console.error(
+        `[Notifications] Topic subscription error: ${
+          error?.message || String(error)
+        }`
+      );
+    }
     logNotificationError(`subscribeToTopic(${topic})`, error);
     return false;
   }
@@ -305,17 +326,19 @@ export const subscribeToTopic = async (topic: string): Promise<boolean> => {
  */
 export const unsubscribeFromTopic = async (topic: string): Promise<boolean> => {
   try {
-    console.log(`[Notifications] Attempting topic unsubscription: ${topic}`);
+    debugLog(`[Notifications] Attempting topic unsubscription: ${topic}`);
     await messaging().unsubscribeFromTopic(topic);
-    console.log(`[Notifications] Topic unsubscription SUCCESS: ${topic}`);
+    debugLog(`[Notifications] Topic unsubscription SUCCESS: ${topic}`);
     return true;
   } catch (error: any) {
-    console.error(`[Notifications] Topic unsubscription FAILED: ${topic}`);
-    console.error(
-      `[Notifications] Topic unsubscription error: ${
-        error?.message || String(error)
-      }`
-    );
+    if (DEBUG_LOGGING) {
+      console.error(`[Notifications] Topic unsubscription FAILED: ${topic}`);
+      console.error(
+        `[Notifications] Topic unsubscription error: ${
+          error?.message || String(error)
+        }`
+      );
+    }
     logNotificationError(`unsubscribeFromTopic(${topic})`, error);
     return false;
   }
@@ -355,11 +378,11 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
     const isInitialized = isInitializedRaw === "true";
     const syncVersion = storage.getString(NOTIFICATION_SYNC_VERSION_KEY);
 
-    console.log(
+    debugLog(
       "[Notifications] ===== Notification initialization started ====="
     );
-    console.log(`[Notifications] Platform: ${Platform.OS}`);
-    console.log(
+    debugLog(`[Notifications] Platform: ${Platform.OS}`);
+    debugLog(
       `[Notifications] notificationsInitialized: ${isInitialized}`
     );
 
@@ -373,60 +396,92 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
     try {
       // SCENARIO A: Existing user already verified in v2
       if (isInitialized && syncVersion === CURRENT_NOTIFICATION_SYNC_VERSION) {
-        console.log(
+        debugLog(
           "[Notifications] Existing notification installation detected"
         );
-        console.log(
+        debugLog(
           "[Notifications] Existing notification setup verified"
         );
+
+        const hasPermission = await checkNotificationPermission();
+        if (!hasPermission) {
+          debugLog(
+            "[Notifications] Notification permission is currently disabled in system settings."
+          );
+          logFailureResult(
+            "DENIED",
+            Platform.OS === "ios"
+              ? messaging().isDeviceRegisteredForRemoteMessages
+              : true,
+            false,
+            false,
+            "NOT_ATTEMPTED",
+            true
+          );
+          return false;
+        }
 
         // Health check on token with standard bounded retry
         const token = await getFcmToken(5, 1500);
         const hasToken = !!token;
 
-        console.log("[Notifications] ========================================");
-        console.log("[Notifications] Notification initialization SUCCESS");
-        console.log(`[Notifications] Platform: ${Platform.OS}`);
-        console.log("[Notifications] Permission: granted");
-        console.log(
-          `[Notifications] Remote messaging registered: ${
+        if (hasToken) {
+          debugLog("[Notifications] ========================================");
+          debugLog("[Notifications] Notification initialization SUCCESS");
+          debugLog(`[Notifications] Platform: ${Platform.OS}`);
+          debugLog("[Notifications] Permission: granted");
+          debugLog(
+            `[Notifications] Remote messaging registered: ${
+              Platform.OS === "ios"
+                ? messaging().isDeviceRegisteredForRemoteMessages
+                : true
+            }`
+          );
+          debugLog(
+            `[Notifications] APNs token available: ${
+              Platform.OS === "ios" ? true : true
+            }`
+          );
+          debugLog("[Notifications] FCM token available: true");
+          debugLog(
+            "[Notifications] breakingNews subscription: SUCCESS (verified)"
+          );
+          debugLog("[Notifications] notificationsInitialized: true");
+          debugLog("[Notifications] ========================================");
+          return true;
+        } else {
+          logFailureResult(
+            "GRANTED",
             Platform.OS === "ios"
               ? messaging().isDeviceRegisteredForRemoteMessages
-              : true
-          }`
-        );
-        console.log(
-          `[Notifications] APNs token available: ${
-            Platform.OS === "ios" ? hasToken : true
-          }`
-        );
-        console.log(`[Notifications] FCM token available: ${hasToken}`);
-        console.log(
-          "[Notifications] breakingNews subscription: SUCCESS (verified)"
-        );
-        console.log("[Notifications] notificationsInitialized: true");
-        console.log("[Notifications] ========================================");
-        return true;
+              : true,
+            false,
+            false,
+            "NOT_ATTEMPTED",
+            true
+          );
+          return false;
+        }
       }
 
       // SCENARIO B: Existing user requiring migration/repair
       if (isInitialized && syncVersion !== CURRENT_NOTIFICATION_SYNC_VERSION) {
-        console.log(
+        debugLog(
           "[Notifications] Existing notification installation detected"
         );
-        console.log(
+        debugLog(
           "[Notifications] Verifying notification/topic setup for existing user"
         );
-        console.log(
+        debugLog(
           "[Notifications] Existing installation requires notification setup repair"
         );
-        console.log(
+        debugLog(
           "[Notifications] Repairing breakingNews subscription"
         );
 
         permissionGranted = await requestNotificationPermission();
         if (!permissionGranted) {
-          console.warn(
+          debugWarn(
             "[Notifications] Permission not granted during existing user repair."
           );
           logFailureResult(
@@ -486,32 +541,32 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
             NOTIFICATION_SYNC_VERSION_KEY,
             CURRENT_NOTIFICATION_SYNC_VERSION
           );
-          console.log("[Notifications] ========================================");
-          console.log("[Notifications] Notification initialization SUCCESS");
-          console.log(`[Notifications] Platform: ${Platform.OS}`);
-          console.log("[Notifications] Permission: granted");
-          console.log(
+          debugLog("[Notifications] ========================================");
+          debugLog("[Notifications] Notification initialization SUCCESS");
+          debugLog(`[Notifications] Platform: ${Platform.OS}`);
+          debugLog("[Notifications] Permission: granted");
+          debugLog(
             `[Notifications] Remote messaging registered: ${
               Platform.OS === "ios"
                 ? messaging().isDeviceRegisteredForRemoteMessages
                 : true
             }`
           );
-          console.log(
+          debugLog(
             `[Notifications] APNs token available: ${
               Platform.OS === "ios" ? true : true
             }`
           );
-          console.log("[Notifications] FCM token available: true");
-          console.log(
+          debugLog("[Notifications] FCM token available: true");
+          debugLog(
             `[Notifications] breakingNews subscription: ${breakingNewsStatus}`
           );
-          console.log("[Notifications] notificationsInitialized: true");
-          console.log("[Notifications] ========================================");
+          debugLog("[Notifications] notificationsInitialized: true");
+          debugLog("[Notifications] ========================================");
           return true;
         } else {
-          console.log("[Notifications] Notification initialization FAILED");
-          console.log(
+          debugLog("[Notifications] Notification initialization FAILED");
+          debugLog(
             "[Notifications] notificationsInitialized repair failed and will retry on next launch"
           );
           logFailureResult(
@@ -529,7 +584,7 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
       // SCENARIO C: Fresh Installation
       permissionGranted = await requestNotificationPermission();
       if (!permissionGranted) {
-        console.log(
+        debugLog(
           "[Notifications] Notification permission denied or not determined."
         );
         logFailureResult(
@@ -545,9 +600,11 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
 
       const fcmToken = await getFcmToken();
       if (!fcmToken) {
-        console.error(
-          "[Notifications] Failed to retrieve FCM token during fresh initialization."
-        );
+        if (DEBUG_LOGGING) {
+          console.error(
+            "[Notifications] Failed to retrieve FCM token during fresh initialization."
+          );
+        }
         logFailureResult(
           "GRANTED",
           Platform.OS === "ios"
@@ -568,11 +625,13 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
       const subSuccess = await subscribeToTopic(PRIMARY_TOPIC);
       if (!subSuccess) {
         breakingNewsStatus = "FAILED";
-        console.error(
-          `[Notifications] Failed to subscribe to required topic: ${PRIMARY_TOPIC}`
-        );
-        console.log("[Notifications] Notification initialization FAILED");
-        console.log(
+        if (DEBUG_LOGGING) {
+          console.error(
+            `[Notifications] Failed to subscribe to required topic: ${PRIMARY_TOPIC}`
+          );
+        }
+        debugLog("[Notifications] Notification initialization FAILED");
+        debugLog(
           "[Notifications] notificationsInitialized will remain false so setup can retry"
         );
         logFailureResult(
@@ -596,10 +655,10 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
         }
       }
 
-      console.log(
+      debugLog(
         "[Notifications] All required notification setup completed successfully"
       );
-      console.log(
+      debugLog(
         "[Notifications] Setting notificationsInitialized = true"
       );
       storage.set(NOTIFICATIONS_INITIALIZED_KEY, "true");
@@ -607,32 +666,32 @@ export const initializeNotificationsFlow = async (): Promise<boolean> => {
         NOTIFICATION_SYNC_VERSION_KEY,
         CURRENT_NOTIFICATION_SYNC_VERSION
       );
-      console.log(
+      debugLog(
         "[Notifications] notificationsInitialized saved successfully"
       );
 
-      console.log("[Notifications] ========================================");
-      console.log("[Notifications] Notification initialization SUCCESS");
-      console.log(`[Notifications] Platform: ${Platform.OS}`);
-      console.log("[Notifications] Permission: granted");
-      console.log(
+      debugLog("[Notifications] ========================================");
+      debugLog("[Notifications] Notification initialization SUCCESS");
+      debugLog(`[Notifications] Platform: ${Platform.OS}`);
+      debugLog("[Notifications] Permission: granted");
+      debugLog(
         `[Notifications] Remote messaging registered: ${remoteMessagingRegistered}`
       );
-      console.log(
+      debugLog(
         `[Notifications] APNs token available: ${
           Platform.OS === "ios" ? apnsAvailable : true
         }`
       );
-      console.log("[Notifications] FCM token available: true");
-      console.log("[Notifications] breakingNews subscription: SUCCESS");
-      console.log("[Notifications] notificationsInitialized: true");
-      console.log("[Notifications] ========================================");
+      debugLog("[Notifications] FCM token available: true");
+      debugLog("[Notifications] breakingNews subscription: SUCCESS");
+      debugLog("[Notifications] notificationsInitialized: true");
+      debugLog("[Notifications] ========================================");
 
       return true;
     } catch (error) {
       logNotificationError("initializeNotificationsFlow", error);
-      console.log("[Notifications] Notification initialization FAILED");
-      console.log(
+      debugLog("[Notifications] Notification initialization FAILED");
+      debugLog(
         "[Notifications] notificationsInitialized will remain false so setup can retry"
       );
       logFailureResult(
@@ -661,26 +720,26 @@ const logFailureResult = (
   breakingNewsStatus: string,
   isInitialized: boolean
 ) => {
-  console.log("[Notifications] ========================================");
-  console.log("[Notifications] Notification initialization FAILED");
-  console.log(`[Notifications] Platform: ${Platform.OS}`);
-  console.log(`[Notifications] Permission: ${permissionStatus}`);
-  console.log(
+  debugLog("[Notifications] ========================================");
+  debugLog("[Notifications] Notification initialization FAILED");
+  debugLog(`[Notifications] Platform: ${Platform.OS}`);
+  debugLog(`[Notifications] Permission: ${permissionStatus}`);
+  debugLog(
     `[Notifications] Remote messaging registered: ${remoteRegistered}`
   );
-  console.log(
+  debugLog(
     `[Notifications] APNs token available: ${
       Platform.OS === "ios" ? apnsAvailable : true
     }`
   );
-  console.log(`[Notifications] FCM token available: ${fcmAvailable}`);
-  console.log(
+  debugLog(`[Notifications] FCM token available: ${fcmAvailable}`);
+  debugLog(
     `[Notifications] breakingNews subscription: ${breakingNewsStatus}`
   );
-  console.log(
+  debugLog(
     `[Notifications] notificationsInitialized: ${isInitialized}`
   );
-  console.log("[Notifications] ========================================");
+  debugLog("[Notifications] ========================================");
 };
 
 /**
@@ -690,23 +749,23 @@ const logFailureResult = (
 export const setupTokenRefreshListener = (): (() => void) => {
   const unsubscribe = messaging().onTokenRefresh(async (newToken) => {
     try {
-      console.log(
+      debugLog(
         "[Notifications] ===== FCM token refresh detected ====="
       );
-      console.log("[Notifications] New FCM token received");
-      console.log(
+      debugLog("[Notifications] New FCM token received");
+      debugLog(
         `[Notifications] New FCM token length: ${newToken?.length || 0}`
       );
-      console.log(
+      debugLog(
         `[Notifications] New FCM token preview: ${maskToken(newToken)}`
       );
-      console.log(
+      debugLog(
         "[Notifications] Re-validating notification/topic setup"
       );
 
       const hasPermission = await checkNotificationPermission();
       if (!hasPermission) {
-        console.log(
+        debugLog(
           "[Notifications] Token refresh: notification permission is not granted. Skipping topic subscriptions."
         );
         return;
@@ -716,7 +775,7 @@ export const setupTokenRefreshListener = (): (() => void) => {
       const breakingNewsEnabled = storage.getString(PRIMARY_TOPIC_KEY);
       if (breakingNewsEnabled !== "false") {
         const subSuccess = await subscribeToTopic(PRIMARY_TOPIC);
-        console.log(
+        debugLog(
           `[Notifications] breakingNews subscription after token refresh: ${
             subSuccess ? "SUCCESS" : "FAILED"
           }`
