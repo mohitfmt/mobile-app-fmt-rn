@@ -39,8 +39,8 @@ const VideoPage = () => {
           renderCategory(
             currentCategory,
             [...categoryItems],
-            renderedSections.length
-          )
+            renderedSections.length,
+          ),
         );
         categoryItems = [];
       }
@@ -64,11 +64,11 @@ const VideoPage = () => {
                   <PlayIcon />
                 </View>
               </View>
-            </TouchableOpacity>
+            </TouchableOpacity>,
           );
         } else if (item.type === "AD_ITEM") {
           renderedSections.push(
-            <BannerAD unit="home" key={`ad-${currentCategory}-${i}`} />
+            <BannerAD unit="home" key={`ad-${currentCategory}-${i}`} />,
           );
         }
       });

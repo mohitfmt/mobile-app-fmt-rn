@@ -80,7 +80,7 @@ export const formatMalaysianDateTime = (inputDate: string | Date): string => {
 
   const parts = formatter.formatToParts(date);
   const partMap = Object.fromEntries(
-    parts.map(({ type, value }) => [type, value])
+    parts.map(({ type, value }) => [type, value]),
   );
 
   return `${partMap.month} ${partMap.day}, ${partMap.year} ${partMap.hour}:${partMap.minute} ${partMap.dayPeriod}`;
@@ -113,8 +113,41 @@ export const formatMalaysianDateTimeS = (inputDate: string | Date): string => {
 
 // Formats date string in "Asia/Kuala_Lumpur" timezone
 
-export const formatTimeAgoMalaysia = (date: string) => {
-  return moment.tz(date, "YYYY-MM-DD HH:mm:ss", "Asia/Kuala_Lumpur").fromNow();
+export const formatTimeAgoMalaysia = (
+  date: string | number | Date | null | undefined,
+) => {
+  if (date == null || date === "") return "";
+
+  const timezone = "Asia/Kuala_Lumpur";
+  const dateString = String(date).trim();
+
+  // Parse common incoming formats strictly first.
+  const strictParsed = moment.tz(
+    dateString,
+    [
+      "YYYY-MM-DD HH:mm:ss",
+      "YYYY-MM-DDTHH:mm:ss",
+      "YYYY-MM-DDTHH:mm:ss.SSS",
+      "YYYY-MM-DD",
+      "DD-MM-YYYY HH:mm:ss",
+      "DD/MM/YYYY HH:mm:ss",
+      "MM/DD/YYYY HH:mm:ss",
+    ],
+    true,
+    timezone,
+  );
+
+  if (strictParsed.isValid()) {
+    return strictParsed.fromNow();
+  }
+
+  // Then allow ISO strings, Date objects, or timestamps.
+  const flexibleParsed = moment(date);
+  if (flexibleParsed.isValid()) {
+    return flexibleParsed.tz(timezone).fromNow();
+  }
+
+  return "";
 };
 
 export const stripHtml = (html: string | null | undefined): string => {
@@ -150,6 +183,33 @@ export const stripHtml = (html: string | null | undefined): string => {
     .trim();
 };
 
+export const trimVideoDescriptionAtReadMore = (
+  value?: string | null,
+): string => {
+  if (!value) return "";
+
+  const normalizedValue = value.replace(/\r\n/g, "\n");
+  const readMoreMatch = normalizedValue.match(/read more:/i);
+  if (!readMoreMatch || readMoreMatch.index == null)
+    return normalizedValue.trim();
+
+  const readMoreIndex = readMoreMatch.index;
+  const afterReadMore = normalizedValue.slice(
+    readMoreIndex + readMoreMatch[0].length,
+  );
+  const urlMatch = afterReadMore.match(/https?:\/\/[^\s<>"')]+/i);
+
+  if (!urlMatch || urlMatch.index == null)
+    return normalizedValue
+      .slice(0, readMoreIndex + readMoreMatch[0].length)
+      .trim();
+
+  const urlStart = readMoreIndex + readMoreMatch[0].length + urlMatch.index;
+  const urlEnd = urlStart + urlMatch[0].length;
+
+  return normalizedValue.slice(0, urlEnd).trim();
+};
+
 export function convertAndAdd8Hours(isoString: string): { date: string } {
   const date = new Date(isoString);
   date.setHours(date.getHours() + 8);
@@ -157,9 +217,9 @@ export function convertAndAdd8Hours(isoString: string): { date: string } {
   const pad = (n: number) => n.toString().padStart(2, "0");
 
   const formatted = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(
-    date.getDate()
+    date.getDate(),
   )} ${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(
-    date.getSeconds()
+    date.getSeconds(),
   )}`;
 
   return { date: formatted };
@@ -191,7 +251,7 @@ export default function Utils() {
 export async function aggressiveRetry<T>(
   category: string,
   fetchFn: () => Promise<T>,
-  maxRetries = 4
+  maxRetries = 4,
 ): Promise<T> {
   const startTime = Date.now();
 
@@ -209,7 +269,7 @@ export async function aggressiveRetry<T>(
         console.warn(
           `[HomePage ISR] ⚠️ ${category} succeeded after ${
             attempt + 1
-          } attempts (${duration}ms)`
+          } attempts (${duration}ms)`,
         );
       }
 
@@ -221,7 +281,7 @@ export async function aggressiveRetry<T>(
         console.error(
           `[HomePage ISR] ${category} attempt ${
             attempt + 1
-          }/${maxRetries} failed, retry in ${delay}ms`
+          }/${maxRetries} failed, retry in ${delay}ms`,
         );
         await new Promise((resolve) => setTimeout(resolve, delay));
       } else {
@@ -229,7 +289,7 @@ export async function aggressiveRetry<T>(
         const duration = Date.now() - startTime;
         console.error(
           `[HomePage ISR] 💥 ${category} FAILED after ${maxRetries} attempts (${duration}ms):`,
-          error.message
+          error.message,
         );
         throw error;
       }
@@ -245,7 +305,7 @@ const transformVideoData = (videoData: any) => {
   const transformVideo = (
     video: any,
     index: number,
-    type: string = "default"
+    type: string = "default",
   ) => {
     if (!video) return null;
 
@@ -291,7 +351,7 @@ export const fetchVideosData = async (): Promise<any[]> => {
         const data = await res.json();
         return data;
       },
-      5
+      5,
     );
 
     if (!response) {
@@ -308,7 +368,11 @@ export const fetchVideosData = async (): Promise<any[]> => {
     if (response.hero && Array.isArray(response.hero)) {
       const heroVideos = response.hero
         .map((video: any, index: number) =>
-          transformVideo(video, index, index === 0 ? "video-featured" : "video")
+          transformVideo(
+            video,
+            index,
+            index === 0 ? "video-featured" : "video",
+          ),
         )
         .filter(Boolean);
 
@@ -332,8 +396,8 @@ export const fetchVideosData = async (): Promise<any[]> => {
             transformVideo(
               video,
               index,
-              index === 0 ? "video-featured" : "video"
-            )
+              index === 0 ? "video-featured" : "video",
+            ),
           )
           .filter(Boolean);
 
@@ -378,8 +442,8 @@ export const fetchVideosData = async (): Promise<any[]> => {
                 transformVideo(
                   video,
                   index,
-                  index === 0 ? "video-featured" : "video"
-                )
+                  index === 0 ? "video-featured" : "video",
+                ),
               )
               .filter(Boolean);
 
@@ -406,7 +470,7 @@ export const fetchVideosData = async (): Promise<any[]> => {
               id: `ad-${playlistKey}`,
             });
           }
-        }
+        },
       );
     }
     return transformedVideos;

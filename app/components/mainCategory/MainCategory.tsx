@@ -276,45 +276,47 @@ const CardTitleSection = React.memo(
   ),
 );
 
-const ReadMoreButton = React.memo(({ title }: { title: string }) => {
-  const router = useRouter();
-  const { textSize } = useContext(GlobalSettingsContext);
-  const normalizedTitle = title.toLowerCase();
-  const isVideo = [
-    "fmt news",
-    "fmt lifestyle",
-    "fmt exclusive",
-    "fmt news capsule",
-    "videos",
-  ].includes(normalizedTitle);
+interface ReadMoreButtonProps {
+  title: string;
+  permalink?: string;
+  type?: string;
+  videoId?: string;
+  isVideo?: boolean;
+}
 
-  const handlePress = useCallback(() => {
-    router.push({
-      pathname: isVideo
-        ? "/components/videos/CategoryVideoPage"
-        : "/components/categoryPage/CategoryPage",
-      params: { CategoryName: title },
-    });
-  }, [router, isVideo, title]);
+const ReadMoreButton = React.memo(
+  ({ title, permalink, type, videoId, isVideo }: ReadMoreButtonProps) => {
+    const router = useRouter();
+    const { textSize } = useContext(GlobalSettingsContext);
 
-  return (
-    <TouchableOpacity style={[styles.readMoreButton]} onPress={handlePress}>
-      <View style={styles.loadMoreContainer}>
-        <Text
-          style={[
-            styles.readMoreText,
-            { fontSize: getArticleTextSize(14.0, textSize) },
-          ]}
-        >
-          Load More
-        </Text>
-        <View style={styles.playIcon}>
-          <PlayIcon />
+    const handlePress = useCallback(() => {
+      router.push({
+        pathname: isVideo
+          ? "/components/videos/CategoryVideoPage"
+          : "/components/categoryPage/CategoryPage",
+        params: { CategoryName: title },
+      });
+    }, [router, isVideo, title]);
+
+    return (
+      <TouchableOpacity style={[styles.readMoreButton]} onPress={handlePress}>
+        <View style={styles.loadMoreContainer}>
+          <Text
+            style={[
+              styles.readMoreText,
+              { fontSize: getArticleTextSize(14.0, textSize) },
+            ]}
+          >
+            Load More
+          </Text>
+          <View style={styles.playIcon}>
+            <PlayIcon />
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
-});
+      </TouchableOpacity>
+    );
+  },
+);
 
 const VideoCardItem = React.memo(
   ({
@@ -892,7 +894,6 @@ const HomeLandingSection = ({
       const isYouTubeLink = selectedItem.permalink?.includes?.("youtube.com");
 
       if (isMetaType) {
-        console.log("meta_item");
         trackPressIssue("meta_item", {
           visibleIndex,
           itemType: selectedItem.type,
@@ -914,7 +915,6 @@ const HomeLandingSection = ({
             : selectedItem.id;
         markAsVisited(idToMark);
       }
-
       // Handle video items
       if (isVideoType || isYouTubeLink) {
         try {
@@ -1044,7 +1044,15 @@ const HomeLandingSection = ({
       }
 
       if (type === "MORE_ITEM") {
-        return <ReadMoreButton title={item.title || "Malaysia"} />;
+        return (
+          <ReadMoreButton
+            isVideo={item?.isVideo}
+            title={item.title || "Malaysia"}
+            permalink={item.permalink}
+            type={item.type}
+            videoId={(item as any).videoId}
+          />
+        );
       }
 
       if (type === "AD_ITEM") {

@@ -83,8 +83,7 @@ const fetchRelatedVideos = async (currentVideoId: string): Promise<any[]> => {
         allVideos.push(...data[key]);
       }
     });
-
-    return allVideos
+    const relatedVideos = allVideos
       .filter((v) => v.videoId !== currentVideoId)
       .slice(0, 5)
       .map((video, index) => ({
@@ -110,6 +109,7 @@ const fetchRelatedVideos = async (currentVideoId: string): Promise<any[]> => {
         channelTitle: video.channelTitle || "FMT",
         statistics: video.statistics || {},
       }));
+    return relatedVideos;
   } catch {
     return [];
   }
@@ -179,12 +179,11 @@ const VideoPlayer = () => {
         isNavigatingRef.current = false;
       }, 500);
     },
-    [markAsVisited]
+    [markAsVisited],
   );
 
   useEffect(() => {
     if (!videoId) return;
-
     // Mark current video as visited when component loads
     markAsVisited(videoId);
 
@@ -261,6 +260,7 @@ const VideoPlayer = () => {
           excerpt: content,
           uri: permalink,
           permalink,
+          isVideo: true,
         }}
         showBookmark={false}
       />
@@ -283,7 +283,7 @@ const VideoPlayer = () => {
                 {
                   fontSize: getArticleTextSize(
                     isTablet ? 18.0 : 16.0,
-                    textSize
+                    textSize,
                   ),
                 },
               ]}
@@ -321,7 +321,7 @@ const VideoPlayer = () => {
                   paddingHorizontal: 18,
                   fontSize: getArticleTextSize(
                     isTablet ? 18.0 : 16.0,
-                    textSize
+                    textSize,
                   ),
                 },
               ]}
@@ -341,7 +341,7 @@ const VideoPlayer = () => {
                     color: theme.textColor,
                     fontSize: getArticleTextSize(
                       isTablet ? 18.0 : 16.0,
-                      textSize
+                      textSize,
                     ),
                   },
                 ]}
@@ -361,7 +361,7 @@ const VideoPlayer = () => {
                       {
                         fontSize: getArticleTextSize(
                           isTablet ? 16.0 : 14.0,
-                          textSize
+                          textSize,
                         ),
                       },
                     ]}
@@ -380,7 +380,7 @@ const VideoPlayer = () => {
                       {
                         fontSize: getArticleTextSize(
                           isTablet ? 16.0 : 14.0,
-                          textSize
+                          textSize,
                         ),
                       },
                     ]}
@@ -456,7 +456,7 @@ const VideoPlayer = () => {
                   {
                     fontSize: getArticleTextSize(
                       isTablet ? 16.0 : 14.0,
-                      textSize
+                      textSize,
                     ),
                     paddingHorizontal: 18,
                   },
@@ -485,7 +485,7 @@ const VideoPlayer = () => {
                     paddingHorizontal: 18,
                     fontSize: getArticleTextSize(
                       isTablet ? 28.0 : 24.0,
-                      textSize
+                      textSize,
                     ),
                     paddingTop: 5,
                   },

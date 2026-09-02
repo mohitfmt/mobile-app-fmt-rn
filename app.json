@@ -38,6 +38,7 @@
     "plugins": [
       "./plugins/withNotificationColorPlugin",
       "./plugins/withAndroidxMedia",
+      "./plugins/withFmtFix",
       "./plugins/withTextEpsilonFix",
       "expo-router",
       "expo-font",
