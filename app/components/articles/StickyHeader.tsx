@@ -17,7 +17,7 @@
 
 import { BookmarkIcon, ShareIcon } from "@/app/assets/AllSVGs";
 import articleStyles from "@/app/css/articleCss";
-import { stripHtml } from "@/app/lib/utils";
+import { stripHtml, trimVideoDescriptionAtReadMore } from "@/app/lib/utils";
 import { useBookmarks } from "@/app/providers/BookmarkContext";
 import { ThemeContext } from "@/app/providers/ThemeProvider";
 import { useRouter } from "expo-router";
@@ -74,9 +74,16 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
   // handleShare: Shares the article using the system share dialog.
   const handleShare = useCallback(async (article: any) => {
     try {
-      const cleanContent = stripHtml(article.excerpt || "");
+      const normalizedExcerpt = article?.isVideo
+        ? trimVideoDescriptionAtReadMore(article.excerpt || "")
+        : article.excerpt || "";
+      const cleanContent = stripHtml(normalizedExcerpt);
       const uri = article.uri || article.permalink;
-      const fullUri = uri?.includes("freemalaysiatoday.com")
+
+      const isAbsoluteUrl =
+        uri?.startsWith("http://") || uri?.startsWith("https://");
+
+      const fullUri = isAbsoluteUrl
         ? uri
         : `https://www.freemalaysiatoday.com${uri}`;
 
@@ -84,7 +91,9 @@ const StickyHeader: React.FC<StickyHeaderProps> = ({
 
       setTimeout(async () => {
         await Share.share({
-          message: `${mainHeading}\n\n${cleanContent}\n\nRead more: ${fullUri}`,
+          message: article?.isVideo
+            ? `${mainHeading}\n\n${cleanContent}`
+            : `${mainHeading}\n\n${cleanContent}\n\nRead more: ${fullUri}`,
           title: mainHeading,
         });
       }, 100);

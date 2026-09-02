@@ -74,7 +74,7 @@ const VideoCardItem = React.memo(
         )}
       </TouchableOpacity>
     );
-  }
+  },
 );
 
 const AdSlotBanner = React.memo(() => <BannerAD unit="ros" />);
@@ -107,7 +107,6 @@ const transformVideoData = (videoData: any): any[] => {
     tier: video.tier || "standard",
   }));
 };
-
 // Video data transformation function for shorts API
 const transformShortsData = (videoData: any): any[] => {
   // Shorts API returns {videos: [], totalCount: number, ...}
@@ -196,7 +195,7 @@ const CategoryVideos = () => {
   const flashListRef = useRef<any>(null);
   const [showBottomBorder, setShowBottomBorder] = useState(false);
   const [visibleItemIndices, setVisibleItemIndices] = useState<Set<number>>(
-    new Set()
+    new Set(),
   ); // Track visible items
   const rotation = useState(new Animated.Value(0))[0];
   const { width } = useWindowDimensions();
@@ -243,9 +242,9 @@ const CategoryVideos = () => {
 
       const separator = apiUrl.includes("?") ? "&" : "?";
       const fullUrl = `${apiUrl}${separator}limit=${API_LIMIT_LOAD_MORE}`;
-
+      console.log(fullUrl);
       const response = await fetch(fullUrl);
-
+      console.log(response, "response123");
       if (!response.ok) {
         throw new Error(`Video API returned ${response.status}`);
       }
@@ -284,7 +283,7 @@ const CategoryVideos = () => {
 
       return processedData;
     },
-    []
+    [],
   );
 
   // Main data fetching function
@@ -308,7 +307,7 @@ const CategoryVideos = () => {
           setProcessedData(processed);
 
           const swipableVideos = processed.filter(
-            (item) => item.type !== "AD_ITEM"
+            (item) => item.type !== "AD_ITEM",
           );
           setMainData(swipableVideos);
           setLoading(false);
@@ -324,7 +323,7 @@ const CategoryVideos = () => {
                   setProcessedData(processed);
 
                   const swipableVideos = processed.filter(
-                    (item) => item.type !== "AD_ITEM"
+                    (item) => item.type !== "AD_ITEM",
                   );
                   setMainData(swipableVideos);
 
@@ -354,7 +353,7 @@ const CategoryVideos = () => {
           setProcessedData(processed);
 
           const swipableVideos = processed.filter(
-            (item) => item.type !== "AD_ITEM"
+            (item) => item.type !== "AD_ITEM",
           );
           setMainData(swipableVideos);
 
@@ -382,7 +381,7 @@ const CategoryVideos = () => {
         setLoading(false);
       }
     },
-    [categoryName, processVideos, setMainData]
+    [categoryName, processVideos, setMainData],
   );
 
   // Load data on component mount and category change
@@ -446,7 +445,7 @@ const CategoryVideos = () => {
       processedData,
       markAsVisited,
       isNavigatingRef,
-    ]
+    ],
   );
 
   const getNonAdIndex = useCallback(
@@ -457,7 +456,7 @@ const CategoryVideos = () => {
           .filter((item) => item.type !== "AD_ITEM").length - 1
       );
     },
-    [processedData]
+    [processedData],
   );
 
   const handleViewableItemsChanged = useCallback(
@@ -470,7 +469,7 @@ const CategoryVideos = () => {
       });
       setVisibleItemIndices(newVisibleIndices);
     },
-    []
+    [],
   );
 
   const renderItem = useCallback(
@@ -498,7 +497,7 @@ const CategoryVideos = () => {
         return null;
       }
     },
-    [handlePress, getNonAdIndex, visibleItemIndices]
+    [handlePress, getNonAdIndex, visibleItemIndices],
   );
 
   if (loading && !backgroundLoading) {
@@ -624,7 +623,6 @@ const CategoryVideos = () => {
           </Animated.View>
         </TouchableOpacity>
       </View>
-
       <FlashList
         ref={flashListRef}
         data={processedData}

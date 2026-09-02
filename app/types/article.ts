@@ -16,6 +16,7 @@ export interface RelatedArticleProps {
 // Define the Type for an Article
 export type ArticleType = {
   id: string;
+  isVideo?: boolean;
   type?:
     | "CARD_TITLE"
     | "MORE_ITEM"
