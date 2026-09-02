@@ -56,3 +56,21 @@ expo-env.d.ts
 fmt-news-app-firebase*.json
 
 .expo/
+
+# Additional Ignores
+.expo-shared/
+dist/
+web-build/
+yarn-debug.log*
+.pnpm-debug.log*
+*.apk
+*.aab
+*.ipa
+*.dSYM/
+*.xcuserdata/
+*.xcworkspace/xcuserdata/
+*.xcodeproj/xcuserdata/
+*.p12
+AuthKey_*.p8
+*.swp
+*.swo

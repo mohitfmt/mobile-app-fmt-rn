@@ -38,6 +38,7 @@
     "plugins": [
       "./plugins/withNotificationColorPlugin",
       "./plugins/withAndroidxMedia",
+      "./plugins/withFmtFix",
       "./plugins/withTextEpsilonFix",
       "expo-router",
       "expo-font",
@@ -97,11 +98,5 @@
       }
     },
     "owner": "mohiteas"
-  },
-  "react-native-google-mobile-ads": {
-    "androidAppId": "ca-app-pub-1691191334203390~5037677560",
-    "android_app_id": "ca-app-pub-1691191334203390~5037677560",
-    "iosAppId": "ca-app-pub-1691191334203390~9795180220",
-    "ios_app_id": "ca-app-pub-1691191334203390~9795180220"
   }
 }

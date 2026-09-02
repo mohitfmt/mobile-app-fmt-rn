@@ -67,8 +67,8 @@ interface Feed {
   priority?: "high" | "medium" | "low";
 }
 
-const AnimatedFlashList = Animated.createAnimatedComponent(
-  FlashList as unknown as new (...args: any[]) => FlashList<ArticleType>,
+const AnimatedFlashList: any = Animated.createAnimatedComponent(
+  FlashList as any,
 );
 
 const useDeviceType = () => {
@@ -1185,7 +1185,6 @@ const HomeLandingSection = ({
         data={visibleData}
         renderItem={renderItem}
         keyExtractor={keyExtractor}
-        estimatedItemSize={shouldUseTabletLayout ? 180 : 140}
         getItemType={getItemType}
         overrideItemLayout={overrideItemLayout}
         drawDistance={400}

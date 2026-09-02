@@ -123,16 +123,17 @@ const VideoPage = () => {
         )}
 
         {items.slice(0, limit).map((item, idx) => {
+          const videoItem = {
+            ...item,
+            date: formatTimeAgoMalaysia(item.date),
+            videoId: item.videoId || item.id || "",
+          };
+
           if (item.isFeatured) {
             return (
               <VideoCard
                 key={`featured-${idx}`}
-                thumbnail={item.thumbnail}
-                title={item.title}
-                content={item.content}
-                date={formatTimeAgoMalaysia(item.date)}
-                permalink={item.permalink}
-                type="video-featured"
+                item={videoItem}
               />
             );
           }
@@ -140,11 +141,7 @@ const VideoPage = () => {
           return (
             <SmallVideoCard
               key={`standard-${idx}`}
-              thumbnail={item.thumbnail}
-              title={item.title}
-              content={item.content}
-              date={formatTimeAgoMalaysia(item.date)}
-              permalink={item.permalink}
+              item={videoItem}
             />
           );
         })}

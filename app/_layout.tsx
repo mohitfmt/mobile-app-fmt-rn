@@ -90,41 +90,13 @@ let routerCalled = false;
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
-// Get FCM Token
-export const getFcmToken = async (): Promise<string | null> => {
-  try {
-    if (Platform.OS === "ios") {
-      await messaging().registerDeviceForRemoteMessages();
+import {
+  getFcmToken,
+  initializeNotificationsFlow,
+  setupTokenRefreshListener,
+} from "@/app/services/notificationService";
 
-      const settings = await messaging().requestPermission();
-      if (
-        settings === messaging.AuthorizationStatus.AUTHORIZED ||
-        settings === messaging.AuthorizationStatus.PROVISIONAL
-      ) {
-        const apnsToken = await messaging().getAPNSToken();
-        // console.log('APNs Token:', apnsToken);
-
-        if (!apnsToken) {
-          // console.log("Retrying to get APNs token...");
-          return new Promise((resolve) =>
-            setTimeout(() => resolve(getFcmToken()), 3000),
-          );
-        }
-      } else {
-        console.warn("iOS push permission not granted.");
-        return null;
-      }
-    }
-    await messaging().subscribeToTopic("check");
-
-    const fcmToken = await messaging().getToken();
-    // console.log("FCM Token:", fcmToken);
-    return fcmToken;
-  } catch (error) {
-    console.error("Error getting FCM token:", error);
-    return null;
-  }
-};
+export { getFcmToken };
 
 // Create Notification Channel
 const createNotificationChannel = async (): Promise<string | null> => {
@@ -237,54 +209,18 @@ const requestAndroidNotificationPermission = async (): Promise<boolean> => {
   return true;
 };
 
-// Request iOS Notification Permission
-const requestIOSNotificationPermission = async (): Promise<boolean> => {
-  if (Platform.OS !== "ios") return true;
-
-  try {
-    const settings = await notifee.requestPermission({
-      alert: true,
-      badge: true,
-      sound: true,
-    });
-    return settings.authorizationStatus >= AuthorizationStatus.AUTHORIZED;
-  } catch (error) {
-    console.error("Error requesting iOS notification permission:", error);
-    return false;
-  }
-};
-
-// Subscribe to Topic
-const subscribeToTopic = async (topic: string) => {
-  try {
-    await messaging().subscribeToTopic(topic);
-  } catch (error) {
-    console.error(`Error subscribing to ${topic}:`, error);
-  }
-};
-
 // Initialize Notifications
 const initializeNotifications = async () => {
   try {
-    const androidPermissionGranted =
-      await requestAndroidNotificationPermission();
-    const iosPermissionGranted = await requestIOSNotificationPermission();
-
     if (Platform.OS === "android") {
       await createNotificationChannel();
     }
 
-    if (Platform.OS === "ios") {
-      await messaging().registerDeviceForRemoteMessages();
-    }
+    // Run unified notification initialization flow
+    await initializeNotificationsFlow();
 
-    let token = null;
-    if (androidPermissionGranted || iosPermissionGranted) {
-      token = await getFcmToken();
-      if (token) {
-        await subscribeToTopic("ping");
-      }
-    }
+    // Register token refresh listener
+    setupTokenRefreshListener();
 
     // Foreground notification handler
     let lastMessageId: string | undefined;
@@ -362,11 +298,8 @@ const initializeNotifications = async () => {
         article_id: initialMessage.data?.slug,
       });
     }
-
-    return token;
   } catch (error) {
     console.error("Notification initialization failed:", error);
-    return null;
   }
 };
 
